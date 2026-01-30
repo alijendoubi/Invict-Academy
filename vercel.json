@@ -1,8 +1,9 @@
+```json
 {
     "version": 2,
     "public": true,
     "buildCommand": "npm run build --workspace=web",
     "installCommand": "npm install",
-    "ignoreCommand": "false",
-    "framework": "nextjs"
+    "ignoreCommand": "false"
 }
+```

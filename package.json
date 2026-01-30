@@ -11,12 +11,15 @@
         "db:generate": "npm run db:generate --workspace=@invict/db",
         "db:seed": "npm run db:seed --workspace=@invict/db",
         "dev": "concurrently \"npm run dev --workspace=api\" \"npm run dev --workspace=web\"",
-        "build": "npm run build --workspaces"
+        "build": "npm run build --workspaces",
+        "next": "next"
+    },
+    "dependencies": {
+        "next": "14.1.0",
+        "prisma": "^5.10.2"
     },
     "devDependencies": {
         "concurrently": "^8.2.2",
-        "next": "14.1.0",
-        "prisma": "^5.10.2",
         "typescript": "^5.3.3"
     }
 }
