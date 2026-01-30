@@ -1,0 +1,378 @@
+// d:/InvictAcademy/packages/db/prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Enums
+enum Role {
+  SUPER_ADMIN
+  ADMIN
+  STAFF
+  STUDENT
+  ASSOCIATE
+}
+
+enum LeadStatus {
+  NEW
+  CONTACTED
+  QUALIFIED
+  CONSULT_BOOKED
+  WON
+  LOST
+}
+
+enum StudentStatus {
+  ACTIVE
+  APPLYING
+  ACCEPTED
+  VISA_IN_PROGRESS
+  DEPARTED
+  ARRIVED
+  COMPLETED
+}
+
+enum ApplicationType {
+  UNIVERSITY
+  SCHOLARSHIP
+  VISA
+}
+
+enum ApplicationStatus {
+  DRAFT
+  DOCUMENTS_PENDING
+  SUBMITTED
+  UNDER_REVIEW
+  APPROVED
+  REJECTED
+}
+
+enum DocumentStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum TaskPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum TaskStatus {
+  TODO
+  IN_PROGRESS
+  DONE
+}
+
+// Core Models
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  firstName String
+  lastName  String
+  role      Role     @default(STUDENT)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // Relations
+  studentProfile   StudentProfile?
+  associateProfile AssociateProfile?
+  assignedLeads    Lead[]          @relation("StaffLeads")
+  createdTasks     Task[]          @relation("TaskCreator")
+  assignedTasks    Task[]          @relation("TaskAssignee")
+  auditLogs        AuditLog[]
+  notifications    NotificationLog[]
+  sessions         Session[]
+}
+
+model Session {
+  id           String   @id @default(uuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  refreshToken String   @unique
+  expiresAt    DateTime
+  createdAt    DateTime @default(now())
+}
+
+model Lead {
+  id          String     @id @default(uuid())
+  firstName   String
+  lastName    String
+  email       String     // Can be duplicate if multiple inquiries? Better unique per lead or allow duplicates? keeping unique for CRM sanity
+  phone       String?
+  source      String?    // Instagram, Website, SEO, etc.
+  status      LeadStatus @default(NEW)
+  score       Int        @default(0)
+  
+  // Expanded Fields
+  destinationInterests String[]
+  degreeLevel          String?
+  budgetRange          String?
+  timeline             String?
+  
+  // Assignment
+  assignedToId String?
+  assignedTo   User?   @relation("StaffLeads", fields: [assignedToId], references: [id])
+  
+  associateId  String?
+  associate    AssociateProfile? @relation(fields: [associateId], references: [id])
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  activities  LeadActivity[]
+  notes       String?  @db.Text
+  tags        LeadTag[]
+  tasks       Task[]
+}
+
+model LeadActivity {
+  id        String   @id @default(uuid())
+  leadId    String
+  lead      Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  type      String   // CALL, EMAIL, WHATSAPP, NOTE, STATUS_CHANGE
+  content   String
+  createdAt DateTime @default(now())
+}
+
+model LeadTag {
+  id     String @id @default(uuid())
+  name   String
+  leadId String
+  lead   Lead   @relation(fields: [leadId], references: [id], onDelete: Cascade)
+}
+
+model StudentProfile {
+  id        String        @id @default(uuid())
+  userId    String        @unique
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  status    StudentStatus @default(ACTIVE)
+  
+  phone            String?
+  dateOfBirth      DateTime?
+  nationality      String?
+  degreeLevel      String?
+  universityInterest String?
+  passportNumber   String?
+  passportExpiry   DateTime?
+  
+  parentName       String?
+  parentPhone      String?
+  emergencyContact String?
+  
+  address          String?
+  readinessScore   Int @default(0)
+  
+  applications     Application[]
+  documents        Document[]
+  invoices         Invoice[]
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Application {
+  id             String            @id @default(uuid())
+  studentId      String
+  student        StudentProfile    @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  type           ApplicationType
+  status         ApplicationStatus @default(DRAFT)
+  
+  country        String
+  university     String?
+  program        String?
+  intakeTerm     String?
+  deadline       DateTime?
+  
+  checklistItems ChecklistItem[]
+  
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  tasks          Task[]
+}
+
+model ChecklistItem {
+  id            String      @id @default(uuid())
+  applicationId String
+  application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  text          String
+  isCompleted   Boolean     @default(false)
+}
+
+model Document {
+  id          String         @id @default(uuid())
+  studentId   String
+  student     StudentProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  
+  type        String         // PASSPORT, TRANSCRIPT, etc.
+  s3Key       String
+  filename    String
+  mimeType    String
+  size        Int
+  
+  status      DocumentStatus @default(PENDING)
+  rejectionReason String?
+  
+  expiryDate  DateTime?
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Task {
+  id          String       @id @default(uuid())
+  title       String
+  description String?
+  priority    TaskPriority @default(MEDIUM)
+  status      TaskStatus   @default(TODO)
+  dueDate     DateTime?
+  
+  creatorId   String?
+  creator     User?        @relation("TaskCreator", fields: [creatorId], references: [id])
+  
+  assignedToId String?
+  assignedTo   User?       @relation("TaskAssignee", fields: [assignedToId], references: [id])
+  
+  // Relations to other entities
+  leadId        String?
+  lead          Lead?        @relation(fields: [leadId], references: [id])
+  
+  applicationId String?
+  application   Application? @relation(fields: [applicationId], references: [id])
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model AssociateProfile {
+  id        String   @id @default(uuid())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  referralCode String @unique
+  commissionRate Float @default(10.0) // Percent
+  
+  leads     Lead[]
+  payouts   Payout[]
+  ledger    CommissionLedger[]
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model CommissionLedger {
+  id          String           @id @default(uuid())
+  associateId String
+  associate   AssociateProfile @relation(fields: [associateId], references: [id])
+  amount      Float
+  description String
+  status      String           // PENDING, PAID
+  createdAt   DateTime         @default(now())
+}
+
+model Payout {
+  id          String           @id @default(uuid())
+  associateId String
+  associate   AssociateProfile @relation(fields: [associateId], references: [id])
+  amount      Float
+  status      String           // REQUESTED, PROCESSED
+  createdAt   DateTime         @default(now())
+}
+
+model Package {
+  id          String    @id @default(uuid())
+  name        String
+  price       Float
+  features    String[]
+  invoices    Invoice[]
+  createdAt   DateTime  @default(now())
+}
+
+model Invoice {
+  id          String         @id @default(uuid())
+  studentId   String
+  student     StudentProfile @relation(fields: [studentId], references: [id])
+  packageId   String?
+  package     Package?       @relation(fields: [packageId], references: [id])
+  amount      Float
+  status      String         // UNPAID, PARTIAL, PAID
+  dueDate     DateTime?
+  paidAmount  Float          @default(0)
+  
+  payments    Payment[]
+  
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+}
+
+model Payment {
+  id        String   @id @default(uuid())
+  invoiceId String
+  invoice   Invoice  @relation(fields: [invoiceId], references: [id])
+  amount    Float
+  method    String   // STRIPE, BANK_TRANSFER, MANUAL
+  status    String   // SUCCESS, FAILED
+  reference String?
+  createdAt DateTime @default(now())
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id])
+  action    String
+  entity    String
+  entityId  String
+  details   String?
+  createdAt DateTime @default(now())
+}
+
+model NotificationLog {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  channel   String   // EMAIL, WHATSAPP, SYSTEM
+  type      String   // WELCOME, REMINDER, etc.
+  content   String?
+  metadata  Json?
+  sentAt    DateTime @default(now())
+}
+
+model BlogPost {
+  id          String   @id @default(uuid())
+  title       String
+  slug        String   @unique
+  content     String   @db.Text
+  excerpt     String?
+  coverImage  String?
+  published   Boolean  @default(false)
+  category    String?
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model ChatConversation {
+  id        String   @id @default(uuid())
+  userId    String?
+  messages  Json     // Array of {role, content, timestamp}
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model NewsletterSubscriber {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+}
+

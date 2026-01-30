@@ -1,0 +1,19 @@
+{
+    "name": "invict-academy-monorepo",
+    "private": true,
+    "workspaces": [
+        "apps/*",
+        "packages/*"
+    ],
+    "scripts": {
+        "db:migrate": "npm run db:migrate --workspace=@invict/db",
+        "db:generate": "npm run db:generate --workspace=@invict/db",
+        "db:seed": "npm run db:seed --workspace=@invict/db",
+        "dev": "concurrently \"npm run dev --workspace=api\" \"npm run dev --workspace=web\"",
+        "build": "npm run build --workspaces"
+    },
+    "devDependencies": {
+        "concurrently": "^8.2.2",
+        "typescript": "^5.3.3"
+    }
+}
