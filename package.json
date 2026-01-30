@@ -6,6 +6,7 @@
         "packages/*"
     ],
     "scripts": {
+        "postinstall": "npm run db:generate --workspace=@invict/db",
         "db:migrate": "npm run db:migrate --workspace=@invict/db",
         "db:generate": "npm run db:generate --workspace=@invict/db",
         "db:seed": "npm run db:seed --workspace=@invict/db",
