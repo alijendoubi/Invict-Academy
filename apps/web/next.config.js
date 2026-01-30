@@ -9,7 +9,7 @@ const nextConfig = {
             },
         ],
     },
-    // Ensure the build process doesn't fail on lint/ts errors for the demo
+    // Move these to a more standard Next.js 14 format
     typescript: {
         ignoreBuildErrors: true,
     },

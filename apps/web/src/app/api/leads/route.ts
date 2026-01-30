@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { getSession } from '@/lib/auth';
-import { notificationQueue } from '@/lib/queue';
+import { getNotificationQueue } from '@/lib/queue';
 
 export const dynamic = 'force-dynamic';
 
@@ -62,17 +62,20 @@ export async function POST(request: NextRequest) {
 
         // Trigger unified notification flow
         try {
-            await notificationQueue.add('send-lead-welcome', {
-                email: lead.email,
-                name: lead.firstName,
-                leadId: lead.id,
-            });
+            const queue = getNotificationQueue();
+            if (queue) {
+                await queue.add('send-lead-welcome', {
+                    email: lead.email,
+                    name: lead.firstName,
+                    leadId: lead.id,
+                });
 
-            await notificationQueue.add('send-staff-notification', {
-                email: 'staff@invictacademy.com',
-                leadId: lead.id,
-                leadName: `${lead.firstName} ${lead.lastName}`,
-            });
+                await queue.add('send-staff-notification', {
+                    email: 'staff@invictacademy.com',
+                    leadId: lead.id,
+                    leadName: `${lead.firstName} ${lead.lastName}`,
+                });
+            }
         } catch (queueError) {
             console.error('Failed to queue notifications for new lead:', queueError);
             // Don't fail the request if notifications fail

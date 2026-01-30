@@ -22,23 +22,22 @@ export interface NotificationJob {
 
 // Lazy-loaded Redis connection
 let redisConnection: Redis | null = null;
+const isBuildPhase = process.env.NEXT_PHASE === 'phase-production-build';
 
 export const getConnection = () => {
-    if (typeof window !== 'undefined') return null; // Prevent client-side usage
+    if (typeof window !== 'undefined' || isBuildPhase) return null;
 
     if (!redisConnection) {
+        console.log('🔌 Initializing Redis connection...');
         redisConnection = new Redis(process.env.REDIS_URL || 'redis://localhost:6379', {
             maxRetriesPerRequest: null,
             // Add connection timeout and retry strategy for better stability
             connectTimeout: 10000,
-            retryStrategy: (times) => {
-                const delay = Math.min(times * 50, 2000);
-                return delay;
-            },
+            retryStrategy: (times) => Math.min(times * 50, 2000),
         });
 
         redisConnection.on('error', (err) => {
-            if (process.env.NEXT_PHASE === 'phase-production-build') {
+            if (isBuildPhase) {
                 // Ignore Redis errors during build phase
                 return;
             }
@@ -54,62 +53,42 @@ let _documentQueue: Queue<DocumentJob> | null = null;
 let _notificationQueue: Queue<NotificationJob> | null = null;
 
 export const getEmailQueue = () => {
+    if (isBuildPhase) return null;
     if (!_emailQueue) {
         const conn = getConnection();
-        if (!conn) throw new Error('Redis connection not available');
+        if (!conn) return null;
         _emailQueue = new Queue<EmailJob>('email-notifications', { connection: conn });
     }
     return _emailQueue;
 };
 
 export const getDocumentQueue = () => {
+    if (isBuildPhase) return null;
     if (!_documentQueue) {
         const conn = getConnection();
-        if (!conn) throw new Error('Redis connection not available');
+        if (!conn) return null;
         _documentQueue = new Queue<DocumentJob>('document-processing', { connection: conn });
     }
     return _documentQueue;
 };
 
 export const getNotificationQueue = () => {
+    if (isBuildPhase) return null;
     if (!_notificationQueue) {
         const conn = getConnection();
-        if (!conn) throw new Error('Redis connection not available');
+        if (!conn) return null;
         _notificationQueue = new Queue<NotificationJob>('notifications', { connection: conn });
     }
     return _notificationQueue;
 };
 
-// Maintain backward compatibility with existing imports by using proxies or getters
-export const emailQueue = typeof Proxy !== 'undefined' ? new Proxy({} as Queue<EmailJob>, {
-    get: (_, prop) => {
-        const queue = getEmailQueue();
-        const value = (queue as any)[prop];
-        return typeof value === 'function' ? value.bind(queue) : value;
-    }
-}) : null as unknown as Queue<EmailJob>;
-
-export const documentQueue = typeof Proxy !== 'undefined' ? new Proxy({} as Queue<DocumentJob>, {
-    get: (_, prop) => {
-        const queue = getDocumentQueue();
-        const value = (queue as any)[prop];
-        return typeof value === 'function' ? value.bind(queue) : value;
-    }
-}) : null as unknown as Queue<DocumentJob>;
-
-export const notificationQueue = typeof Proxy !== 'undefined' ? new Proxy({} as Queue<NotificationJob>, {
-    get: (_, prop) => {
-        const queue = getNotificationQueue();
-        const value = (queue as any)[prop];
-        return typeof value === 'function' ? value.bind(queue) : value;
-    }
-}) : null as unknown as Queue<NotificationJob>;
-
 // Queue utilities using the lazy getters
 export const queueService = {
     async sendEmail(job: EmailJob) {
         try {
-            await getEmailQueue().add('send-email', job, {
+            const queue = getEmailQueue();
+            if (!queue) return { success: false, error: 'Queue not available during build' };
+            await queue.add('send-email', job, {
                 attempts: 3,
                 backoff: { type: 'exponential', delay: 2000 },
             });
@@ -122,7 +101,9 @@ export const queueService = {
 
     async processDocument(job: DocumentJob) {
         try {
-            await getDocumentQueue().add('process-document', job, {
+            const queue = getDocumentQueue();
+            if (!queue) return { success: false, error: 'Queue not available during build' };
+            await queue.add('process-document', job, {
                 attempts: 2,
                 backoff: { type: 'fixed', delay: 5000 },
             });
@@ -135,7 +116,9 @@ export const queueService = {
 
     async sendNotification(job: NotificationJob) {
         try {
-            await getNotificationQueue().add('send-notification', job, {
+            const queue = getNotificationQueue();
+            if (!queue) return { success: false, error: 'Queue not available during build' };
+            await queue.add('send-notification', job, {
                 attempts: 3,
                 backoff: { type: 'exponential', delay: 1000 },
             });
@@ -150,6 +133,8 @@ export const queueService = {
         const queue = queueName === 'email' ? getEmailQueue() :
             queueName === 'document' ? getDocumentQueue() :
                 getNotificationQueue();
+
+        if (!queue) return null;
 
         const [waiting, active, completed, failed] = await Promise.all([
             queue.getWaitingCount(),
@@ -169,18 +154,11 @@ export const queueService = {
             queueName === 'document' ? getDocumentQueue() :
                 getNotificationQueue();
 
+        if (!queue) return { success: false };
         await queue.clean(24 * 60 * 60 * 1000, 100, 'completed');
         return { success: true };
     },
 };
 
-// Export connection getter and original connection variable (as a getter proxy) for workers
-export const connection = typeof Proxy !== 'undefined' ? new Proxy({} as Redis, {
-    get: (_, prop) => {
-        const conn = getConnection();
-        if (!conn) return undefined;
-        const value = (conn as any)[prop];
-        return typeof value === 'function' ? value.bind(conn) : value;
-    }
-}) : null as unknown as Redis;
-
+// Export connection getter for workers
+export const connection = getConnection;
