@@ -1,4 +1,5 @@
 import Link from "next/link"
+import Image from "next/image"
 import { Facebook, Instagram, Twitter, Linkedin, Mail, Phone, MapPin } from "lucide-react"
 
 export function Footer() {
@@ -9,9 +10,11 @@ export function Footer() {
                     {/* Brand */}
                     <div className="lg:col-span-2 space-y-6">
                         <Link href="/" className="flex items-center space-x-2">
-                            <img
+                            <Image
                                 src="/Logo.png"
                                 alt="Invict Academy Logo"
+                                width={160}
+                                height={96}
                                 className="h-24 w-auto rounded-2xl object-contain mb-8"
                             />
                         </Link>

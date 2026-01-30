@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -28,11 +28,7 @@ export default function LeadsPage() {
     const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
     const [submitting, setSubmitting] = useState(false)
 
-    useEffect(() => {
-        fetchLeads()
-    }, [statusFilter]) // Refetch on filter change
-
-    const fetchLeads = async (search = searchTerm) => {
+    const fetchLeads = useCallback(async (search = searchTerm) => {
         setLoading(true)
         try {
             const params = new URLSearchParams()
@@ -77,7 +73,11 @@ export default function LeadsPage() {
         } finally {
             setLoading(false)
         }
-    }
+    }, [statusFilter, searchTerm])
+
+    useEffect(() => {
+        fetchLeads()
+    }, [fetchLeads]) // Refetch on fetchLeads change (which depends on statusFilter and searchTerm)
 
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault()

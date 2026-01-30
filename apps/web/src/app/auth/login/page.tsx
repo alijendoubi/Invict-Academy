@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import Link from "next/link"
+import Image from "next/image"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -71,9 +72,11 @@ export default function LoginPage() {
             <Card className="w-full max-w-md bg-[#0B1020] border-white/10">
                 <CardHeader className="space-y-1">
                     <Link href="/" className="flex items-center space-x-2 mb-8">
-                        <img
+                        <Image
                             src="/Logo.png"
                             alt="Invict Academy Logo"
+                            width={200}
+                            height={64}
                             className="h-16 w-auto rounded-2xl object-contain"
                         />
                     </Link>
@@ -145,7 +148,7 @@ export default function LoginPage() {
                 </CardContent>
                 <CardFooter className="flex flex-col space-y-4">
                     <div className="text-sm text-center text-gray-400">
-                        Don't have an account?{" "}
+                        Don&apos;t have an account?{" "}
                         <Link href="/auth/signup" className="text-cyan-400 hover:text-cyan-300 font-medium">
                             Sign up
                         </Link>

@@ -2,6 +2,7 @@
 
 import { usePathname } from "next/navigation"
 import Link from "next/link"
+import Image from "next/image"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import {
@@ -77,9 +78,11 @@ export default function DashboardLayout({
                     {/* Logo */}
                     <div className="flex items-center justify-between p-6 border-b border-white/10">
                         <Link href="/dashboard" className="flex items-center space-x-2">
-                            <img
+                            <Image
                                 src="/Logo.png"
                                 alt="Invict Academy Logo"
+                                width={120}
+                                height={40}
                                 className="h-10 w-auto rounded-lg object-contain"
                             />
                         </Link>

@@ -22,7 +22,7 @@ export default function SuccessStoriesPage() {
                         <Card key={i} className="bg-[#0B1020] border-white/10 p-6 relative">
                             <Quote className="absolute top-6 right-6 text-white/5 h-12 w-12" />
                             <CardContent className="space-y-4 pt-4">
-                                <p className="text-gray-300 italic text-lg">"{story.quote}"</p>
+                                <p className="text-gray-300 italic text-lg">&quot;{story.quote}&quot;</p>
                                 <div className="border-t border-white/5 pt-4">
                                     <div className="font-bold text-white">{story.name}</div>
                                     <div className="text-cyan-400 text-sm">{story.dest}</div>

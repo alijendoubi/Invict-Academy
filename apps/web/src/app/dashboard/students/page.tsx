@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -21,11 +21,7 @@ export default function StudentsPage() {
     const [searchTerm, setSearchTerm] = useState("")
     const [statusFilter, setStatusFilter] = useState("all")
 
-    useEffect(() => {
-        fetchStudents()
-    }, [statusFilter])
-
-    const fetchStudents = async (search = searchTerm) => {
+    const fetchStudents = useCallback(async (search = searchTerm) => {
         setLoading(true)
         try {
             const params = new URLSearchParams()
@@ -61,7 +57,11 @@ export default function StudentsPage() {
         } finally {
             setLoading(false)
         }
-    }
+    }, [statusFilter, searchTerm])
+
+    useEffect(() => {
+        fetchStudents()
+    }, [fetchStudents])
 
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault()

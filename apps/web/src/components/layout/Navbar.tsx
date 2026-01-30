@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import Link from "next/link"
+import Image from "next/image"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -23,9 +24,11 @@ export function Navbar() {
             <div className="container mx-auto px-4 h-[120px] flex items-center justify-between">
                 {/* Logo */}
                 <Link href="/" className="flex items-center space-x-2">
-                    <img
+                    <Image
                         src="/Logo.png"
                         alt="Invict Academy Logo"
+                        width={110}
+                        height={110}
                         className="h-[110px] w-[110px] rounded-xl object-contain hover:scale-105 transition-transform duration-300"
                     />
                 </Link>

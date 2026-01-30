@@ -151,8 +151,8 @@ export default function EligibilityPage() {
                                         </SelectTrigger>
                                         <SelectContent className="bg-[#0B1020] border-white/10 text-white">
                                             <SelectItem value="high_school">High School</SelectItem>
-                                            <SelectItem value="bachelor">Bachelor's Degree</SelectItem>
-                                            <SelectItem value="master">Master's Degree</SelectItem>
+                                            <SelectItem value="bachelor">Bachelor&apos;s Degree</SelectItem>
+                                            <SelectItem value="master">Master&apos;s Degree</SelectItem>
                                         </SelectContent>
                                     </Select>
                                 </div>
@@ -171,8 +171,8 @@ export default function EligibilityPage() {
                                             <SelectValue placeholder="I want to study..." />
                                         </SelectTrigger>
                                         <SelectContent className="bg-[#0B1020] border-white/10 text-white">
-                                            <SelectItem value="bachelor">Bachelor's Degree</SelectItem>
-                                            <SelectItem value="master">Master's Degree</SelectItem>
+                                            <SelectItem value="bachelor">Bachelor&apos;s Degree</SelectItem>
+                                            <SelectItem value="master">Master&apos;s Degree</SelectItem>
                                             <SelectItem value="phd">PhD / Research</SelectItem>
                                         </SelectContent>
                                     </Select>

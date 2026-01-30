@@ -12,7 +12,7 @@
         "db:seed": "npm run db:seed --workspace=@invict/db",
         "dev": "concurrently \"npm run dev --workspace=api\" \"npm run dev --workspace=web\"",
         "build": "npm run build --workspaces",
-        "next": "next"
+        "next": "npx next"
     },
     "dependencies": {
         "next": "14.1.0",

@@ -190,7 +190,7 @@ export default function Home() {
                     <div className="text-center mb-24 space-y-4">
                         <Badge className="bg-blue-500/10 text-blue-400 border-blue-500/20 px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest">The Student Journey</Badge>
                         <h2 className="text-4xl lg:text-5xl font-black">Your Path from A to Z</h2>
-                        <p className="text-gray-500 max-w-2xl mx-auto">We don't just consult; we execute every step with you.</p>
+                        <p className="text-gray-500 max-w-2xl mx-auto">We don&apos;t just consult; we execute every step with you.</p>
                     </div>
 
                     <div className="grid md:grid-cols-4 gap-4 relative">

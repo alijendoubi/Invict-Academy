@@ -1,12 +1,12 @@
-import { Module } from '@nestjs/common';
-import { LeadsService } from './leads.service';
-import { LeadsController } from './leads.controller';
+import { Module } from "@nestjs/common";
+import { LeadsService } from "./leads.service";
+import { LeadsController } from "./leads.controller";
 
-import { NotificationsModule } from '../notifications/notifications.module';
+import { NotificationsModule } from "../notifications/notifications.module";
 
 @Module({
-    imports: [NotificationsModule],
-    controllers: [LeadsController],
-    providers: [LeadsService],
+  imports: [NotificationsModule],
+  controllers: [LeadsController],
+  providers: [LeadsService],
 })
-export class LeadsModule { }
+export class LeadsModule {}

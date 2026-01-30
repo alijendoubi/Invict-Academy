@@ -1,12 +1,7 @@
-import { Queue, Worker, Job } from 'bullmq';
+import { Queue } from 'bullmq';
 import { Redis } from 'ioredis';
 
-// Redis connection
-const connection = new Redis(process.env.REDIS_URL || 'redis://localhost:6379', {
-    maxRetriesPerRequest: null,
-});
-
-// Define job types
+// Types
 export interface EmailJob {
     type: 'welcome' | 'application_status' | 'task_reminder';
     to: string;
@@ -25,24 +20,98 @@ export interface NotificationJob {
     data: Record<string, any>;
 }
 
-// Create queues
-export const emailQueue = new Queue<EmailJob>('email-notifications', { connection });
-export const documentQueue = new Queue<DocumentJob>('document-processing', { connection });
-export const notificationQueue = new Queue<NotificationJob>('notifications', { connection });
+// Lazy-loaded Redis connection
+let redisConnection: Redis | null = null;
 
-// Queue utilities
+export const getConnection = () => {
+    if (typeof window !== 'undefined') return null; // Prevent client-side usage
+
+    if (!redisConnection) {
+        redisConnection = new Redis(process.env.REDIS_URL || 'redis://localhost:6379', {
+            maxRetriesPerRequest: null,
+            // Add connection timeout and retry strategy for better stability
+            connectTimeout: 10000,
+            retryStrategy: (times) => {
+                const delay = Math.min(times * 50, 2000);
+                return delay;
+            },
+        });
+
+        redisConnection.on('error', (err) => {
+            if (process.env.NEXT_PHASE === 'phase-production-build') {
+                // Ignore Redis errors during build phase
+                return;
+            }
+            console.error('Redis connection error:', err);
+        });
+    }
+    return redisConnection;
+};
+
+// Lazy-loaded Queues
+let _emailQueue: Queue<EmailJob> | null = null;
+let _documentQueue: Queue<DocumentJob> | null = null;
+let _notificationQueue: Queue<NotificationJob> | null = null;
+
+export const getEmailQueue = () => {
+    if (!_emailQueue) {
+        const conn = getConnection();
+        if (!conn) throw new Error('Redis connection not available');
+        _emailQueue = new Queue<EmailJob>('email-notifications', { connection: conn });
+    }
+    return _emailQueue;
+};
+
+export const getDocumentQueue = () => {
+    if (!_documentQueue) {
+        const conn = getConnection();
+        if (!conn) throw new Error('Redis connection not available');
+        _documentQueue = new Queue<DocumentJob>('document-processing', { connection: conn });
+    }
+    return _documentQueue;
+};
+
+export const getNotificationQueue = () => {
+    if (!_notificationQueue) {
+        const conn = getConnection();
+        if (!conn) throw new Error('Redis connection not available');
+        _notificationQueue = new Queue<NotificationJob>('notifications', { connection: conn });
+    }
+    return _notificationQueue;
+};
+
+// Maintain backward compatibility with existing imports by using proxies or getters
+export const emailQueue = typeof Proxy !== 'undefined' ? new Proxy({} as Queue<EmailJob>, {
+    get: (_, prop) => {
+        const queue = getEmailQueue();
+        const value = (queue as any)[prop];
+        return typeof value === 'function' ? value.bind(queue) : value;
+    }
+}) : null as unknown as Queue<EmailJob>;
+
+export const documentQueue = typeof Proxy !== 'undefined' ? new Proxy({} as Queue<DocumentJob>, {
+    get: (_, prop) => {
+        const queue = getDocumentQueue();
+        const value = (queue as any)[prop];
+        return typeof value === 'function' ? value.bind(queue) : value;
+    }
+}) : null as unknown as Queue<DocumentJob>;
+
+export const notificationQueue = typeof Proxy !== 'undefined' ? new Proxy({} as Queue<NotificationJob>, {
+    get: (_, prop) => {
+        const queue = getNotificationQueue();
+        const value = (queue as any)[prop];
+        return typeof value === 'function' ? value.bind(queue) : value;
+    }
+}) : null as unknown as Queue<NotificationJob>;
+
+// Queue utilities using the lazy getters
 export const queueService = {
-    /**
-     * Add email job to queue
-     */
     async sendEmail(job: EmailJob) {
         try {
-            await emailQueue.add('send-email', job, {
+            await getEmailQueue().add('send-email', job, {
                 attempts: 3,
-                backoff: {
-                    type: 'exponential',
-                    delay: 2000,
-                },
+                backoff: { type: 'exponential', delay: 2000 },
             });
             return { success: true };
         } catch (error) {
@@ -51,17 +120,11 @@ export const queueService = {
         }
     },
 
-    /**
-     * Add document processing job
-     */
     async processDocument(job: DocumentJob) {
         try {
-            await documentQueue.add('process-document', job, {
+            await getDocumentQueue().add('process-document', job, {
                 attempts: 2,
-                backoff: {
-                    type: 'fixed',
-                    delay: 5000,
-                },
+                backoff: { type: 'fixed', delay: 5000 },
             });
             return { success: true };
         } catch (error) {
@@ -70,17 +133,11 @@ export const queueService = {
         }
     },
 
-    /**
-     * Add notification job
-     */
     async sendNotification(job: NotificationJob) {
         try {
-            await notificationQueue.add('send-notification', job, {
+            await getNotificationQueue().add('send-notification', job, {
                 attempts: 3,
-                backoff: {
-                    type: 'exponential',
-                    delay: 1000,
-                },
+                backoff: { type: 'exponential', delay: 1000 },
             });
             return { success: true };
         } catch (error) {
@@ -89,13 +146,10 @@ export const queueService = {
         }
     },
 
-    /**
-     * Get queue statistics
-     */
     async getQueueStats(queueName: 'email' | 'document' | 'notification') {
-        const queue = queueName === 'email' ? emailQueue :
-            queueName === 'document' ? documentQueue :
-                notificationQueue;
+        const queue = queueName === 'email' ? getEmailQueue() :
+            queueName === 'document' ? getDocumentQueue() :
+                getNotificationQueue();
 
         const [waiting, active, completed, failed] = await Promise.all([
             queue.getWaitingCount(),
@@ -105,26 +159,28 @@ export const queueService = {
         ]);
 
         return {
-            waiting,
-            active,
-            completed,
-            failed,
+            waiting, active, completed, failed,
             total: waiting + active + completed + failed,
         };
     },
 
-    /**
-     * Clear completed jobs
-     */
     async clearCompleted(queueName: 'email' | 'document' | 'notification') {
-        const queue = queueName === 'email' ? emailQueue :
-            queueName === 'document' ? documentQueue :
-                notificationQueue;
+        const queue = queueName === 'email' ? getEmailQueue() :
+            queueName === 'document' ? getDocumentQueue() :
+                getNotificationQueue();
 
-        await queue.clean(24 * 60 * 60 * 1000, 100, 'completed'); // Clean jobs older than 24h
+        await queue.clean(24 * 60 * 60 * 1000, 100, 'completed');
         return { success: true };
     },
 };
 
-// Export for worker setup
-export { connection };
+// Export connection getter and original connection variable (as a getter proxy) for workers
+export const connection = typeof Proxy !== 'undefined' ? new Proxy({} as Redis, {
+    get: (_, prop) => {
+        const conn = getConnection();
+        if (!conn) return undefined;
+        const value = (conn as any)[prop];
+        return typeof value === 'function' ? value.bind(conn) : value;
+    }
+}) : null as unknown as Redis;
+
