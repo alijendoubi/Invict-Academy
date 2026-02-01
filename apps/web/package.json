@@ -5,6 +5,7 @@
     "scripts": {
         "dev": "npx --no-install next dev",
         "build": "npx --no-install next build",
+        "build:local": "set NEXT_FONT_GOOGLE_MOCKED=1 && npx --no-install next build",
         "start": "npx --no-install next start",
         "lint": "npx --no-install next lint"
     },

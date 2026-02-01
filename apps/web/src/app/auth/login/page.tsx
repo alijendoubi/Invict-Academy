@@ -24,20 +24,6 @@ export default function LoginPage() {
         const email = formData.get("email") as string
         const password = formData.get("password") as string
 
-        // Demo Bypass for Client Showcase
-        if (password === "demo123" || password === "admin") {
-            if (email === "admin@invict.academy") {
-                router.push("/dashboard")
-                setLoading(false)
-                return
-            }
-            if (email === "student@invict.academy") {
-                router.push("/dashboard/student")
-                setLoading(false)
-                return
-            }
-        }
-
         try {
             const res = await fetch("/api/auth/login", {
                 method: "POST",

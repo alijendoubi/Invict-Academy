@@ -115,7 +115,7 @@ model Lead {
   score       Int        @default(0)
   
   // Expanded Fields
-  destinationInterests String[]
+  destinationInterests String[] @default([])
   degreeLevel          String?
   budgetRange          String?
   timeline             String?

@@ -24,7 +24,9 @@ export async function getSession() {
     const session = cookies().get('session')?.value;
     if (!session) return null;
     try {
-        return await decrypt(session);
+        const payload = await decrypt(session);
+        const userId = payload?.user?.id;
+        return { ...payload, userId };
     } catch (error) {
         return null;
     }

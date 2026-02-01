@@ -15,7 +15,15 @@ export class LeadsService {
   async create(dto: CreateLeadDto) {
     const lead = await this.prisma.lead.create({
       data: {
-        ...dto,
+        firstName: dto.firstName,
+        lastName: dto.lastName,
+        email: dto.email,
+        phone: dto.phone,
+        source: dto.source,
+        degreeLevel: dto.interestedDegree,
+        destinationInterests: dto.interestedCountry
+          ? [dto.interestedCountry]
+          : ["Italy"],
         status: LeadStatus.NEW,
       },
     });

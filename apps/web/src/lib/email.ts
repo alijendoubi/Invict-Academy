@@ -10,6 +10,9 @@ export const emailService = {
   sendWelcomeEmail: (to: string, firstName: string) =>
     emailServiceInstance.sendWelcomeEmail(to, firstName),
 
+  sendStaffNewLeadNotification: (to: string, leadName: string, leadId: string) =>
+    emailServiceInstance.sendStaffNewLeadNotification(to, leadName, leadId),
+
   sendApplicationStatusUpdate: (to: string, firstName: string, university: string, status: string) =>
     emailServiceInstance.sendApplicationStatusUpdate(to, firstName, university, status),
 

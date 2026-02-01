@@ -7,7 +7,7 @@ import { JwtService } from "@nestjs/jwt";
 import { PrismaService } from "../prisma/prisma.service";
 import { RegisterDto, LoginDto } from "./dto/auth.dto";
 import * as bcrypt from "bcrypt";
-import { User } from "@invict/db";
+import { Role, User } from "@invict/db";
 
 @Injectable()
 export class AuthService {
@@ -27,16 +27,18 @@ export class AuthService {
 
     const hashedPassword = await bcrypt.hash(dto.password, 10);
 
+    const safeRole = dto.role === Role.ASSOCIATE ? Role.ASSOCIATE : Role.STUDENT;
+
     const user = await this.prisma.user.create({
       data: {
         email: dto.email,
         firstName: dto.firstName,
         lastName: dto.lastName,
         password: hashedPassword,
-        role: dto.role,
-        studentProfile: dto.role === "STUDENT" ? { create: {} } : undefined,
+        role: safeRole,
+        studentProfile: safeRole === Role.STUDENT ? { create: {} } : undefined,
         associateProfile:
-          dto.role === "ASSOCIATE"
+          safeRole === Role.ASSOCIATE
             ? {
                 create: {
                   referralCode: Math.random().toString(36).substring(7),

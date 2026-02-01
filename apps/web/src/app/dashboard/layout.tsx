@@ -137,17 +137,21 @@ export default function DashboardLayout({
                                 <Settings className="h-4 w-4" />
                                 Settings
                             </Link>
-                            <Link
-                                href="/login"
-                                onClick={() => {
-                                    document.cookie = "session=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;"
-                                    window.location.href = "/login"
+                            <button
+                                onClick={async () => {
+                                    try {
+                                        await fetch('/api/auth/logout', { method: 'POST' });
+                                    } catch (error) {
+                                        console.error('Logout failed:', error);
+                                    } finally {
+                                        window.location.href = "/auth/login";
+                                    }
                                 }}
                                 className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
                             >
                                 <LogOut className="h-4 w-4" />
                                 Logout
-                            </Link>
+                            </button>
                         </div>
                     </div>
                 </div>

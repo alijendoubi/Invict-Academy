@@ -3,7 +3,7 @@ import { Redis } from 'ioredis';
 
 // Types
 export interface EmailJob {
-    type: 'welcome' | 'application_status' | 'task_reminder';
+    type: 'welcome' | 'application_status' | 'task_reminder' | 'staff_new_lead';
     to: string;
     data: Record<string, any>;
 }

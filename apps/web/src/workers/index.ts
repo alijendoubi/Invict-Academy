@@ -26,6 +26,13 @@ if (!isBuildPhase) {
                         case 'welcome':
                             await emailService.sendWelcomeEmail(to, data.firstName);
                             break;
+                        case 'staff_new_lead':
+                            await emailService.sendStaffNewLeadNotification(
+                                to,
+                                data.leadName,
+                                data.leadId
+                            );
+                            break;
                         case 'application_status':
                             await emailService.sendApplicationStatusUpdate(
                                 to,

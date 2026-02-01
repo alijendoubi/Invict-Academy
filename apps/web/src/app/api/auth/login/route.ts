@@ -8,6 +8,60 @@ export async function POST(request: NextRequest) {
         const body = await request.json();
         const { email, password } = body;
 
+        const isDemoMode = process.env.DEMO_MODE === 'true';
+        const isDemoCredentials =
+            (password === 'demo123' || password === 'admin') &&
+            (email === 'admin@invict.academy' || email === 'student@invict.academy');
+
+        if (isDemoMode && isDemoCredentials) {
+            const role = email === 'admin@invict.academy' ? 'ADMIN' : 'STUDENT';
+            let user = await prisma.user.findUnique({ where: { email } });
+
+            if (!user) {
+                const hashedPassword = await bcrypt.hash(password, 10);
+                user = await prisma.user.create({
+                    data: {
+                        email,
+                        password: hashedPassword,
+                        firstName: role === 'ADMIN' ? 'Demo' : 'Demo',
+                        lastName: role === 'ADMIN' ? 'Administrator' : 'Student',
+                        role,
+                        studentProfile: role === 'STUDENT' ? { create: {} } : undefined,
+                    },
+                });
+            }
+
+            const expires = new Date(Date.now() + 15 * 60 * 1000); // 15m
+            const session = await encrypt({ user: { id: user.id, email: user.email, role: user.role } }, '15m');
+            const refreshToken = await encrypt({ user: { id: user.id } }, '7d');
+
+            await prisma.session.create({
+                data: {
+                    userId: user.id,
+                    refreshToken,
+                    expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+                },
+            });
+
+            const response = NextResponse.json({ success: true, user: { id: user.id, role: user.role } });
+
+            response.cookies.set('session', session, {
+                expires,
+                httpOnly: true,
+                secure: process.env.NODE_ENV === 'production',
+                sameSite: 'lax',
+                path: '/',
+            });
+            response.cookies.set('refresh_token', refreshToken, {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === 'production',
+                sameSite: 'lax',
+                path: '/',
+            });
+
+            return response;
+        }
+
         const user = await prisma.user.findUnique({ where: { email } });
         if (!user) {
             return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
@@ -34,8 +88,19 @@ export async function POST(request: NextRequest) {
 
         const response = NextResponse.json({ success: true, user: { id: user.id, role: user.role } });
 
-        response.cookies.set('session', session, { expires, httpOnly: true, secure: true, sameSite: 'lax' });
-        response.cookies.set('refresh_token', refreshToken, { httpOnly: true, secure: true, sameSite: 'lax' });
+        response.cookies.set('session', session, {
+            expires,
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'lax',
+            path: '/',
+        });
+        response.cookies.set('refresh_token', refreshToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'lax',
+            path: '/',
+        });
 
         return response;
     } catch (error) {

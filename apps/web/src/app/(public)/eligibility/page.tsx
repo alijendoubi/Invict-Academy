@@ -48,6 +48,10 @@ export default function EligibilityPage() {
                     lastName: formData.lastName,
                     email: formData.email,
                     phone: formData.phone,
+                    interestedDegree: formData.degreeInterest,
+                    destinationInterests: formData.destinations,
+                    budgetRange: formData.budget,
+                    timeline: formData.intake,
                     source: "Eligibility Wizard",
                     status: "NEW"
                 }),

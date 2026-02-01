@@ -3,7 +3,7 @@ import { prisma } from '@/lib/db';
 import { getSession } from '@/lib/auth';
 import { writeFile, mkdir } from 'fs/promises';
 import { join } from 'path';
-import { v4 as uuidv4 } from 'uuid';
+import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 
 export const dynamic = 'force-dynamic';
 
@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
 
         const formData = await request.formData();
         const file = formData.get('file') as File;
-        const type = formData.get('type') as string;
+        const type = (formData.get('type') as string) || 'GENERAL';
         const studentId = formData.get('studentId') as string;
 
         if (!file) {
@@ -27,15 +27,40 @@ export async function POST(request: NextRequest) {
         const buffer = Buffer.from(bytes);
 
         // S3-like Path Structure: students/{studentId}/{type}/{uuid}-{filename}
-        const fileName = `${uuidv4()}-${file.name}`;
+        const fileName = `${crypto.randomUUID()}-${file.name}`;
         const s3Key = `students/${studentId}/${type}/${fileName}`;
 
-        // For local development, save to public/uploads
-        // In production, this would be: s3.putObject({ Bucket: process.env.S3_BUCKET, Key: s3Key, Body: buffer })
-        const uploadDir = join(process.cwd(), 'public', 'uploads', 'students', studentId, type);
-        await mkdir(uploadDir, { recursive: true });
-        const localPath = join(uploadDir, fileName);
-        await writeFile(localPath, buffer);
+        const isProduction = process.env.NODE_ENV === 'production';
+        const s3Bucket = process.env.S3_BUCKET;
+
+        if (s3Bucket) {
+            const s3 = new S3Client({
+                region: process.env.S3_REGION || 'us-east-1',
+                endpoint: process.env.S3_ENDPOINT,
+                credentials: {
+                    accessKeyId: process.env.S3_ACCESS_KEY || '',
+                    secretAccessKey: process.env.S3_SECRET_KEY || '',
+                },
+                forcePathStyle: true,
+            });
+
+            await s3.send(
+                new PutObjectCommand({
+                    Bucket: s3Bucket,
+                    Key: s3Key,
+                    Body: buffer,
+                    ContentType: file.type,
+                })
+            );
+        } else if (!isProduction) {
+            // Local development fallback
+            const uploadDir = join(process.cwd(), 'public', 'uploads', 'students', studentId, type);
+            await mkdir(uploadDir, { recursive: true });
+            const localPath = join(uploadDir, fileName);
+            await writeFile(localPath, buffer);
+        } else {
+            return NextResponse.json({ error: 'S3 configuration missing' }, { status: 500 });
+        }
 
         // Save metadata to database
         const document = await prisma.document.create({
@@ -53,7 +78,7 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({
             message: 'Document uploaded successfully',
             document,
-            url: `/uploads/${s3Key}` // Mapped to public path for local dev
+            url: s3Bucket ? `s3://${s3Bucket}/${s3Key}` : `/uploads/${s3Key}` // Local dev fallback
         });
 
     } catch (error) {

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { getSession } from '@/lib/auth';
-import { getNotificationQueue } from '@/lib/queue';
+import { queueService } from '@/lib/queue';
 
 export const dynamic = 'force-dynamic';
 
@@ -46,7 +46,19 @@ export async function POST(request: NextRequest) {
     try {
         const session = await getSession();
         const body = await request.json();
-        const { firstName, lastName, email, phone, source, status } = body;
+        const {
+            firstName,
+            lastName,
+            email,
+            phone,
+            source,
+            status,
+            interestedDegree,
+            interestedCountry,
+            destinationInterests,
+            budgetRange,
+            timeline,
+        } = body;
 
         const lead = await prisma.lead.create({
             data: {
@@ -56,26 +68,35 @@ export async function POST(request: NextRequest) {
                 phone,
                 source,
                 status: status || 'NEW',
+                degreeLevel: interestedDegree,
+                budgetRange,
+                timeline,
+                destinationInterests:
+                    Array.isArray(destinationInterests) && destinationInterests.length > 0
+                        ? destinationInterests
+                        : interestedCountry
+                            ? [interestedCountry]
+                            : ['Italy'],
                 ...(session?.userId ? { assignedToId: session.userId } : {}),
             },
         });
 
         // Trigger unified notification flow
         try {
-            const queue = getNotificationQueue();
-            if (queue) {
-                await queue.add('send-lead-welcome', {
-                    email: lead.email,
-                    name: lead.firstName,
-                    leadId: lead.id,
-                });
+            await queueService.sendEmail({
+                type: 'welcome',
+                to: lead.email,
+                data: { firstName: lead.firstName },
+            });
 
-                await queue.add('send-staff-notification', {
-                    email: 'staff@invictacademy.com',
+            await queueService.sendEmail({
+                type: 'staff_new_lead',
+                to: 'staff@invictacademy.com',
+                data: {
                     leadId: lead.id,
                     leadName: `${lead.firstName} ${lead.lastName}`,
-                });
-            }
+                },
+            });
         } catch (queueError) {
             console.error('Failed to queue notifications for new lead:', queueError);
             // Don't fail the request if notifications fail

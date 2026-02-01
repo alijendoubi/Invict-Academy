@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
-import { encrypt } from '@/lib/auth';
 import * as bcrypt from 'bcrypt';
 
 export async function POST(request: NextRequest) {
     try {
         const body = await request.json();
         const { email, password, firstName, lastName, role } = body;
+
+        const safeRole = role === 'ASSOCIATE' ? 'ASSOCIATE' : 'STUDENT';
 
         // Check if user exists
         const existingUser = await prisma.user.findUnique({ where: { email } });
@@ -24,9 +25,9 @@ export async function POST(request: NextRequest) {
                 password: hashedPassword,
                 firstName,
                 lastName,
-                role: role || 'STUDENT',
-                studentProfile: role === 'STUDENT' ? { create: {} } : undefined,
-                associateProfile: role === 'ASSOCIATE' ? {
+                role: safeRole,
+                studentProfile: safeRole === 'STUDENT' ? { create: {} } : undefined,
+                associateProfile: safeRole === 'ASSOCIATE' ? {
                     create: {
                         referralCode: Math.random().toString(36).substring(2, 10).toUpperCase()
                     }

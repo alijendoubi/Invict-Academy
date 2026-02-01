@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { getSession } from '@/lib/auth';
-import { hash } from 'bcrypt';
+import { hash, compare } from 'bcrypt';
 
 export const dynamic = 'force-dynamic';
 
@@ -29,6 +29,10 @@ export async function GET(request: NextRequest) {
                 }
             }
         });
+
+        if (!user) {
+            return NextResponse.json({ error: 'User not found' }, { status: 404 });
+        }
 
         // Flatten for frontend
         const profile = {
@@ -68,6 +72,19 @@ export async function PATCH(request: NextRequest) {
         if (email) updateData.email = email;
 
         if (newPassword) {
+            if (!currentPassword) {
+                return NextResponse.json({ error: 'Current password required' }, { status: 400 });
+            }
+
+            const user = await prisma.user.findUnique({
+                where: { id: session.userId },
+                select: { password: true },
+            });
+
+            if (!user || !(await compare(currentPassword, user.password))) {
+                return NextResponse.json({ error: 'Current password is incorrect' }, { status: 400 });
+            }
+
             updateData.password = await hash(newPassword, 10);
         }
 
