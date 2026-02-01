@@ -3,11 +3,11 @@
     "version": "0.1.0",
     "private": true,
     "scripts": {
-        "dev": "next dev",
-        "build": "next build",
-        "build:local": "set NEXT_FONT_GOOGLE_MOCKED=1 && next build",
-        "start": "next start",
-        "lint": "next lint"
+        "dev": "npx --yes next dev",
+        "build": "npx --yes next build",
+        "build:local": "set NEXT_FONT_GOOGLE_MOCKED=1 && npx --yes next build",
+        "start": "npx --yes next start",
+        "lint": "npx --yes next lint"
     },
     "dependencies": {
         "@hookform/resolvers": "^3.3.4",
