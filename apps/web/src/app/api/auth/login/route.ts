@@ -15,33 +15,49 @@ export async function POST(request: NextRequest) {
 
         if (isDemoMode && isDemoCredentials) {
             const role = email === 'admin@invict.academy' ? 'ADMIN' : 'STUDENT';
-            let user = await prisma.user.findUnique({ where: { email } });
+            let user;
 
-            if (!user) {
-                const hashedPassword = await bcrypt.hash(password, 10);
-                user = await prisma.user.create({
-                    data: {
-                        email,
-                        password: hashedPassword,
-                        firstName: role === 'ADMIN' ? 'Demo' : 'Demo',
-                        lastName: role === 'ADMIN' ? 'Administrator' : 'Student',
-                        role,
-                        studentProfile: role === 'STUDENT' ? { create: {} } : undefined,
-                    },
-                });
+            try {
+                user = await prisma.user.findUnique({ where: { email } });
+
+                if (!user) {
+                    const hashedPassword = await bcrypt.hash(password, 10);
+                    user = await prisma.user.create({
+                        data: {
+                            email,
+                            password: hashedPassword,
+                            firstName: role === 'ADMIN' ? 'Demo' : 'Demo',
+                            lastName: role === 'ADMIN' ? 'Administrator' : 'Student',
+                            role,
+                            studentProfile: role === 'STUDENT' ? { create: {} } : undefined,
+                        },
+                    });
+                }
+            } catch (dbError) {
+                console.warn('Database unreachable in demo mode, using mock user', dbError);
+                // Fallback for when DB is down (e.g. Vercel preview or local without docker)
+                user = {
+                    id: 'demo-user-id',
+                    email: email,
+                    role: role,
+                };
             }
 
             const expires = new Date(Date.now() + 15 * 60 * 1000); // 15m
             const session = await encrypt({ user: { id: user.id, email: user.email, role: user.role } }, '15m');
             const refreshToken = await encrypt({ user: { id: user.id } }, '7d');
 
-            await prisma.session.create({
-                data: {
-                    userId: user.id,
-                    refreshToken,
-                    expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-                },
-            });
+            try {
+                await prisma.session.create({
+                    data: {
+                        userId: user.id,
+                        refreshToken,
+                        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+                    },
+                });
+            } catch (sessionError) {
+                console.warn('Could not store session in DB, continuing with cookie session only');
+            }
 
             const response = NextResponse.json({ success: true, user: { id: user.id, role: user.role } });
 
