@@ -3,11 +3,11 @@
     "version": "0.1.0",
     "private": true,
     "scripts": {
-        "dev": "npx --yes next dev",
-        "build": "npx --yes next build",
-        "build:local": "export NEXT_FONT_GOOGLE_MOCKED=1 && npx --yes next build",
-        "start": "npx --yes next start",
-        "lint": "npx --yes next lint"
+        "dev": "../../node_modules/.bin/next dev",
+        "build": "../../node_modules/.bin/next build",
+        "build:local": "export NEXT_FONT_GOOGLE_MOCKED=1 && ../../node_modules/.bin/next build",
+        "start": "../../node_modules/.bin/next start",
+        "lint": "../../node_modules/.bin/next lint"
     },
     "dependencies": {
         "@hookform/resolvers": "^3.3.4",
