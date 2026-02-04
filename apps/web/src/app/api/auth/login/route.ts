@@ -14,34 +14,13 @@ export async function POST(request: NextRequest) {
             (email === 'admin@invict.academy' || email === 'student@invict.academy');
 
         if (isDemoMode && isDemoCredentials) {
+            // In demo mode with valid demo credentials, skip database and use mock data
             const role = email === 'admin@invict.academy' ? 'ADMIN' : 'STUDENT';
-            let user;
-
-            try {
-                user = await prisma.user.findUnique({ where: { email } });
-
-                if (!user) {
-                    const hashedPassword = await bcrypt.hash(password, 10);
-                    user = await prisma.user.create({
-                        data: {
-                            email,
-                            password: hashedPassword,
-                            firstName: role === 'ADMIN' ? 'Demo' : 'Demo',
-                            lastName: role === 'ADMIN' ? 'Administrator' : 'Student',
-                            role,
-                            studentProfile: role === 'STUDENT' ? { create: {} } : undefined,
-                        },
-                    });
-                }
-            } catch (dbError) {
-                console.warn('Database unreachable in demo mode, using mock user', dbError);
-                // Fallback for when DB is down (e.g. Vercel preview or local without docker)
-                user = {
-                    id: 'demo-user-id',
-                    email: email,
-                    role: role,
-                };
-            }
+            const user = {
+                id: email === 'admin@invict.academy' ? 'admin-demo-id-001' : 'student-demo-id-001',
+                email: email,
+                role: role,
+            };
 
             const expires = new Date(Date.now() + 15 * 60 * 1000); // 15m
             const session = await encrypt({ user: { id: user.id, email: user.email, role: user.role } }, '15m');
@@ -77,6 +56,7 @@ export async function POST(request: NextRequest) {
 
             return response;
         }
+
 
         const user = await prisma.user.findUnique({ where: { email } });
         if (!user) {

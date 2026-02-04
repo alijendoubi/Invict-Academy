@@ -10,7 +10,8 @@
         "db:migrate": "npm run db:migrate --workspace=@invict/db",
         "db:generate": "npm run db:generate --workspace=@invict/db",
         "db:seed": "npm run db:seed --workspace=@invict/db",
-        "dev": "concurrently \"npm run dev --workspace=api\" \"npm run dev --workspace=web\"",
+        "dev": "npm run dev --workspace=web",
+        "dev:full": "concurrently \"npm run dev --workspace=api\" \"npm run dev --workspace=web\"",
         "build": "npm run build --workspaces"
     },
     "dependencies": {

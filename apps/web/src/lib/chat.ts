@@ -1,8 +1,13 @@
+// DEMO MODE: Mock chat service
+// To restore OpenAI, uncomment the code below
+
+/*
 import OpenAI from 'openai';
 
 const openai = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY || 'sk-placeholder',
 });
+*/
 
 export interface ChatMessage {
     role: 'system' | 'user' | 'assistant';
@@ -30,6 +35,21 @@ Key facts:
 
 export const chatService = {
     async generateResponse(messages: ChatMessage[]) {
+        // DEMO MODE: Always use fallback responses
+        console.log('[DEMO] Mock chat response generated');
+        
+        const userMessage = messages[messages.length - 1]?.content || '';
+        const response = chatService.getFallbackResponse(userMessage);
+        
+        // Simulate API delay for realism
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        return {
+            success: true,
+            message: response,
+        };
+        
+        /* Original OpenAI implementation
         try {
             const completion = await openai.chat.completions.create({
                 model: 'gpt-4o-mini',
@@ -54,6 +74,7 @@ export const chatService = {
                 message: chatService.getFallbackResponse(messages[messages.length - 1]?.content || ''),
             };
         }
+        */
     },
 
     getFallbackResponse(userMessage: string) {
@@ -90,3 +111,4 @@ export const chatService = {
         return 'Thank you for your question! For detailed information about this topic, I recommend booking a free consultation with one of our expert advisors. Would you like me to help you schedule one?';
     },
 };
+

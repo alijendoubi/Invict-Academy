@@ -5,6 +5,9 @@
     "framework": "nextjs",
     "outputDirectory": "apps/web/.next",
     "devCommand": "npm run dev --workspace=web",
+    "env": {
+        "DEMO_MODE": "true"
+    },
     "rewrites": [
         {
             "source": "/api/:path*",
