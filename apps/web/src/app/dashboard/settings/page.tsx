@@ -9,6 +9,29 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { User, Lock, Bell, Shield, Loader2, CheckCircle2 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
+function NotifToggle({ icon, label, desc, defaultOn }: { icon: string; label: string; desc: string; defaultOn: boolean }) {
+    const [on, setOn] = useState(defaultOn)
+    return (
+        <div className="flex items-center justify-between p-4 rounded-xl bg-white/[0.02] border border-white/5 hover:border-white/10 transition-all">
+            <div className="flex items-center gap-3">
+                <span className="text-xl">{icon}</span>
+                <div>
+                    <p className="text-white text-sm font-medium">{label}</p>
+                    <p className="text-gray-600 text-xs">{desc}</p>
+                </div>
+            </div>
+            <button
+                type="button"
+                onClick={() => setOn(!on)}
+                className={cn("relative w-11 h-6 rounded-full transition-all duration-200 shrink-0", on ? "bg-cyan-600" : "bg-white/10")}
+            >
+                <span className={cn("absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow-sm transition-transform duration-200", on ? "translate-x-5" : "translate-x-0")} />
+            </button>
+        </div>
+    )
+}
+
+
 export default function SettingsPage() {
     const [user, setUser] = useState<any>(null)
     const [loading, setLoading] = useState(true)
@@ -220,14 +243,27 @@ export default function SettingsPage() {
                         <CardHeader className="bg-white/[0.02] border-b border-white/5">
                             <CardTitle className="text-white text-lg">Notification Preferences</CardTitle>
                             <CardDescription className="text-gray-500">
-                                Manage how you receive updates and alerts
+                                Choose how and when you receive updates
                             </CardDescription>
                         </CardHeader>
-                        <CardContent className="p-12 text-center">
-                            <p className="text-gray-400">Notification settings coming soon.</p>
+                        <CardContent className="p-6 space-y-2">
+                            {[
+                                { key: "emailUpdates", label: "Email Updates", desc: "Receive application status changes by email", icon: "📧", default: true },
+                                { key: "whatsappUpdates", label: "WhatsApp Messages", desc: "Get notified via WhatsApp for important milestones", icon: "💬", default: true },
+                                { key: "documentReminders", label: "Document Reminders", desc: "Reminders when documents are pending or expiring", icon: "📄", default: true },
+                                { key: "paymentReminders", label: "Payment Reminders", desc: "Alerts before upcoming invoice due dates", icon: "💳", default: true },
+                                { key: "consultationReminders", label: "Consultation Reminders", desc: "Reminder 24h before your scheduled consultation", icon: "📅", default: true },
+                                { key: "marketingEmails", label: "Community & News", desc: "Community updates, scholarship alerts, and tips", icon: "🎓", default: false },
+                            ].map(pref => (
+                                <NotifToggle key={pref.key} icon={pref.icon} label={pref.label} desc={pref.desc} defaultOn={pref.default} />
+                            ))}
+                            <div className="pt-4 flex justify-end">
+                                <Button className="bg-cyan-600 hover:bg-cyan-700 rounded-xl">Save Preferences</Button>
+                            </div>
                         </CardContent>
                     </Card>
                 </TabsContent>
+
             </Tabs>
         </div>
     )

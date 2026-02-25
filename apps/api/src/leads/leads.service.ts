@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
 import { CreateLeadDto, UpdateLeadDto } from "./dto/lead.dto";
-import { LeadStatus } from "@invict/db";
+import { LeadStatus } from "@prisma/client";
 
 import { NotificationsService } from "../notifications/notifications.service";
 

@@ -1,7 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
 import { StorageService } from "../storage/storage.service";
-import { DocumentStatus } from "@invict/db";
+import { DocumentStatus } from "@prisma/client";
 
 @Injectable()
 export class DocumentsService {

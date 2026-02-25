@@ -7,6 +7,7 @@ import {
     Users, UserCircle, GraduationCap, TrendingUp,
     DollarSign, FileText, Loader2, Shield, CheckCircle2
 } from "lucide-react"
+import Link from "next/link"
 import { cn } from "@/lib/utils"
 
 interface Stat {
@@ -255,63 +256,63 @@ export default function DashboardPage() {
                     <CardContent className="space-y-3">
                         {data?.role === 'STUDENT' ? (
                             <>
-                                <button className="w-full flex items-center gap-3 p-4 rounded-lg bg-white/5 hover:bg-white/10 transition-colors text-left">
-                                    <div className="h-10 w-10 rounded-lg bg-cyan-500/10 flex items-center justify-center">
+                                <Link href="/dashboard/student" className="w-full flex items-center gap-3 p-4 rounded-lg bg-white/5 hover:bg-white/10 transition-colors text-left group">
+                                    <div className="h-10 w-10 rounded-lg bg-cyan-500/10 flex items-center justify-center group-hover:bg-cyan-500/20 transition-colors">
                                         <FileText className="h-5 w-5 text-cyan-400" />
                                     </div>
                                     <div>
                                         <p className="text-sm font-medium text-white">My Documents</p>
                                         <p className="text-xs text-gray-400">Manage your uploads</p>
                                     </div>
-                                </button>
-                                <button className="w-full flex items-center gap-3 p-4 rounded-lg bg-white/5 hover:bg-white/10 transition-colors text-left">
-                                    <div className="h-10 w-10 rounded-lg bg-purple-500/10 flex items-center justify-center">
+                                </Link>
+                                <Link href="/italian-universities" className="w-full flex items-center gap-3 p-4 rounded-lg bg-white/5 hover:bg-white/10 transition-colors text-left group">
+                                    <div className="h-10 w-10 rounded-lg bg-purple-500/10 flex items-center justify-center group-hover:bg-purple-500/20 transition-colors">
                                         <GraduationCap className="h-5 w-5 text-purple-400" />
                                     </div>
                                     <div>
                                         <p className="text-sm font-medium text-white">University List</p>
                                         <p className="text-xs text-gray-400">Explore partner institutions</p>
                                     </div>
-                                </button>
-                                <button className="w-full flex items-center gap-3 p-4 rounded-lg bg-white/5 hover:bg-white/10 transition-colors text-left">
-                                    <div className="h-10 w-10 rounded-lg bg-green-500/10 flex items-center justify-center">
+                                </Link>
+                                <Link href="/dashboard/payments" className="w-full flex items-center gap-3 p-4 rounded-lg bg-white/5 hover:bg-white/10 transition-colors text-left group">
+                                    <div className="h-10 w-10 rounded-lg bg-green-500/10 flex items-center justify-center group-hover:bg-green-500/20 transition-colors">
                                         <DollarSign className="h-5 w-5 text-green-400" />
                                     </div>
                                     <div>
                                         <p className="text-sm font-medium text-white">Payments</p>
                                         <p className="text-xs text-gray-400">Pay tuition or services</p>
                                     </div>
-                                </button>
+                                </Link>
                             </>
                         ) : (
                             <>
-                                <button className="w-full flex items-center gap-3 p-4 rounded-lg bg-white/5 hover:bg-white/10 transition-colors text-left">
-                                    <div className="h-10 w-10 rounded-lg bg-cyan-500/10 flex items-center justify-center">
+                                <Link href="/dashboard/leads" className="w-full flex items-center gap-3 p-4 rounded-lg bg-white/5 hover:bg-white/10 transition-colors text-left group">
+                                    <div className="h-10 w-10 rounded-lg bg-cyan-500/10 flex items-center justify-center group-hover:bg-cyan-500/20 transition-colors">
                                         <UserCircle className="h-5 w-5 text-cyan-400" />
                                     </div>
                                     <div>
                                         <p className="text-sm font-medium text-white">Add New Lead</p>
                                         <p className="text-xs text-gray-400">Create a new lead entry</p>
                                     </div>
-                                </button>
-                                <button className="w-full flex items-center gap-3 p-4 rounded-lg bg-white/5 hover:bg-white/10 transition-colors text-left">
-                                    <div className="h-10 w-10 rounded-lg bg-purple-500/10 flex items-center justify-center">
+                                </Link>
+                                <Link href="/dashboard/applications" className="w-full flex items-center gap-3 p-4 rounded-lg bg-white/5 hover:bg-white/10 transition-colors text-left group">
+                                    <div className="h-10 w-10 rounded-lg bg-purple-500/10 flex items-center justify-center group-hover:bg-purple-500/20 transition-colors">
                                         <FileText className="h-5 w-5 text-purple-400" />
                                     </div>
                                     <div>
                                         <p className="text-sm font-medium text-white">New Application</p>
                                         <p className="text-xs text-gray-400">Start an application process</p>
                                     </div>
-                                </button>
-                                <button className="w-full flex items-center gap-3 p-4 rounded-lg bg-white/5 hover:bg-white/10 transition-colors text-left">
-                                    <div className="h-10 w-10 rounded-lg bg-green-500/10 flex items-center justify-center">
+                                </Link>
+                                <Link href="/dashboard/payments" className="w-full flex items-center gap-3 p-4 rounded-lg bg-white/5 hover:bg-white/10 transition-colors text-left group">
+                                    <div className="h-10 w-10 rounded-lg bg-green-500/10 flex items-center justify-center group-hover:bg-green-500/20 transition-colors">
                                         <DollarSign className="h-5 w-5 text-green-400" />
                                     </div>
                                     <div>
                                         <p className="text-sm font-medium text-white">Record Payment</p>
                                         <p className="text-xs text-gray-400">Log a new payment</p>
                                     </div>
-                                </button>
+                                </Link>
                             </>
                         )}
                     </CardContent>

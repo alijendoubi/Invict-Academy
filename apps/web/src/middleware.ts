@@ -3,6 +3,8 @@ import type { NextRequest } from 'next/server';
 import { jwtVerify } from 'jose';
 
 const protectedRoutes = ['/dashboard'];
+const locales = ['en', 'fr', 'ar', 'tr', 'az'];
+const defaultLocale = 'en';
 
 const SECRET_KEY = process.env.JWT_SECRET || 'super-secret-key-change-me';
 const key = new TextEncoder().encode(SECRET_KEY);
@@ -15,15 +17,15 @@ async function decrypt(input: string): Promise<any> {
 }
 
 export async function middleware(request: NextRequest) {
-    const path = request.nextUrl.pathname;
-    const isProtectedRoute = protectedRoutes.some((route) => path.startsWith(route));
+    const { pathname } = request.nextUrl;
 
+    // 1. Handle protected routes (Dashboards)
+    const isProtectedRoute = protectedRoutes.some((route) => pathname.startsWith(route));
     if (isProtectedRoute) {
         const cookie = request.cookies.get('session')?.value;
         if (!cookie) {
             return NextResponse.redirect(new URL('/auth/login', request.nextUrl));
         }
-
         try {
             await decrypt(cookie);
         } catch (err) {
@@ -31,9 +33,45 @@ export async function middleware(request: NextRequest) {
         }
     }
 
-    return NextResponse.next();
+    // 2. Handle Locale Routing
+    // Check if there is any supported locale in the pathname
+    const pathnameHasLocale = locales.some(
+        (locale) => pathname.startsWith(`/${locale}/`) || pathname === `/${locale}`
+    );
+
+    if (pathnameHasLocale) {
+        // Extract the locale from the path
+        const locale = pathname.split('/')[1];
+
+        // Remove the locale from the path to route internally
+        const newPath = pathname.replace(`/${locale}`, '') || '/';
+
+        // Rewrite to the internal route (e.g., /fr/explore -> /explore)
+        const response = NextResponse.rewrite(new URL(newPath, request.nextUrl));
+
+        // Set the locale cookie so the client knows what language to render
+        response.cookies.set('invict-locale', locale, { path: '/', maxAge: 60 * 60 * 24 * 365 });
+        return response;
+    }
+
+    // If the pathname doesn't have a locale, redirect to a locale-prefixed URL
+    // First, try to get the locale from the cookie
+    const savedLocale = request.cookies.get('invict-locale')?.value;
+
+    // Fallback to reading Accept-Language header or defaultLocale
+    let localeToRedirect = savedLocale || defaultLocale;
+
+    // Ensure the saved cookie is a supported locale
+    if (!locales.includes(localeToRedirect)) {
+        localeToRedirect = defaultLocale;
+    }
+
+    // Redirect to the locale-prefixed path (e.g., /explore -> /en/explore)
+    request.nextUrl.pathname = `/${localeToRedirect}${pathname}`;
+    return NextResponse.redirect(request.nextUrl);
 }
 
 export const config = {
-    matcher: ['/((?!api|_next/static|_next/image|favicon.ico).*)'],
+    // Match all request paths except api, _next, and files with an extension (e.g. .png, .css)
+    matcher: ['/((?!api|_next|.*\\..*).*)'],
 };

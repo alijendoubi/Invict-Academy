@@ -9,6 +9,10 @@ import { NotificationsModule } from "./notifications/notifications.module";
 import { StudentsModule } from "./students/students.module";
 import { ApplicationsModule } from "./applications/applications.module";
 import { DocumentsModule } from "./documents/documents.module";
+import { WhatsAppModule } from "./whatsapp/whatsapp.module";
+import { ConsultationsModule } from "./consultations/consultations.module";
+import { StudentMessagesModule } from "./student-messages/student-messages.module";
+import { QrAnalyticsModule } from "./qr-analytics/qr-analytics.module";
 
 @Module({
   imports: [
@@ -29,6 +33,10 @@ import { DocumentsModule } from "./documents/documents.module";
     StudentsModule,
     ApplicationsModule,
     DocumentsModule,
+    WhatsAppModule,
+    ConsultationsModule,
+    StudentMessagesModule,
+    QrAnalyticsModule,
   ],
 })
 export class AppModule {}

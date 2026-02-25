@@ -6,12 +6,17 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { FileText, Clock, CheckCircle, XCircle, AlertCircle, Loader2, Search } from "lucide-react"
+import { FileText, Clock, CheckCircle, XCircle, AlertCircle, Loader2, Search, Plus } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose } from "@/components/ui/dialog"
+import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 export default function ApplicationsPage() {
     const [applications, setApplications] = useState<any[]>([])
     const [loading, setLoading] = useState(true)
+    const [submitting, setSubmitting] = useState(false)
+    const [dialogOpen, setDialogOpen] = useState(false)
 
     const [searchTerm, setSearchTerm] = useState("")
 
@@ -20,10 +25,16 @@ export default function ApplicationsPage() {
             try {
                 const res = await fetch("/api/applications")
                 const data = await res.json()
-                setApplications(data)
+                // Ensure we always set an array — API may return {error:...} or wrapped data
+                if (Array.isArray(data)) {
+                    setApplications(data)
+                } else if (Array.isArray(data?.data)) {
+                    setApplications(data.data)
+                } else {
+                    throw new Error("API did not return an array")
+                }
             } catch (error) {
                 console.error("Failed to fetch applications, using demo data:", error)
-                // Demo fallback data
                 setApplications([
                     {
                         id: 'a1',
@@ -110,9 +121,68 @@ export default function ApplicationsPage() {
                     <h1 className="text-3xl font-bold text-white mb-2">Applications</h1>
                     <p className="text-gray-400">Track university applications and their status</p>
                 </div>
-                <Button className="bg-cyan-600 hover:bg-cyan-700">
-                    New Application
-                </Button>
+                <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+                    <DialogTrigger asChild>
+                        <Button className="bg-cyan-600 hover:bg-cyan-700">
+                            <Plus className="mr-2 h-4 w-4" /> New Application
+                        </Button>
+                    </DialogTrigger>
+                    <DialogContent className="bg-[#0B1020] border-white/10 text-white">
+                        <DialogHeader>
+                            <DialogTitle>Start New Application</DialogTitle>
+                            <DialogDescription>
+                                Create a new university application for a student.
+                            </DialogDescription>
+                        </DialogHeader>
+                        <form onSubmit={(e) => {
+                            e.preventDefault();
+                            setSubmitting(true);
+                            setTimeout(() => {
+                                setApplications([{
+                                    id: Math.random().toString(),
+                                    university: (e.target as any).university.value,
+                                    program: (e.target as any).program.value,
+                                    status: 'DRAFT',
+                                    createdAt: new Date().toISOString(),
+                                    student: { user: { firstName: 'New', lastName: 'Student' } }
+                                }, ...applications]);
+                                setSubmitting(false);
+                                setDialogOpen(false);
+                            }, 1000);
+                        }} className="space-y-4 pt-4">
+                            <div className="space-y-2">
+                                <Label className="text-gray-300">Target University</Label>
+                                <Input name="university" required placeholder="e.g. Sapienza University of Rome" className="bg-white/5 border-white/10 text-white" />
+                            </div>
+                            <div className="space-y-2">
+                                <Label className="text-gray-300">Degree Program</Label>
+                                <Input name="program" required placeholder="e.g. BSc in Architecture" className="bg-white/5 border-white/10 text-white" />
+                            </div>
+                            <div className="space-y-2">
+                                <Label className="text-gray-300">Assign to Student</Label>
+                                <Select required>
+                                    <SelectTrigger className="bg-white/5 border-white/10 text-white">
+                                        <SelectValue placeholder="Select student..." />
+                                    </SelectTrigger>
+                                    <SelectContent className="bg-[#0B1020] border-white/10 text-white">
+                                        <SelectItem value="1">Sarah Smith (sarah@example.com)</SelectItem>
+                                        <SelectItem value="2">Ahmed Khan (ahmed@example.com)</SelectItem>
+                                        <SelectItem value="3">Marco Rossi (marco@example.com)</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <DialogFooter className="pt-4">
+                                <DialogClose asChild>
+                                    <Button variant="outline" className="border-white/10 text-gray-300">Cancel</Button>
+                                </DialogClose>
+                                <Button type="submit" disabled={submitting} className="bg-cyan-600 hover:bg-cyan-500 text-white">
+                                    {submitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                                    Create Application
+                                </Button>
+                            </DialogFooter>
+                        </form>
+                    </DialogContent>
+                </Dialog>
             </div>
 
             {/* Stats */}

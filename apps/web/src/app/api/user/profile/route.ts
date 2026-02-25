@@ -1,9 +1,31 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/db';
 import { getSession } from '@/lib/auth';
-import { hash, compare } from 'bcrypt';
 
 export const dynamic = 'force-dynamic';
+
+// Demo profile data — returned when session is a demo user
+const DEMO_PROFILES: Record<string, any> = {
+    'admin@invict.academy': {
+        id: 'demo-admin-invict-academy',
+        email: 'admin@invict.academy',
+        firstName: 'Demo',
+        lastName: 'Administrator',
+        role: 'ADMIN',
+        createdAt: new Date().toISOString(),
+        phone: null,
+        nationality: null,
+    },
+    'student@invict.academy': {
+        id: 'demo-student-invict-academy',
+        email: 'student@invict.academy',
+        firstName: 'Demo',
+        lastName: 'Student',
+        role: 'STUDENT',
+        createdAt: new Date().toISOString(),
+        phone: '+216 28 000 000',
+        nationality: 'Tunisian',
+    },
+};
 
 export async function GET(request: NextRequest) {
     try {
@@ -12,41 +34,62 @@ export async function GET(request: NextRequest) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        const user = await prisma.user.findUnique({
-            where: { id: session.userId },
-            select: {
-                id: true,
-                email: true,
-                firstName: true,
-                lastName: true,
-                role: true,
-                createdAt: true,
-                studentProfile: {
-                    select: {
-                        phone: true,
-                        nationality: true,
-                    }
-                }
-            }
-        });
+        const userId: string = session.userId || session.user?.id || '';
+        const email: string = session.user?.email || '';
 
-        if (!user) {
-            return NextResponse.json({ error: 'User not found' }, { status: 404 });
+        // Return demo profile without DB
+        if (userId.startsWith('demo-') || DEMO_PROFILES[email]) {
+            const profile = DEMO_PROFILES[email] || {
+                id: userId,
+                email,
+                firstName: 'Demo',
+                lastName: 'User',
+                role: session.user?.role || 'ADMIN',
+                createdAt: new Date().toISOString(),
+                phone: null,
+                nationality: null,
+            };
+            return NextResponse.json(profile);
         }
 
-        // Flatten for frontend
-        const profile = {
-            ...user,
-            phone: user?.studentProfile?.phone,
-            nationality: user?.studentProfile?.nationality,
-        };
+        // Real DB lookup
+        try {
+            const { prisma } = await import('@/lib/db');
+            const user = await prisma.user.findUnique({
+                where: { id: userId },
+                select: {
+                    id: true, email: true, firstName: true, lastName: true,
+                    role: true, createdAt: true,
+                    studentProfile: { select: { phone: true, nationality: true } }
+                }
+            });
 
-        return NextResponse.json(profile);
+            if (!user) {
+                return NextResponse.json({ error: 'User not found' }, { status: 404 });
+            }
+
+            return NextResponse.json({
+                ...user,
+                phone: user?.studentProfile?.phone,
+                nationality: user?.studentProfile?.nationality,
+            });
+        } catch (dbError) {
+            console.error('Profile DB error:', dbError);
+            // Fallback: return session data as profile
+            return NextResponse.json({
+                id: userId,
+                email,
+                firstName: 'User',
+                lastName: '',
+                role: session.user?.role || 'ADMIN',
+            });
+        }
     } catch (error) {
         console.error('Profile GET error:', error);
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
     }
 }
+
 
 export async function PATCH(request: NextRequest) {
     try {

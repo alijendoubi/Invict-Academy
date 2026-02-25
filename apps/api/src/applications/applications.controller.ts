@@ -16,7 +16,7 @@ import { ApiTags, ApiOperation, ApiBearerAuth } from "@nestjs/swagger";
 import { AuthGuard } from "@nestjs/passport";
 import { RolesGuard } from "../auth/roles.guard";
 import { Roles } from "../auth/roles.decorator";
-import { Role } from "@invict/db";
+import { Role } from "@prisma/client";
 
 @ApiTags("Applications")
 @Controller("applications")

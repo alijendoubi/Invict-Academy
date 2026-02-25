@@ -37,7 +37,13 @@ export default function LeadsPage() {
 
             const res = await fetch(`/api/leads?${params.toString()}`)
             const data = await res.json()
-            setLeads(data)
+            if (Array.isArray(data)) {
+                setLeads(data)
+            } else if (Array.isArray(data?.data)) {
+                setLeads(data.data)
+            } else {
+                throw new Error("API did not return an array")
+            }
         } catch (error) {
             console.error("Failed to fetch leads, using demo data:", error)
             // Demo fallback data

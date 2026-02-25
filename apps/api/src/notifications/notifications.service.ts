@@ -1,7 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { InjectQueue } from "@nestjs/bullmq";
 import { Queue } from "bullmq";
-import { Lead } from "@invict/db";
+import { Lead } from "@prisma/client";
 
 @Injectable()
 export class NotificationsService {

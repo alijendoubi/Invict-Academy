@@ -8,18 +8,20 @@ import { Button } from "@/components/ui/button"
 import {
     LayoutDashboard, Users, UserCircle, FileText,
     Settings, LogOut, Menu, X, GraduationCap,
-    Briefcase, DollarSign, Bell
+    Briefcase, DollarSign, Bell, QrCode, MessageSquare
 } from "lucide-react"
 import { useState, useEffect } from "react"
 
 const navigation = [
-    { name: "Overview", href: "/dashboard", icon: LayoutDashboard },
-    { name: "Leads", href: "/dashboard/leads", icon: UserCircle },
-    { name: "Students", href: "/dashboard/students", icon: GraduationCap },
-    { name: "Applications", href: "/dashboard/applications", icon: FileText },
-    { name: "Associates", href: "/dashboard/associates", icon: Briefcase },
-    { name: "Payments", href: "/dashboard/payments", icon: DollarSign },
-    { name: "Users", href: "/dashboard/users", icon: Users },
+    { name: "Overview", href: "/dashboard", icon: LayoutDashboard, roles: ["all"] },
+    { name: "Leads", href: "/dashboard/leads", icon: UserCircle, roles: ["ADMIN", "SUPER_ADMIN"] },
+    { name: "Students", href: "/dashboard/students", icon: GraduationCap, roles: ["ADMIN", "SUPER_ADMIN"] },
+    { name: "Student Management", href: "/dashboard/admin/students", icon: MessageSquare, roles: ["ADMIN", "SUPER_ADMIN"] },
+    { name: "Applications", href: "/dashboard/applications", icon: FileText, roles: ["all"] },
+    { name: "Associates", href: "/dashboard/associates", icon: Briefcase, roles: ["ADMIN", "SUPER_ADMIN"] },
+    { name: "Payments", href: "/dashboard/payments", icon: DollarSign, roles: ["all"] },
+    { name: "QR Analytics", href: "/dashboard/admin/qr-analytics", icon: QrCode, roles: ["ADMIN", "SUPER_ADMIN"] },
+    { name: "Users", href: "/dashboard/users", icon: Users, roles: ["ADMIN", "SUPER_ADMIN"] },
 ]
 
 export default function DashboardLayout({
@@ -52,11 +54,9 @@ export default function DashboardLayout({
 
     const filteredNavigation = navigation.filter(item => {
         if (!user) return false
+        if (item.roles.includes("all")) return true
         if (user.role === 'ADMIN' || user.role === 'SUPER_ADMIN') return true
-
-        // Student view
-        const studentRoutes = ['Overview', 'Applications', 'Payments']
-        return studentRoutes.includes(item.name)
+        return false
     })
 
     return (

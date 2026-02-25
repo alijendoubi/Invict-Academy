@@ -7,7 +7,7 @@ import {
   IsEnum,
 } from "class-validator";
 import { ApiProperty } from "@nestjs/swagger";
-import { Role } from "@invict/db";
+import { Role } from "@prisma/client";
 
 export class RegisterDto {
   @ApiProperty()

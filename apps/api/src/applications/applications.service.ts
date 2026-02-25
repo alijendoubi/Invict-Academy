@@ -4,7 +4,7 @@ import {
   CreateApplicationDto,
   UpdateApplicationDto,
 } from "../students/dto/student.dto";
-import { ApplicationStatus } from "@invict/db";
+import { ApplicationStatus } from "@prisma/client";
 import { NotificationsService } from "../notifications/notifications.service";
 
 @Injectable()

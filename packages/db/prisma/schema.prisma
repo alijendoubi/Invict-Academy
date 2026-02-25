@@ -72,6 +72,15 @@ enum TaskStatus {
   DONE
 }
 
+enum ApplicationStep {
+  DOCUMENTS_RECEIVED
+  APPLICATION_SUBMITTED
+  UNDER_REVIEW
+  ADMISSION_LETTER
+  VISA_PROCESS
+  COMPLETED
+}
+
 // Core Models
 
 model User {
@@ -176,7 +185,9 @@ model StudentProfile {
   applications     Application[]
   documents        Document[]
   invoices         Invoice[]
-  
+  consultations    Consultation[]
+  messages         StudentMessage[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -195,7 +206,8 @@ model Application {
   deadline       DateTime?
   
   checklistItems ChecklistItem[]
-  
+  stepLogs       ApplicationStepLog[]
+
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
   tasks          Task[]
@@ -374,6 +386,50 @@ model NewsletterSubscriber {
   id        String   @id @default(uuid())
   email     String   @unique
   active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+}
+
+model Consultation {
+  id               String         @id @default(uuid())
+  studentId        String
+  student          StudentProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  scheduledAt      DateTime
+  whatsappPhone    String
+  notes            String?        @db.Text
+  reminderSent     Boolean        @default(false)
+  calendlyLink     String?        @default("https://calendly.com/invictacademy777")
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+}
+
+model StudentMessage {
+  id         String         @id @default(uuid())
+  studentId  String
+  student    StudentProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  fromAdmin  Boolean        @default(true)
+  content    String         @db.Text
+  subject    String?
+  readAt     DateTime?
+  isPinned   Boolean        @default(false)
+  createdAt  DateTime       @default(now())
+}
+
+model ApplicationStepLog {
+  id            String         @id @default(uuid())
+  applicationId String
+  application   Application    @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  step          ApplicationStep
+  note          String?        @db.Text
+  createdAt     DateTime       @default(now())
+}
+
+model QrScan {
+  id        String   @id @default(uuid())
+  source    String   // e.g. brochure-italy, brochure-general
+  country   String?
+  city      String?
+  userAgent String?
+  ip        String?
   createdAt DateTime @default(now())
 }
 

@@ -7,7 +7,7 @@ import {
   IsNumber,
 } from "class-validator";
 import { ApiProperty } from "@nestjs/swagger";
-import { LeadStatus } from "@invict/db";
+import { LeadStatus } from "@prisma/client";
 
 export class CreateLeadDto {
   @ApiProperty()

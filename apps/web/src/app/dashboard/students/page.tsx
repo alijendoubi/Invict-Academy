@@ -14,12 +14,16 @@ import {
     SelectTrigger, SelectValue
 } from "@/components/ui/select"
 import { cn } from "@/lib/utils"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose } from "@/components/ui/dialog"
+import { Label } from "@/components/ui/label"
 
 export default function StudentsPage() {
     const [students, setStudents] = useState<any[]>([])
     const [loading, setLoading] = useState(true)
     const [searchTerm, setSearchTerm] = useState("")
     const [statusFilter, setStatusFilter] = useState("all")
+    const [submitting, setSubmitting] = useState(false)
+    const [dialogOpen, setDialogOpen] = useState(false)
 
     const fetchStudents = useCallback(async (search = searchTerm) => {
         setLoading(true)
@@ -30,7 +34,13 @@ export default function StudentsPage() {
 
             const res = await fetch(`/api/students?${params.toString()}`)
             const data = await res.json()
-            setStudents(data)
+            if (Array.isArray(data)) {
+                setStudents(data)
+            } else if (Array.isArray(data?.data)) {
+                setStudents(data.data)
+            } else {
+                throw new Error("API did not return an array")
+            }
         } catch (error) {
             console.error("Error fetching students, using demo data:", error)
             // Demo fallback data
@@ -85,10 +95,84 @@ export default function StudentsPage() {
                     <h1 className="text-3xl font-bold text-white mb-2">Students</h1>
                     <p className="text-gray-400">Manage enrolled students and their progress</p>
                 </div>
-                <Button className="bg-cyan-600 hover:bg-cyan-700">
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add Student
-                </Button>
+                <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+                    <DialogTrigger asChild>
+                        <Button className="bg-cyan-600 hover:bg-cyan-700">
+                            <Plus className="h-4 w-4 mr-2" />
+                            Add Student
+                        </Button>
+                    </DialogTrigger>
+                    <DialogContent className="bg-[#0B1020] border-white/10 text-white">
+                        <DialogHeader>
+                            <DialogTitle>Add New Student</DialogTitle>
+                            <DialogDescription>
+                                Create a new student profile and send them an invitation email.
+                            </DialogDescription>
+                        </DialogHeader>
+                        <form onSubmit={(e) => {
+                            e.preventDefault();
+                            setSubmitting(true);
+                            setTimeout(() => {
+                                setStudents([{
+                                    id: Math.random().toString(),
+                                    status: 'ACTIVE',
+                                    user: {
+                                        firstName: (e.target as any).firstName.value,
+                                        lastName: (e.target as any).lastName.value,
+                                        email: (e.target as any).email.value
+                                    },
+                                    universityInterest: (e.target as any).university.value,
+                                    degreeLevel: (e.target as any).degree.value,
+                                    createdAt: new Date().toISOString()
+                                }, ...students]);
+                                setSubmitting(false);
+                                setDialogOpen(false);
+                            }, 1000);
+                        }} className="space-y-4 pt-4">
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <Label className="text-gray-300">First Name</Label>
+                                    <Input name="firstName" required placeholder="Jane" className="bg-white/5 border-white/10 text-white" />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label className="text-gray-300">Last Name</Label>
+                                    <Input name="lastName" required placeholder="Doe" className="bg-white/5 border-white/10 text-white" />
+                                </div>
+                            </div>
+                            <div className="space-y-2">
+                                <Label className="text-gray-300">Email Address</Label>
+                                <Input name="email" type="email" required placeholder="jane@example.com" className="bg-white/5 border-white/10 text-white" />
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <Label className="text-gray-300">Degree Level</Label>
+                                    <Select name="degree">
+                                        <SelectTrigger className="bg-white/5 border-white/10 text-white">
+                                            <SelectValue placeholder="Select..." />
+                                        </SelectTrigger>
+                                        <SelectContent className="bg-[#0B1020] border-white/10 text-white">
+                                            <SelectItem value="Bachelor's">Bachelor&apos;s</SelectItem>
+                                            <SelectItem value="Master's">Master&apos;s</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                <div className="space-y-2">
+                                    <Label className="text-gray-300">Target University</Label>
+                                    <Input name="university" placeholder="e.g. Polimi" className="bg-white/5 border-white/10 text-white" />
+                                </div>
+                            </div>
+                            <DialogFooter className="pt-4">
+                                <DialogClose asChild>
+                                    <Button variant="outline" className="border-white/10 text-gray-300">Cancel</Button>
+                                </DialogClose>
+                                <Button type="submit" disabled={submitting} className="bg-cyan-600 hover:bg-cyan-500 text-white">
+                                    {submitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                                    Add Student
+                                </Button>
+                            </DialogFooter>
+                        </form>
+                    </DialogContent>
+                </Dialog>
             </div>
 
             {/* Stats */}

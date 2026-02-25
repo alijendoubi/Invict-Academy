@@ -6,7 +6,11 @@ import {
   IsOptional,
 } from "class-validator";
 import { ApiProperty } from "@nestjs/swagger";
-import { StudentStatus, ApplicationType, ApplicationStatus } from "@invict/db";
+import {
+  StudentStatus,
+  ApplicationType,
+  ApplicationStatus,
+} from "@prisma/client";
 
 export class UpdateStudentDto {
   @ApiProperty({ enum: StudentStatus, required: false })
