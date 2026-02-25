@@ -7,12 +7,12 @@ import { useLanguage } from "@/contexts/LanguageContext"
 
 // ─── Real contact data ────────────────────────────────────────
 const CONTACT = {
-    phoneTunisia: "+216 28 123 456",
+    phoneTunisia: "+39 327 3181816",
     phoneItaly: "+39 347 7590963",
     email: "contact@invictacademy.com",
     instagram: "https://www.instagram.com/invict.academy",
     facebook: "https://www.facebook.com/invictacademy777",
-    whatsapp: "https://wa.me/21628123456",
+    whatsapp: "https://wa.me/393273181816",
     whatsappItaly: "https://wa.me/393477590963",
     youtube: "https://www.youtube.com/@InvictAcademy",
 }

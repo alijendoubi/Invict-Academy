@@ -337,7 +337,7 @@ export const ar: Omit<TranslationKeys, "dir"> & { dir: "rtl" } = {
             email: "البريد الإلكتروني",
             emailPlaceholder: "ahmed@example.com",
             phone: "رقم الهاتف",
-            phonePlaceholder: "+21612345678",
+            phonePlaceholder: "+393273181816",
             degree: "الدرجة المطلوبة",
             degreePlaceholder: "اختر الدرجة...",
             degrees: {

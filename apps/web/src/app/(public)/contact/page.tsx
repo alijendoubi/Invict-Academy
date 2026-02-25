@@ -59,7 +59,7 @@ export default function ContactPage() {
                             <div className="text-4xl mb-2">🎉</div>
                             <h3 className="text-xl font-bold text-green-400">{t.contact.success.title}</h3>
                             <p className="text-gray-400 text-sm">{t.contact.success.message}</p>
-                            <a href="https://wa.me/21628123456?text=Hi, I just submitted a contact form on invictacademy.com" target="_blank" rel="noopener noreferrer">
+                            <a href="https://wa.me/393273181816?text=Hi, I just submitted a contact form on invictacademy.com" target="_blank" rel="noopener noreferrer">
                                 <Button className="w-full bg-green-600 hover:bg-green-500 text-white rounded-xl gap-2 mt-2">
                                     {t.contact.success.whatsappBtn}
                                 </Button>
