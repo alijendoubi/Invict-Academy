@@ -17,7 +17,20 @@ async function decrypt(input: string): Promise<any> {
 }
 
 export async function middleware(request: NextRequest) {
-    const { pathname } = request.nextUrl;
+    const { pathname, host } = request.nextUrl;
+
+    // Force non-www on production
+    if (host.startsWith('www.')) {
+        const nonWwwHost = host.replace('www.', '');
+        const newUrl = new URL(pathname, `https://${nonWwwHost}`);
+        request.nextUrl.searchParams.forEach((val, key) => newUrl.searchParams.set(key, val));
+        return NextResponse.redirect(newUrl, 301);
+    }
+
+    // Explicitly bypass sitemaps and robots.txt
+    if (pathname.includes('sitemap') || pathname === '/robots.txt') {
+        return NextResponse.next();
+    }
 
     // 1. Handle protected routes (Dashboards)
     const isProtectedRoute = protectedRoutes.some((route) => pathname.startsWith(route));
@@ -72,6 +85,6 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-    // Match all request paths except api, _next, and files with an extension (e.g. .png, .css)
-    matcher: ['/((?!api|_next|.*\\..*).*)'],
+    // Match all request paths except api, _next, files with an extension (e.g. .png, .css), and sitemaps
+    matcher: ['/((?!api|_next|sitemap.*\\.xml|.*\\..*).*)'],
 };
