@@ -1,26 +1,32 @@
-import { destinations } from '@/lib/destinations'
+import { destinations } from '@/lib/destinations';
+
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.APP_URL || 'https://www.invictacademy.com'
+    const baseUrl = 'https://invict.academy';
     let urls = '';
 
     destinations.forEach((country) => {
         urls += `
   <url>
-    <loc>\${baseUrl}/explore/\${country.slug}</loc>
-    <lastmod>\${new Date().toISOString()}</lastmod>
+    <loc>${baseUrl}/countries/${country.slug}</loc>
+    <lastmod>${new Date().toISOString()}</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
-  </url>`
-    })
+  </url>`;
+    });
 
     const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-\${urls}
-</urlset>`
+${urls}
+</urlset>`;
+
+    console.log(`[Sitemap] Generated sitemap-countries.xml: ${destinations.length} URLs`);
 
     return new Response(xml, {
-        headers: { 'Content-Type': 'application/xml', 'Cache-Control': 'public, s-maxage=86400, stale-while-revalidate' }
-    })
+        headers: {
+            'Content-Type': 'application/xml; charset=utf-8',
+            'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=86400'
+        }
+    });
 }
