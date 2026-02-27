@@ -119,7 +119,7 @@ export default function BookletPage() {
                                     ))}
                                 </div>
                                 <div className="flex gap-3">
-                                    <a href={`https://wa.me/21628123456?text=Hi, I'd like to request the PDF: ${guide.title}`}
+                                    <a href={`https://wa.me/393477590963?text=Hi, I'd like to request the PDF: ${guide.title}`}
                                         target="_blank" rel="noopener noreferrer"
                                         className="flex items-center gap-2 text-sm font-semibold text-white bg-white/10 hover:bg-white/20 rounded-xl px-4 py-2 transition-all">
                                         <Download size={14} /> {t.booklet.requestPdf}
@@ -174,7 +174,7 @@ export default function BookletPage() {
                     <p className="text-gray-400 text-lg mb-10 max-w-xl mx-auto">{t.booklet.whatsappCtaDesc}</p>
                     <div className="flex flex-col sm:flex-row gap-4 justify-center">
                         <Button asChild size="lg" className="bg-green-600 hover:bg-green-500 text-white font-bold rounded-2xl px-10 h-14 text-lg">
-                            <a href="https://wa.me/21628123456?text=Hi, I'd like to learn more about studying in Italy" target="_blank" rel="noopener noreferrer">
+                            <a href="https://wa.me/393477590963?text=Hi, I'd like to learn more about studying in Italy" target="_blank" rel="noopener noreferrer">
                                 {t.booklet.chatWhatsapp}
                             </a>
                         </Button>

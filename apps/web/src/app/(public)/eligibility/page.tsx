@@ -294,7 +294,7 @@ export default function AIEligibilityWizard() {
                                                     </a>
                                                 </Button>
                                                 <Button className="w-full bg-green-600 hover:bg-green-700 h-12 text-sm font-bold" asChild>
-                                                    <a href="https://wa.me/21628123456?text=Hi, I completed the AI Eligibility check and want to know my options!" target="_blank" rel="noopener noreferrer">
+                                                    <a href="https://wa.me/393477590963?text=Hi, I completed the AI Eligibility check and want to know my options!" target="_blank" rel="noopener noreferrer">
                                                         {t.eligibility.result.whatsappNow}
                                                     </a>
                                                 </Button>

@@ -4,7 +4,7 @@ import { useState } from "react"
 import { MessageCircle, X, Phone } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 
-const WA_NUMBER = "21628123456"
+const WA_NUMBER = "393477590963"
 const WA_MESSAGE = "Hi! I'd like to learn more about studying in Italy with Invict Academy."
 
 export function WhatsAppButton() {

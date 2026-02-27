@@ -26,11 +26,11 @@ const STATUS_CONFIG: Record<ApplicationStatus, { label: string; color: string; b
 }
 
 const DEMO_STUDENTS = [
-    { id: "1", name: "Ahmed Benali", email: "ahmed@example.com", phone: "+216 20 123 456", country: "Italy", program: "Computer Engineering — PoliTo", status: "UNDER_REVIEW" as ApplicationStatus, lastActivity: "2 hours ago", advisor: "Sarah J." },
+    { id: "1", name: "Ahmed Benali", email: "ahmed@example.com", phone: "+39 347 7590961", country: "Italy", program: "Computer Engineering — PoliTo", status: "UNDER_REVIEW" as ApplicationStatus, lastActivity: "2 hours ago", advisor: "Sarah J." },
     { id: "2", name: "Fatima Al-Rashid", email: "fatima@example.com", phone: "+213 55 234 567", country: "Italy", program: "Business Administration — UniBO", status: "ACCEPTED" as ApplicationStatus, lastActivity: "1 day ago", advisor: "John D." },
-    { id: "3", name: "Mohamed Khelifi", email: "mk@example.com", phone: "+216 25 345 678", country: "Germany", program: "Computer Science — FU Berlin", status: "VISA_PROCESSING" as ApplicationStatus, lastActivity: "3 hours ago", advisor: "Sarah J." },
-    { id: "4", name: "Yasmine Touati", email: "yt@example.com", phone: "+216 50 456 789", country: "Italy", program: "Data Science — UniPadua", status: "SUBMITTED" as ApplicationStatus, lastActivity: "5 hours ago", advisor: "Ali M." },
-    { id: "5", name: "Karim Mansouri", email: "km@example.com", phone: "+216 90 567 890", country: "Italy", program: "Aerospace Engineering — PoliMi", status: "DRAFT" as ApplicationStatus, lastActivity: "2 days ago", advisor: "Sarah J." },
+    { id: "3", name: "Mohamed Khelifi", email: "mk@example.com", phone: "+39 347 7590962", country: "Germany", program: "Computer Science — FU Berlin", status: "VISA_PROCESSING" as ApplicationStatus, lastActivity: "3 hours ago", advisor: "Sarah J." },
+    { id: "4", name: "Yasmine Touati", email: "yt@example.com", phone: "+39 347 7590964", country: "Italy", program: "Data Science — UniPadua", status: "SUBMITTED" as ApplicationStatus, lastActivity: "5 hours ago", advisor: "Ali M." },
+    { id: "5", name: "Karim Mansouri", email: "km@example.com", phone: "+39 347 7590965", country: "Italy", program: "Aerospace Engineering — PoliMi", status: "DRAFT" as ApplicationStatus, lastActivity: "2 days ago", advisor: "Sarah J." },
 ]
 
 const APPLICATION_STEPS = [

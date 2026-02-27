@@ -315,7 +315,7 @@ export default function Home() {
                             <h3 className="text-white font-bold text-xl mb-1">{t.homepage?.communityWhatsappTitle || "Join the Community WhatsApp Group"}</h3>
                             <p className="text-gray-400 text-sm">{t.homepage?.communityWhatsappDesc || "Connect with current students, recent graduates, and incoming students before you even land in Italy."}</p>
                         </div>
-                        <a href="https://wa.me/21628123456?text=Hi! I'd like to join the student community group" target="_blank" rel="noopener noreferrer"
+                        <a href="https://wa.me/393477590963?text=Hi! I'd like to join the student community group" target="_blank" rel="noopener noreferrer"
                             className="bg-green-600 hover:bg-green-500 text-white font-bold rounded-2xl px-8 py-4 transition-all flex items-center gap-2 shrink-0 text-sm">
                             <MessageCircle size={16} /> {t.homepage?.communityWhatsappBtn || "Join on WhatsApp"}
                         </a>

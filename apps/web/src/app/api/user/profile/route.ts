@@ -22,7 +22,7 @@ const DEMO_PROFILES: Record<string, any> = {
         lastName: 'Student',
         role: 'STUDENT',
         createdAt: new Date().toISOString(),
-        phone: '+216 28 000 000',
+        phone: '+39 347 7590963',
         nationality: 'Tunisian',
     },
 };

@@ -130,7 +130,7 @@ export default function PaymentsPage() {
                     <h1 className="text-3xl font-black text-white mb-1">Payments</h1>
                     <p className="text-gray-400 text-sm">Invoices, receipts & payment schedule for <span className="text-white font-medium">{summary.packageName}</span></p>
                 </div>
-                <a href="https://wa.me/21628123456?text=Hi, I have a question about my payment" target="_blank" rel="noopener noreferrer">
+                <a href="https://wa.me/393477590963?text=Hi, I have a question about my payment" target="_blank" rel="noopener noreferrer">
                     <Button className="bg-green-600 hover:bg-green-500 text-white font-semibold rounded-xl gap-2">
                         <MessageCircle size={16} /> WhatsApp Support
                     </Button>
@@ -296,7 +296,7 @@ export default function PaymentsPage() {
                                                         </Button>
                                                     )}
                                                     {inv.status === "PENDING" && (
-                                                        <a href="https://wa.me/21628123456?text=Hi, I'd like to pay invoice {inv.id}" target="_blank" rel="noopener noreferrer">
+                                                        <a href="https://wa.me/393477590963?text=Hi, I'd like to pay invoice {inv.id}" target="_blank" rel="noopener noreferrer">
                                                             <Button size="sm" className="bg-green-600 hover:bg-green-500 text-white rounded-xl gap-1.5 h-8 text-xs">
                                                                 <MessageCircle size={12} /> Pay via WhatsApp
                                                             </Button>
@@ -335,7 +335,7 @@ export default function PaymentsPage() {
                             },
                             {
                                 method: "WhatsApp Coordination",
-                                detail: "+216 28 123 456",
+                                detail: "+39 347 7590963",
                                 note: "Send transfer proof, we confirm in 2h",
                                 icon: "💬",
                             },
