@@ -23,7 +23,35 @@ export const tr: TranslationKeys = {
         joinCommunity: "2.400+ Öğrenciye Katıl",
     },
     homepage: {
-        whyUsBadge: "Neden Invict Academy",
+        supportPillarsTabs: [
+            { id: "admission", tabTitle: "Kabul", title: "Kabul Ustalığı", desc: "Öne çıkan bir profille en iyi İtalyan üniversitelerine girin.", steps: ["48 saat içinde ön değerlendirme", "Universitaly Portal Yönetimi", "Program Strateji oturumu"] },
+            { id: "scholarship", tabTitle: "Burslar", title: "Hayalinizi Finanse Edin", desc: "Bölgesel DSU bursları ve başarı bazlı hibeler konusunda uzmanız.", steps: ["Ekonomik değerlendirme (ISEE-U)", "Burs başvuru takibi", "Banka belge incelemesi"] },
+            { id: "visa", tabTitle: "Vize", title: "%99 Vize Onayı", desc: "İtalyan konsolosluğuna her seferinde kusursuz bir dosya sunun.", steps: ["Konsolosluk mülakat hazırlığı", "Sigorta & Finans doğrulama", "Dijital kontrol listesi takibi"] },
+            { id: "arrival", tabTitle: "Varış", title: "İndi ve Evinde", desc: "Havaalanı karşılamasından tarihi şehir merkezlerinde dairenizi bulmaya kadar.", steps: ["Oturma İzni yardımı", "Yerel SIM ve Banka kurulumu", "Konut ağı erişimi"] }
+        ],
+        services: [
+            { title: "Uygunluk Değerlendirmesi", desc: "Akademik geçmişinizi, uygunluğunuzu ve sizin için en iyi üniversite eşleşmelerini değerlendirmek için kapsamlı 90 dakikalık bir danışmanlık.", items: ["Ücretsiz 90 dakikalık danışmanlık", "Üniversite eşleştirme", "Burs uygunluk kontrolü", "Vize yolu analizi"], badge: "Ücretsiz" },
+            { title: "Belge Hazırlığı", desc: "CIMEA denkliği, çeviriler, apostil ve başvurunuzun ihtiyaç duyduğu her belgeyi yönetiyoruz.", items: ["CIMEA/DoV koordinasyonu", "Resmi çeviriler", "Apostil dosyalama", "Belge tasdiki"], badge: "Dahil" },
+            { title: "Üniversite Başvuruları", desc: "Başvurunuzu aynı anda 2-3 üniversiteye sunarak kabul şansınızı en üst düzeye çıkarıyoruz.", items: ["Çoklu üniversite stratejisi", "Başvuru portalı dosyalama", "SOP & CV yazımı", "Mülakat hazırlığı"], badge: "Temel Hizmet" },
+            { title: "Burs Dosyalama", desc: "Avrupa'nın en cömert öğrenci bursu olan DSU bölgesel burs başvurunuzu — hiçbir ek ücret ödemeden — yapıyoruz.", items: ["DSU başvuru dosyalama", "ISEE hesaplaması", "Konaklama başvurusu", "Burs takibi"], badge: "Ücretsiz Dahil" },
+            { title: "Vize & İzin", desc: "Universitaly ön kaydı, büyükelçilik randevusu ve oturma izni (permit di soggiorno) dahil tam öğrenci vizesi başvuru yönetimi.", items: ["Universitaly ön kayıt", "Büyükelçilik randevu koordinasyonu", "Vize belge kontrol listesi", "Oturum izni desteği"], badge: "Uçtan Uca" },
+            { title: "Ayrılış Öncesi & Varış", desc: "Havaalanı transfer koordinasyonundan ev kurulumuna ve şehir oryantasyonuna kadar — İtalya'daki ilk haftanızın sorunsuz geçmesini sağlıyoruz.", items: ["Havaalanı transfer koordinasyonu", "Konaklama kurulumu", "Banka hesabı açma rehberi", "Şehir oryantasyon oturumu"], badge: "Premium" },
+        ],
+        processSteps: [
+            { title: "Değerlendirme", desc: "Mükemmel programları önermek için notlarınızı, bütçenizi ve hedeflerinizi analiz ediyoruz.", step: "01" },
+            { title: "Kabul", desc: "CIMEA, Universitaly ve burs portallarının uzman yönetimi.", step: "02" },
+            { title: "Vize", desc: "%100 başarı oranı için stressiz randevular ve belge hazırlığı.", step: "03" },
+            { title: "Varış", desc: "Codice Fiscale, banka hesapları ve ev arama için yerel destek.", step: "04" }
+        ],
+        features: [
+            { title: "Para İade Garantisi", desc: "Uzmanlığımızın arkasındayız. Kabul hizmetimizle ilgili herhangi bir sorun olması durumunda iadeler geçerlidir. Başarınız bizim önceliğimizdir!" },
+            { title: "72 Saatte Başvuru Başlangıcı", desc: "Sözleşmeyi imzaladıktan sonra 72 saat içinde üniversite başvurunuza başlıyoruz. Artık haftalarca beklemek yok." },
+            { title: "Özel Kişisel Danışman", desc: "İlk günden varış gününe kadar tek bir danışman dosyanızla ilgilenir. Kimi arayacağınızı her zaman bileceksiniz." },
+            { title: "Ücretsiz DSU Burs Başvurusu", desc: "DSU burs başvurunuzu hiçbir ek ücret ödemeden yapıyoruz — yılda 7.500 €'ya kadar güvence altında." },
+            { title: "12 Ülke, 200+ Program", desc: "İtalya, Almanya, Fransa, İspanya ve ötesindeki programlara erişim — hepsi tek bir yerde." },
+            { title: "7/24 WhatsApp Güncellemeleri", desc: "WhatsApp üzerinden başvuru durumunuz hakkında gerçek zamanlı güncellemeler. Sizi asla tahmin yürütmek zorunda bırakmıyoruz." }
+        ],
+whyUsBadge: "Neden Invict Academy",
         whyUsTitleLine1: "Sözünü",
         whyUsTitleLine2: "Tutan Acente",
         whyUsDesc: "Belirsiz vaatler yok. Net zaman çizelgeleri, gerçek sorumluluk ve garantili sonuçlar ya da paranız iade.",

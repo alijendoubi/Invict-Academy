@@ -21,7 +21,35 @@ export const en = {
         joinCommunity: "Join 2,400+ Students",
     },
     homepage: {
-        whyUsBadge: "Why Invict Academy",
+        supportPillarsTabs: [
+            { id: "admission", tabTitle: "Admission", title: "Admission Mastery", desc: "Get into top Italian universities with a profile that stands out.", steps: ["Pre-evaluation within 48h", "Universitaly Portal Management", "Program Strategy session"] },
+            { id: "scholarship", tabTitle: "Scholarships", title: "Funding Your Dream", desc: "We specialize in regional DSU scholarships and merit-based grants.", steps: ["Economic assessment (ISEE-U)", "Scholarship application tracking", "Bank document review"] },
+            { id: "visa", tabTitle: "Visa", title: "99% Visa Approval", desc: "Submit a foolproof file to the Italian consulate every single time.", steps: ["Consulate interview prep", "Insurance & Finance validation", "Digital checklist tracking"] },
+            { id: "arrival", tabTitle: "Arrival", title: "Landed & Home", desc: "From airport pickup to finding your apartment in historic city centers.", steps: ["Permit of Stay assistance", "Local SIM and Bank setup", "Housing network access"] }
+        ],
+        services: [
+            { title: "Eligibility Assessment", desc: "A comprehensive 90-minute consultation to evaluate your academic background, eligibility, and the best university matches for you.", items: ["Free 90-min consultation", "University matching", "Scholarship eligibility check", "Visa pathway analysis"], badge: "Free" },
+            { title: "Document Preparation", desc: "We handle CIMEA recognition, translations, apostille, and every document your application needs — completely managed.", items: ["CIMEA/DoV coordination", "Official translations", "Apostille filing", "Document authentication"], badge: "Included" },
+            { title: "University Applications", desc: "We submit your application to 2-3 universities simultaneously, maximising your chances of acceptance.", items: ["Multi-university strategy", "Application portal filing", "SOP & CV writing", "Interview preparation"], badge: "Core Service" },
+            { title: "Scholarship Filing", desc: "We file your DSU regional scholarship application — the most generous student scholarship in Europe — at no extra charge.", items: ["DSU application filing", "ISEE calculation", "Housing application", "Scholarship tracking"], badge: "Included Free" },
+            { title: "Visa & Permit", desc: "Full student visa application management including pre-enrollment, Universitaly, embassy appointment, and permit di soggiorno.", items: ["Universitaly pre-enrollment", "Embassy appointment coordination", "Visa document checklist", "Permit di Soggiorno support"], badge: "End-to-End" },
+            { title: "Pre-Departure & Landing", desc: "From airport pickup coordination to housing setup and city orientation — we ensure your first week in Italy is smooth.", items: ["Airport transfer coordination", "Accommodation setup", "Bank account opening guide", "City orientation session"], badge: "Premium" },
+        ],
+        processSteps: [
+            { title: "Evaluation", desc: "We analyze your grades, budget, and goals to suggest the perfect programs.", step: "01" },
+            { title: "Admission", desc: "Expert handling of CIMEA, Universitaly, and scholarship portals.", step: "02" },
+            { title: "Visa", desc: "Stress-free appointments and document preparation for a 100% success rate.", step: "03" },
+            { title: "Arrival", desc: "Local support for Codice Fiscale, bank accounts, and housing search.", step: "04" }
+        ],
+        features: [
+            { title: "Money-Back Guarantee", desc: "We stand by our expertise. Refunds apply in case of any issues related to our admission service. Your success is our priority!" },
+            { title: "72-Hour Application Start", desc: "We begin your university application within 72 hours of signing. No weeks of waiting." },
+            { title: "Dedicated Personal Advisor", desc: "One advisor owns your file from Day 1 to Arrival Day. You'll always know who to call." },
+            { title: "Free DSU Scholarship Filing", desc: "We file your DSU scholarship application at no extra charge — up to €7,500/year secured." },
+            { title: "12 Countries, 200+ Programs", desc: "Access to programs across Italy, Germany, France, Spain and beyond — all in one place." },
+            { title: "WhatsApp Updates 24/7", desc: "Real-time updates on your application status via WhatsApp. We never leave you guessing." }
+        ],
+whyUsBadge: "Why Invict Academy",
         whyUsTitleLine1: "The Agency That",
         whyUsTitleLine2: "Actually Delivers",
         whyUsDesc: "No vague promises. Clear timelines, real accountability, and guaranteed results or your money back.",

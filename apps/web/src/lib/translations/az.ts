@@ -23,7 +23,35 @@ export const az: TranslationKeys = {
         joinCommunity: "2.400+ Tələbəyə Qoşul",
     },
     homepage: {
-        whyUsBadge: "Niyə Invict Academy",
+        supportPillarsTabs: [
+            { id: "admission", tabTitle: "Qəbul", title: "Qəbul Ustalığı", desc: "Fərqlənən bir profillə ən yaxşı İtaliya universitetlərinə qəbul olun.", steps: ["48 saat ərzində ilkin qiymətləndirmə", "Universitaly Portal İdarəetməsi", "Proqram Strategiyası sessiyası"] },
+            { id: "scholarship", tabTitle: "Təqaüdlər", title: "Xəyalınızı Maliyyələşdirin", desc: "Regional DSU təqaüdləri və ləyaqətə əsaslanan qrantlar üzrə ixtisaslaşmışıq.", steps: ["İqtisadi qiymətləndirmə (ISEE-U)", "Təqaüd müraciəti izlənməsi", "Banka sənədinin nəzərdən keçirilməsi"] },
+            { id: "visa", tabTitle: "Viza", title: "99% Viza Təsdiqi", desc: "Hər dəfə İtaliya konsulluğuna qüsursuz bir dosye təqdim edin.", steps: ["Konsulluq müsahibəsi hazırlığı", "Sığorta və Maliyyə təsdiqlənməsi", "Rəqəmsal yoxlama siyahısı izlənməsi"] },
+            { id: "arrival", tabTitle: "Gəliş", title: "Endi və Evdə", desc: "Hava limanında qarşılamadan tarixi şəhər mərkəzlərində mənzil tapmağa qədər.", steps: ["Yaşayış İcazəsi yardımı", "Yerli SIM və Banka qurulması", "Mənzil şəbəkəsinə çıxış"] }
+        ],
+        services: [
+            { title: "Uyğunluq Qiymətləndirməsi", desc: "Akademik keçmişinizi, uyğunluğunuzu və sizin üçün ən yaxşı universitet uyğunlaşdırmalarını qiymətləndirmək üçün əhatəli 90 dəqiqəlik məsləhətləşmə.", items: ["Pulsuz 90 dəqiqəlik məsləhətləşmə", "Universitet uyğunlaşdırma", "Təqaüd uyğunluq yoxlaması", "Viza yolu analizi"], badge: "Pulsuz" },
+            { title: "Sənəd Hazırlığı", desc: "CIMEA tanınması, tərcümələr, apostil və müraciətinizin ehtiyac duyduğu hər bir sənədi idarə edirik.", items: ["CIMEA/DoV koordinasiyası", "Rəsmi tərcümələr", "Apostil qeydiyyatı", "Sənəd təsdiqləməsi"], badge: "Daxildir" },
+            { title: "Universitet Müraciətləri", desc: "Qəbul şansınızı artırmaq üçün müraciətinizi eyni anda 2-3 universitetə göndəririk.", items: ["Çoxsaylı universitet strategiyası", "Müraciət portalı qeydiyyatı", "SOP & CV yazımı", "Müsahibə hazırlığı"], badge: "Əsas Xidmət" },
+            { title: "Təqaüd Qeydiyyatı", desc: "Avropanın ən səxavətli tələbə təqaüdü olan DSU regional təqaüd müraciətinizi — heç bir əlavə xərc tələb etmədən — edirik.", items: ["DSU müraciət qeydiyyatı", "ISEE hesablaması", "Yaşayış müraciəti", "Təqaüd izlənməsi"], badge: "Pulsuz Daxildir" },
+            { title: "Viza & İcazə", desc: "Universitaly ilkin qeydiyyatı, səfirlik randevusu və yaşayış icazəsi (permit di soggiorno) daxil olmaqla tam tələbə vizası müraciətinin idarə edilməsi.", items: ["Universitaly ilkin qeydiyyat", "Səfirlik randevu koordinasiyası", "Viza sənədlərinin siyahısı", "Yaşayış icazəsi dəstəyi"], badge: "Başdan Başa" },
+            { title: "Gediş Öncesi & Gəliş", desc: "Hava limanı transfer koordinasiyasından ev qurulmasına və şəhər oriyentasiyasına qədər — İtaliyadakı ilk həftənizin hamar keçməsini təmin edirik.", items: ["Hava limanı transfer koordinasiyası", "Yaşayış yerin qurulması", "Banka hesabı açma rəhbəri", "Şəhər oriyentasiya sessiyası"], badge: "Premium" },
+        ],
+        processSteps: [
+            { title: "Qiymətləndirmə", desc: "Mükəmməl proqramları təklif etmək üçün qiymətlərinizi, büdcənizi və məqsədlərinizi təhlil edirik.", step: "01" },
+            { title: "Qəbul", desc: "CIMEA, Universitaly və təqaüd portallarının ekspert idarəetməsi.", step: "02" },
+            { title: "Viza", desc: "100% müvəffəqiyyət dərəcəsi üçün stressiz randevular və sənəd hazırlığı.", step: "03" },
+            { title: "Gəliş", desc: "Codice Fiscale, bank hesabları və yaşayış yeri axtarışı üçün yerli dəstək.", step: "04" }
+        ],
+        features: [
+            { title: "Pulun Qaytarılması Zəmanəti", desc: "Təcrübəmizə güvənirik. Qəbul xidmətimizlə bağlı hər hansı problem yarandıqda pulunuz geri qaytarılır. Sizin uğurunuz bizim prioritetimizdir!" },
+            { title: "72 Saat İçində Müraciətə Başlama", desc: "Müqavilə imzalandıqdan sonra 72 saat ərzində universitet müraciətinizə başlayırıq. Artıq həftələrlə gözləməyə ehtiyac yoxdur." },
+            { title: "Xüsusi Şəxsi Məsləhətçi", desc: "İlk gündən gəliş gününə qədər bir məsləhətçi dosyenizlə maraqlanır. Kimi axtaracağınızı həmişə biləcəksiniz." },
+            { title: "Pulsuz DSU Təqaüd Müraciəti", desc: "Heç bir əlavə xərc olmadan DSU təqaüd müraciətinizi edirik — ildə 7.500 avroya qədər təminatla." },
+            { title: "12 Ölkə, 200+ Proqram", desc: "İtaliya, Almaniya, Fransa, İspaniya və digər ölkələrdəki proqramlara çıxış — hamısı bir yerdə." },
+            { title: "7/24 WhatsApp Yenilənmələri", desc: "WhatsApp vasitəsilə müraciətinizin statusu haqqında real vaxt rejimində yenilənmələr. Sizi heç vaxt şübhə içində qoymuruq." }
+        ],
+whyUsBadge: "Niyə Invict Academy",
         whyUsTitleLine1: "Sözünü",
         whyUsTitleLine2: "Tutan Agentlik",
         whyUsDesc: "Qeyri-müəyyən vədlər yoxdur. Dəqiq vaxt cədvəlləri, real məsuliyyət və zəmanətli nəticələr və ya pulunuz geri qaytarılır.",

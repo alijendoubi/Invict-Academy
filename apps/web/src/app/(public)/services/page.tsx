@@ -17,7 +17,6 @@ export default function ServicesPage() {
                     <Card className="bg-[#0B1020] border-white/10 flex flex-col">
                         <CardHeader>
                             <CardTitle className="text-xl text-gray-300">Consultation</CardTitle>
-                            <div className="text-3xl font-bold mt-2">€49 <span className="text-sm font-normal text-gray-500">/ session</span></div>
                         </CardHeader>
                         <CardContent className="space-y-4 flex-1 text-gray-400 text-sm">
                             <div className="flex gap-2"><Check className="h-4 w-4 text-cyan-500" /> <span>Profile Assessment</span></div>
@@ -34,7 +33,6 @@ export default function ServicesPage() {
                         <div className="absolute top-0 right-0 bg-cyan-500 text-black text-xs font-bold px-3 py-1 rounded-bl-lg">POPULAR</div>
                         <CardHeader>
                             <CardTitle className="text-xl text-cyan-400">Admission & Visa</CardTitle>
-                            <div className="text-3xl font-bold mt-2">€899 <span className="text-sm font-normal text-gray-500">/ one-time</span></div>
                         </CardHeader>
                         <CardContent className="space-y-4 flex-1 text-gray-300 text-sm">
                             <div className="flex gap-2"><Check className="h-4 w-4 text-cyan-500" /> <span>University Shortlisting (up to 5)</span></div>
@@ -52,7 +50,6 @@ export default function ServicesPage() {
                     <Card className="bg-[#0B1020] border-white/10 flex flex-col">
                         <CardHeader>
                             <CardTitle className="text-xl text-purple-400">Full Ride (A-Z)</CardTitle>
-                            <div className="text-3xl font-bold mt-2">€1,499</div>
                         </CardHeader>
                         <CardContent className="space-y-4 flex-1 text-gray-400 text-sm">
                             <div className="flex gap-2"><Check className="h-4 w-4 text-purple-500" /> <span>Everything in Standard</span></div>

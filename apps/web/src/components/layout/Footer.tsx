@@ -7,12 +7,11 @@ import { useLanguage } from "@/contexts/LanguageContext"
 
 // ─── Real contact data ────────────────────────────────────────
 const CONTACT = {
-    phoneTunisia: "+39 327 3181816",
     phoneItaly: "+39 347 7590963",
     email: "contact@invictacademy.com",
     instagram: "https://www.instagram.com/invict.academy",
     facebook: "https://www.facebook.com/invictacademy777",
-    whatsapp: "https://wa.me/393273181816",
+    whatsapp: "https://wa.me/393477590963",
     whatsappItaly: "https://wa.me/393477590963",
     youtube: "https://www.youtube.com/@InvictAcademy",
 }
@@ -161,7 +160,7 @@ export function Footer() {
                     <div className="flex items-center gap-2">
                         <p>© {new Date().getFullYear()} Invict Academy.</p>
                         <span className="hidden md:inline">·</span>
-                        <p className="hidden md:inline">Built by AutoFlowOS for the community.</p>
+                        <p className="hidden md:inline">Your Future, Our Mission.</p>
                     </div>
                     <div className="flex gap-6 text-xs flex-wrap justify-center md:justify-end">
                         <Link href="/privacy" className="hover:text-white transition-colors">{t.footer.privacy}</Link>

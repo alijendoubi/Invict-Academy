@@ -8,10 +8,11 @@ export default function AboutPage() {
             <div className="container mx-auto px-6 py-20">
                 <div className="text-center max-w-3xl mx-auto mb-20">
                     <h1 className="text-4xl md:text-5xl font-bold mb-6">Bridging Ambition and Opportunity</h1>
+                    <p className="text-cyan-400 font-bold uppercase tracking-widest text-sm mb-4">Your Future, Our Mission</p>
                     <p className="text-xl text-gray-400">Invict Academy was founded with a single mission: to democratize access to world-class education for talented students worldwide.</p>
                 </div>
 
-                <div className="grid md:grid-cols-2 gap-12 items-center mb-24">
+                <div className="max-w-4xl mx-auto mb-24">
                     <div className="space-y-6">
                         <h2 className="text-3xl font-bold">Our Story</h2>
                         <p className="text-gray-400 leading-relaxed">
@@ -20,9 +21,6 @@ export default function AboutPage() {
                         <p className="text-gray-400 leading-relaxed">
                             We gathered a team of former admissions officers, scholarship winners, and visa experts to change this. Today, we have helped over 500 students secure spots in top universities across France, Germany, Canada, and beyond.
                         </p>
-                    </div>
-                    <div className="bg-white/5 rounded-2xl p-8 border border-white/10 h-[400px] flex items-center justify-center">
-                        <p className="text-gray-500 italic">[Team Photo / Office Image]</p>
                     </div>
                 </div>
 

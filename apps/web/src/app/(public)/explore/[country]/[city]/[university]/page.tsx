@@ -238,21 +238,6 @@ export default function UniversityPage({ params }: { params: { country: string; 
                         </CardContent>
                     </Card>
 
-                    {/* Application Process */}
-                    <Card className="bg-[#0B1020] border-white/10">
-                        <CardHeader className="border-b border-white/5">
-                            <CardTitle className="text-white text-base">Application Portal</CardTitle>
-                        </CardHeader>
-                        <CardContent className="pt-4 space-y-3">
-                            <p className="text-gray-400 text-sm">{uni.applicationPortal}</p>
-                            <p className="text-gray-500 text-xs">⚠️ Deadlines vary by year and program. Contact us before applying directly — we manage the full process for you.</p>
-                            <Button asChild className="w-full bg-blue-500/10 border border-blue-500/20 text-blue-400 hover:bg-blue-500/20 rounded-xl" size="sm">
-                                <a href={uni.website} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-2">
-                                    <Globe size={14} /> Visit Official Website
-                                </a>
-                            </Button>
-                        </CardContent>
-                    </Card>
 
                     {/* Quick CTAs */}
                     <Card className="bg-gradient-to-br from-cyan-900/30 to-indigo-900/20 border-cyan-500/20">

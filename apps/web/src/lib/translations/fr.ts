@@ -23,7 +23,35 @@ export const fr: TranslationKeys = {
         joinCommunity: "Rejoindre 2 400+ Étudiants",
     },
     homepage: {
-        whyUsBadge: "Pourquoi Invict Academy",
+        supportPillarsTabs: [
+            { id: "admission", tabTitle: "Admission", title: "Maîtrise de l'Admission", desc: "Intégrez les meilleures universités italiennes avec un profil qui se démarque.", steps: ["Pré-évaluation sous 48h", "Gestion du portail Universitaly", "Session de stratégie de programme"] },
+            { id: "scholarship", tabTitle: "Bourses", title: "Financer Votre Rêve", desc: "Nous sommes spécialisés dans les bourses régionales DSU et les subventions au mérite.", steps: ["Évaluation économique (ISEE-U)", "Suivi de la demande de bourse", "Examen des documents bancaires"] },
+            { id: "visa", tabTitle: "Visa", title: "99% d'Approbation de Visa", desc: "Soumettez un dossier infaillible au consulat italien à chaque fois.", steps: ["Préparation à l'entretien", "Validation des assurances et finances", "Suivi de liste de contrôle numérique"] },
+            { id: "arrival", tabTitle: "Arrivée", title: "Atterré et Chez Soi", desc: "De la prise en charge à l'aéroport à la recherche de votre appartement dans les centres-villes historiques.", steps: ["Aide au permis de séjour", "Configuration de carte SIM et banque locale", "Accès au réseau de logements"] }
+        ],
+        services: [
+            { title: "Évaluation d'admissibilité", desc: "Une consultation complète de 90 minutes pour évaluer votre parcours académique, votre admissibilité et les meilleures universités pour vous.", items: ["Consultation gratuite de 90 min", "Mise en relation avec les universités", "Vérification d'admissibilité aux bourses", "Analyse du parcours visa"], badge: "Gratuit" },
+            { title: "Préparation des documents", desc: "Nous gérons la reconnaissance CIMEA, les traductions, l'apostille et chaque document dont votre candidature a besoin — gestion complète.", items: ["Coordination CIMEA/DoV", "Traductions officielles", "Dépôt d'Apostille", "Authentification de documents"], badge: "Inclus" },
+            { title: "Candidatures universitaires", desc: "Nous soumettons votre candidature à 2-3 universités simultanément, maximisant vos chances d'acceptation.", items: ["Stratégie multi-universitaire", "Dépôt sur les portails", "Rédaction de CV & Lettre de motivation", "Préparation aux entretiens"], badge: "Service principal" },
+            { title: "Dépôt de bourse", desc: "Nous déposons votre demande de bourse régionale DSU — la bourse étudiante la plus généreuse d'Europe — sans frais supplémentaires.", items: ["Dépôt de demande DSU", "Calcul ISEE", "Demande de logement", "Suivi de bourse"], badge: "Inclus gratuitement" },
+            { title: "Visa & Permis de séjour", desc: "Gestion complète de la demande de visa étudiant, y compris la pré-inscription Universitaly, le rendez-vous à l'ambassade et le permis de séjour.", items: ["Pré-inscription Universitaly", "Coordination des rendez-vous", "Liste des documents de visa", "Aide pour le permis de séjour"], badge: "Complet" },
+            { title: "Pré-départ & Arrivée", desc: "De la coordination de l'accueil à l'aéroport à l'installation dans le logement et l'orientation dans la ville — nous assurons une première semaine fluide en Italie.", items: ["Coordination des transferts d'aéroport", "Installation dans le logement", "Guide d'ouverture de compte bancaire", "Session d'orientation dans la ville"], badge: "Premium" },
+        ],
+        processSteps: [
+            { title: "Évaluation", desc: "Nous analysons vos notes, votre budget et vos objectifs pour vous suggérer les programmes parfaits.", step: "01" },
+            { title: "Admission", desc: "Gestion experte des portails CIMEA, Universitaly et des bourses.", step: "02" },
+            { title: "Visa", desc: "Rendez-vous sans stress et préparation des documents pour un taux de réussite de 100%.", step: "03" },
+            { title: "Arrivée", desc: "Soutien local pour le Codice Fiscale, les comptes bancaires et la recherche de logement.", step: "04" }
+        ],
+        features: [
+            { title: "Garantie de Remboursement", desc: "Nous garantissons notre expertise. Les remboursements s'appliquent en cas de problème lié à notre service d'admission. Votre succès est notre priorité !" },
+            { title: "Début de Candidature en 72H", desc: "Nous commençons votre candidature universitaire dans les 72 heures suivant la signature. Plus de semaines d'attente." },
+            { title: "Conseiller Personnel Dédié", desc: "Un conseiller s'occupe de votre dossier du jour 1 à votre arrivée. Vous saurez toujours qui appeler." },
+            { title: "Dossier de Bourse DSU Gratuit", desc: "Nous déposons votre demande de bourse DSU sans frais supplémentaires — jusqu'à 7 500 €/an sécurisés." },
+            { title: "12 Pays, Plus de 200 Programmes", desc: "Accès à des programmes en Italie, Allemagne, France, Espagne et plus encore — tout au même endroit." },
+            { title: "Mises à jour WhatsApp 24/7", desc: "Mises à jour en temps réel sur le statut de votre candidature via WhatsApp. Nous ne vous laissons jamais dans le doute." }
+        ],
+whyUsBadge: "Pourquoi Invict Academy",
         whyUsTitleLine1: "L'Agence Qui",
         whyUsTitleLine2: "Tient Ses Promesses",
         whyUsDesc: "Pas de promesses vagues. Des délais clairs, une vraie responsabilité et des résultats garantis ou remboursés.",

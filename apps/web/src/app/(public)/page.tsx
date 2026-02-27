@@ -66,6 +66,13 @@ export default function Home() {
 
                         <motion.p
                             variants={fadeIn}
+                            className="text-cyan-400 font-bold uppercase tracking-widest text-sm"
+                        >
+                            Your Future, Our Mission
+                        </motion.p>
+
+                        <motion.p
+                            variants={fadeIn}
                             className="text-xl text-gray-400 max-w-xl leading-relaxed"
                         >
                             {t.hero.subheading || "Human guidance meets modern technology. Secure your admission, €5,000+ scholarships, and visa with absolute certainty."}
@@ -237,12 +244,12 @@ export default function Home() {
 
                     <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
                         {[
-                            { icon: ShieldCheck, title: "Money-Back Guarantee", desc: "If your visa is rejected due to our error, we refund 100% of our service fee. No questions asked.", color: "from-green-500/20 to-emerald-600/5", border: "border-green-500/20", iconColor: "text-green-400" },
-                            { icon: Clock, title: "72-Hour Application Start", desc: "We begin your university application within 72 hours of signing. No weeks of waiting.", color: "from-cyan-500/20 to-blue-600/5", border: "border-cyan-500/20", iconColor: "text-cyan-400" },
-                            { icon: UserCheck, title: "Dedicated Personal Advisor", desc: "One advisor owns your file from Day 1 to Arrival Day. You'll always know who to call.", color: "from-blue-500/20 to-indigo-600/5", border: "border-blue-500/20", iconColor: "text-blue-400" },
-                            { icon: Coins, title: "Free DSU Scholarship Filing", desc: "We file your DSU scholarship application at no extra charge — up to €7,500/year secured.", color: "from-yellow-500/20 to-orange-600/5", border: "border-yellow-500/20", iconColor: "text-yellow-400" },
-                            { icon: Globe, title: "12 Countries, 200+ Programs", desc: "Access to programs across Italy, Germany, France, Spain and beyond — all in one place.", color: "from-purple-500/20 to-violet-600/5", border: "border-purple-500/20", iconColor: "text-purple-400" },
-                            { icon: MessageCircle, title: "WhatsApp Updates 24/7", desc: "Real-time updates on your application status via WhatsApp. We never leave you guessing.", color: "from-green-600/20 to-teal-600/5", border: "border-green-600/20", iconColor: "text-green-300" },
+                            { icon: ShieldCheck, title: t.homepage?.features?.[0]?.title || "Money-Back Guarantee", desc: t.homepage?.features?.[0]?.desc || "We stand by our expertise. Refunds apply in case of any issues related to our admission service. Your success is our priority!", color: "from-green-500/20 to-emerald-600/5", border: "border-green-500/20", iconColor: "text-green-400" },
+                            { icon: Clock, title: t.homepage?.features?.[1]?.title || "72-Hour Application Start", desc: t.homepage?.features?.[1]?.desc || "We begin your university application within 72 hours of signing. No weeks of waiting.", color: "from-cyan-500/20 to-blue-600/5", border: "border-cyan-500/20", iconColor: "text-cyan-400" },
+                            { icon: UserCheck, title: t.homepage?.features?.[2]?.title || "Dedicated Personal Advisor", desc: t.homepage?.features?.[2]?.desc || "One advisor owns your file from Day 1 to Arrival Day. You'll always know who to call.", color: "from-blue-500/20 to-indigo-600/5", border: "border-blue-500/20", iconColor: "text-blue-400" },
+                            { icon: Coins, title: t.homepage?.features?.[3]?.title || "Free DSU Scholarship Filing", desc: t.homepage?.features?.[3]?.desc || "We file your DSU scholarship application at no extra charge — up to €7,500/year secured.", color: "from-yellow-500/20 to-orange-600/5", border: "border-yellow-500/20", iconColor: "text-yellow-400" },
+                            { icon: Globe, title: t.homepage?.features?.[4]?.title || "12 Countries, 200+ Programs", desc: t.homepage?.features?.[4]?.desc || "Access to programs across Italy, Germany, France, Spain and beyond — all in one place.", color: "from-purple-500/20 to-violet-600/5", border: "border-purple-500/20", iconColor: "text-purple-400" },
+                            { icon: MessageCircle, title: t.homepage?.features?.[5]?.title || "WhatsApp Updates 24/7", desc: t.homepage?.features?.[5]?.desc || "Real-time updates on your application status via WhatsApp. We never leave you guessing.", color: "from-green-600/20 to-teal-600/5", border: "border-green-600/20", iconColor: "text-green-300" },
                         ].map((item, i) => (
                             <motion.div key={i}
                                 initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }}
@@ -327,12 +334,12 @@ export default function Home() {
 
                     <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
                         {[
-                            { number: "01", title: "Eligibility Assessment", desc: "A comprehensive 90-minute consultation to evaluate your academic background, eligibility, and the best university matches for you.", items: ["Free 90-min consultation", "University matching", "Scholarship eligibility check", "Visa pathway analysis"], badge: "Free", badgeColor: "bg-green-500/20 text-green-400" },
-                            { number: "02", title: "Document Preparation", desc: "We handle CIMEA recognition, translations, apostille, and every document your application needs — completely managed.", items: ["CIMEA/DoV coordination", "Official translations", "Apostille filing", "Document authentication"], badge: "Included", badgeColor: "bg-cyan-500/20 text-cyan-400" },
-                            { number: "03", title: "University Applications", desc: "We submit your application to 2-3 universities simultaneously, maximising your chances of acceptance.", items: ["Multi-university strategy", "Application portal filing", "SOP & CV writing", "Interview preparation"], badge: "Core Service", badgeColor: "bg-blue-500/20 text-blue-400" },
-                            { number: "04", title: "Scholarship Filing", desc: "We file your DSU regional scholarship application — the most generous student scholarship in Europe — at no extra charge.", items: ["DSU application filing", "ISEE calculation", "Housing application", "Scholarship tracking"], badge: "Included Free", badgeColor: "bg-yellow-500/20 text-yellow-400" },
-                            { number: "05", title: "Visa & Permit", desc: "Full student visa application management including pre-enrollment, Universitaly, embassy appointment, and permit di soggiorno.", items: ["Universitaly pre-enrollment", "Embassy appointment coordination", "Visa document checklist", "Permit di Soggiorno support"], badge: "End-to-End", badgeColor: "bg-purple-500/20 text-purple-400" },
-                            { number: "06", title: "Pre-Departure & Landing", desc: "From airport pickup coordination to housing setup and city orientation — we ensure your first week in Italy is smooth.", items: ["Airport transfer coordination", "Accommodation setup", "Bank account opening guide", "City orientation  session"], badge: "Premium", badgeColor: "bg-pink-500/20 text-pink-400" },
+                            { number: "01", title: t.homepage?.services?.[0]?.title || "Eligibility Assessment", desc: t.homepage?.services?.[0]?.desc || "...", items: t.homepage?.services?.[0]?.items || ["Free 90-min consultation"], badge: t.homepage?.services?.[0]?.badge || "Free", badgeColor: "bg-green-500/20 text-green-400" },
+                            { number: "02", title: t.homepage?.services?.[1]?.title || "Document Preparation", desc: t.homepage?.services?.[1]?.desc || "...", items: t.homepage?.services?.[1]?.items || ["CIMEA/DoV coordination"], badge: t.homepage?.services?.[1]?.badge || "Included", badgeColor: "bg-cyan-500/20 text-cyan-400" },
+                            { number: "03", title: t.homepage?.services?.[2]?.title || "University Applications", desc: t.homepage?.services?.[2]?.desc || "...", items: t.homepage?.services?.[2]?.items || ["Multi-university strategy"], badge: t.homepage?.services?.[2]?.badge || "Core Service", badgeColor: "bg-blue-500/20 text-blue-400" },
+                            { number: "04", title: t.homepage?.services?.[3]?.title || "Scholarship Filing", desc: t.homepage?.services?.[3]?.desc || "...", items: t.homepage?.services?.[3]?.items || ["DSU application filing"], badge: t.homepage?.services?.[3]?.badge || "Included Free", badgeColor: "bg-yellow-500/20 text-yellow-400" },
+                            { number: "05", title: t.homepage?.services?.[4]?.title || "Visa & Permit", desc: t.homepage?.services?.[4]?.desc || "...", items: t.homepage?.services?.[4]?.items || ["Universitaly pre-enrollment"], badge: t.homepage?.services?.[4]?.badge || "End-to-End", badgeColor: "bg-purple-500/20 text-purple-400" },
+                            { number: "06", title: t.homepage?.services?.[5]?.title || "Pre-Departure & Landing", desc: t.homepage?.services?.[5]?.desc || "...", items: t.homepage?.services?.[5]?.items || ["Airport transfer coordination"], badge: t.homepage?.services?.[5]?.badge || "Premium", badgeColor: "bg-pink-500/20 text-pink-400" },
                         ].map((service, i) => (
                             <motion.div key={i}
                                 initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }}
@@ -363,6 +370,20 @@ export default function Home() {
                 </div>
             </section>
 
+            {/* ─── STUDENT PORTAL ─── */}
+            <section className="py-24 px-6 lg:px-12 bg-[#05080E] border-t border-white/5 overflow-hidden relative">
+                <div className="max-w-7xl mx-auto relative z-10 text-center space-y-6">
+                    <Badge className="bg-cyan-500/10 text-cyan-400 border-cyan-500/20 px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest mb-2">Student Portal</Badge>
+                    <h2 className="text-4xl lg:text-5xl font-black text-white leading-tight">Track Your Application <br /><span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500">In Real-Time</span></h2>
+                    <p className="text-gray-400 max-w-2xl mx-auto text-lg leading-relaxed">Log in to your dedicated student portal to monitor your university applications, safely upload and manage documents, and stay directly in touch with your advisor at every stage.</p>
+                    <div className="pt-4">
+                        <Button asChild size="lg" className="bg-white text-black hover:bg-cyan-400 font-bold rounded-2xl px-10 h-14">
+                            <Link href="/auth/login" className="flex items-center gap-2">Access Portal <ArrowRight size={18} /></Link>
+                        </Button>
+                    </div>
+                </div>
+            </section>
+
             {/* A to Z Process Section */}
             <section className="py-32 px-6 lg:px-12 bg-[#070A12]">
                 <div className="max-w-7xl mx-auto">
@@ -377,10 +398,10 @@ export default function Home() {
                         <div className="hidden md:block absolute top-[100px] left-[10%] right-[10%] h-[1px] bg-gradient-to-r from-transparent via-white/10 to-transparent" />
 
                         {[
-                            { step: "01", title: "Evaluation", desc: "We analyze your grades, budget, and goals to suggest the perfect programs.", icon: Search, color: "text-cyan-400" },
-                            { step: "02", title: "Admission", desc: "Expert handling of CIMEA, Universitaly, and scholarship portals.", icon: GraduationCap, color: "text-blue-500" },
-                            { step: "03", title: "Visa", desc: "Stress-free appointments and document preparation for a 100% success rate.", icon: Plane, color: "text-purple-500" },
-                            { step: "04", title: "Arrival", desc: "Local support for Codice Fiscale, bank accounts, and housing search.", icon: CheckCircle2, color: "text-green-500" }
+                            { step: "01", title: t.homepage?.processSteps?.[0]?.title || "Evaluation", desc: t.homepage?.processSteps?.[0]?.desc || "We analyze your grades, budget, and goals to suggest the perfect programs.", icon: Search, color: "text-cyan-400" },
+                            { step: "02", title: t.homepage?.processSteps?.[1]?.title || "Admission", desc: t.homepage?.processSteps?.[1]?.desc || "Expert handling of CIMEA, Universitaly, and scholarship portals.", icon: GraduationCap, color: "text-blue-500" },
+                            { step: "03", title: t.homepage?.processSteps?.[2]?.title || "Visa", desc: t.homepage?.processSteps?.[2]?.desc || "Stress-free appointments and document preparation for a 100% success rate.", icon: Plane, color: "text-purple-500" },
+                            { step: "04", title: t.homepage?.processSteps?.[3]?.title || "Arrival", desc: t.homepage?.processSteps?.[3]?.desc || "Local support for Codice Fiscale, bank accounts, and housing search.", icon: CheckCircle2, color: "text-green-500" }
                         ].map((item, idx) => (
                             <motion.div
                                 key={idx}
@@ -499,17 +520,17 @@ export default function Home() {
 
                     <Tabs defaultValue="admission" className="w-full max-w-5xl mx-auto">
                         <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 bg-[#05080E] p-1.5 rounded-2xl mb-12 shadow-2xl">
-                            <TabsTrigger value="admission" className="rounded-xl py-3 data-[state=active]:bg-cyan-500 data-[state=active]:text-black font-bold transition-all">Admission</TabsTrigger>
-                            <TabsTrigger value="scholarship" className="rounded-xl py-3 data-[state=active]:bg-purple-500 data-[state=active]:text-black font-bold transition-all">Scholarships</TabsTrigger>
-                            <TabsTrigger value="visa" className="rounded-xl py-3 data-[state=active]:bg-amber-500 data-[state=active]:text-black font-bold transition-all">Visa</TabsTrigger>
-                            <TabsTrigger value="arrival" className="rounded-xl py-3 data-[state=active]:bg-green-500 data-[state=active]:text-black font-bold transition-all">Arrival</TabsTrigger>
+                            <TabsTrigger value="admission" className="rounded-xl py-3 data-[state=active]:bg-cyan-500 data-[state=active]:text-black font-bold transition-all">{t.homepage?.supportPillarsTabs?.[0]?.tabTitle || "Admission"}</TabsTrigger>
+                            <TabsTrigger value="scholarship" className="rounded-xl py-3 data-[state=active]:bg-purple-500 data-[state=active]:text-black font-bold transition-all">{t.homepage?.supportPillarsTabs?.[1]?.tabTitle || "Scholarships"}</TabsTrigger>
+                            <TabsTrigger value="visa" className="rounded-xl py-3 data-[state=active]:bg-amber-500 data-[state=active]:text-black font-bold transition-all">{t.homepage?.supportPillarsTabs?.[2]?.tabTitle || "Visa"}</TabsTrigger>
+                            <TabsTrigger value="arrival" className="rounded-xl py-3 data-[state=active]:bg-green-500 data-[state=active]:text-black font-bold transition-all">{t.homepage?.supportPillarsTabs?.[3]?.tabTitle || "Arrival"}</TabsTrigger>
                         </TabsList>
 
                         {[
-                            { id: 'admission', title: "Admission Mastery", desc: "Get into top Italian universities with a profile that stands out.", steps: ["Pre-evaluation within 48h", "Universitaly Portal Management", "Program Strategy session"], color: "bg-cyan-500" },
-                            { id: 'scholarship', title: "Funding Your Dream", desc: "We specialize in regional DSU scholarships and merit-based grants.", steps: ["Economic assessment (ISEE-U)", "Scholarship application tracking", "Bank document review"], color: "bg-purple-500" },
-                            { id: 'visa', title: "99% Visa Approval", desc: "Submit a foolproof file to the Italian consulate every single time.", steps: ["Consulate interview prep", "Insurance & Finance validation", "Digital checklist tracking"], color: "bg-amber-500" },
-                            { id: 'arrival', title: "Landed & Home", desc: "From airport pickup to finding your apartment in historic city centers.", steps: ["Permit of Stay assistance", "Local SIM and Bank setup", "Housing network access"], color: "bg-green-500" }
+                            { id: 'admission', title: t.homepage?.supportPillarsTabs?.[0]?.title || "Admission Mastery", desc: t.homepage?.supportPillarsTabs?.[0]?.desc || "Get into top Italian universities with a profile that stands out.", steps: t.homepage?.supportPillarsTabs?.[0]?.steps || ["Pre-evaluation within 48h", "Universitaly Portal Management", "Program Strategy session"], color: "bg-cyan-500" },
+                            { id: 'scholarship', title: t.homepage?.supportPillarsTabs?.[1]?.title || "Funding Your Dream", desc: t.homepage?.supportPillarsTabs?.[1]?.desc || "We specialize in regional DSU scholarships and merit-based grants.", steps: t.homepage?.supportPillarsTabs?.[1]?.steps || ["Economic assessment (ISEE-U)", "Scholarship application tracking", "Bank document review"], color: "bg-purple-500" },
+                            { id: 'visa', title: t.homepage?.supportPillarsTabs?.[2]?.title || "99% Visa Approval", desc: t.homepage?.supportPillarsTabs?.[2]?.desc || "Submit a foolproof file to the Italian consulate every single time.", steps: t.homepage?.supportPillarsTabs?.[2]?.steps || ["Consulate interview prep", "Insurance & Finance validation", "Digital checklist tracking"], color: "bg-amber-500" },
+                            { id: 'arrival', title: t.homepage?.supportPillarsTabs?.[3]?.title || "Landed & Home", desc: t.homepage?.supportPillarsTabs?.[3]?.desc || "From airport pickup to finding your apartment in historic city centers.", steps: t.homepage?.supportPillarsTabs?.[3]?.steps || ["Permit of Stay assistance", "Local SIM and Bank setup", "Housing network access"], color: "bg-green-500" }
                         ].map((tab) => (
                             <TabsContent key={tab.id} value={tab.id}>
                                 <div className="grid lg:grid-cols-5 gap-0 rounded-[2.5rem] overflow-hidden border border-white/10 shadow-3xl">

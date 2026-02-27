@@ -146,8 +146,10 @@ export default function CommunityPage() {
                                         <span className="h-1.5 w-1.5 rounded-full bg-gray-500" />
                                         {ambassador.location}
                                     </p>
-                                    <Button variant="outline" className="w-full rounded-xl border-white/10 text-white hover:bg-white/5 gap-2">
-                                        <Instagram size={16} /> @invict.academy
+                                    <Button asChild variant="outline" className="w-full rounded-xl border-white/10 text-white hover:bg-white/5 gap-2">
+                                        <a href="https://www.instagram.com/invict.academy" target="_blank" rel="noopener noreferrer">
+                                            <Instagram size={16} /> @invict.academy
+                                        </a>
                                     </Button>
                                 </div>
                             </motion.div>
