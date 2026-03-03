@@ -113,23 +113,7 @@ export default function LoginPage() {
                             {loading ? "Signing in..." : "Sign in"}
                         </Button>
 
-                        {/* Demo Credentials Hint */}
-                        <div className="mt-6 p-3 rounded-lg bg-cyan-500/5 border border-cyan-500/10">
-                            <p className="text-[10px] uppercase tracking-wider text-cyan-400/60 font-bold mb-2 text-center">
-                                Demo Showcase Credentials
-                            </p>
-                            <div className="grid grid-cols-2 gap-2 text-[11px]">
-                                <div className="text-gray-400">
-                                    <span className="text-white">Admin:</span> admin@invict.academy
-                                </div>
-                                <div className="text-gray-400 text-right">
-                                    <span className="text-white">Pass:</span> demo123
-                                </div>
-                                <div className="text-gray-400">
-                                    <span className="text-white">Student:</span> student@invict.academy
-                                </div>
-                            </div>
-                        </div>
+
                     </form>
                 </CardContent>
                 <CardFooter className="flex flex-col space-y-4">

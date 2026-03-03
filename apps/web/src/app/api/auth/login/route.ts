@@ -1,13 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { encrypt } from '@/lib/auth';
 
-// ─── Demo accounts — always active regardless of DB state ────────
-const DEMO_ACCOUNTS: Record<string, { password: string; role: string; firstName: string; lastName: string }> = {
-    'admin@invict.academy': { password: 'demo123', role: 'ADMIN', firstName: 'Demo', lastName: 'Administrator' },
-    'student@invict.academy': { password: 'demo123', role: 'STUDENT', firstName: 'Demo', lastName: 'Student' },
-    'admin': { password: 'admin', role: 'ADMIN', firstName: 'Demo', lastName: 'Administrator' },
-};
-
 export async function POST(request: NextRequest) {
     try {
         const body = await request.json();
@@ -17,31 +10,7 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'Email and password are required' }, { status: 400 });
         }
 
-        // ─── 1. Check demo credentials first (always works, no DB needed) ───
-        const demoAccount = DEMO_ACCOUNTS[email.toLowerCase()];
-        if (demoAccount && demoAccount.password === password) {
-            const userId = `demo-${email.replace(/[@.]/g, '-')}`;
-            const user = { id: userId, email, role: demoAccount.role };
-
-            const session = await encrypt({ user }, '7d');
-
-            const response = NextResponse.json({
-                success: true,
-                user: { id: userId, role: demoAccount.role, email }
-            });
-
-            response.cookies.set('session', session, {
-                maxAge: 7 * 24 * 60 * 60,
-                httpOnly: true,
-                secure: process.env.NODE_ENV === 'production',
-                sameSite: 'lax',
-                path: '/',
-            });
-
-            return response;
-        }
-
-        // ─── 2. Real DB login (only when DB is configured) ──────────────────
+        // ─── Real DB login ──────────────────
         try {
             const { prisma } = await import('@/lib/db');
             const bcrypt = await import('bcryptjs');
