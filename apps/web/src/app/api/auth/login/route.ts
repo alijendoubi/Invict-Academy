@@ -50,10 +50,13 @@ export async function POST(request: NextRequest) {
             return response;
 
         } catch (dbError: any) {
-            // DB not configured — reject non-demo credentials
+            // Log the full error for Vercel function logs
             console.error('DB login failed:', dbError?.message || dbError);
+            console.error('DB error code:', dbError?.code);
+            console.error('DATABASE_URL set:', !!process.env.DATABASE_URL);
+            console.error('DIRECT_URL set:', !!process.env.DIRECT_URL);
             return NextResponse.json(
-                { error: 'Cannot verify credentials — database not configured. Use demo accounts.' },
+                { error: `DB error: ${dbError?.message || 'unknown'}` },
                 { status: 503 }
             );
         }

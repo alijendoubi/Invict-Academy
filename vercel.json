@@ -1,7 +1,7 @@
 {
     "version": 2,
     "public": true,
-    "buildCommand": "npm run build --workspace=web",
+    "buildCommand": "npm run db:generate --workspace=@invict/db && npm run build --workspace=web",
     "installCommand": "npm install",
     "ignoreCommand": "false"
 }
