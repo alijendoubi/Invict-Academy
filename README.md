@@ -1,73 +1,55 @@
-# 🇮🇹 Invict Academy: Premium Education CRM & Admission Platform
+# Invict Academy Platform
 
-> **Transforming the Italian Education Journey through AI-Powered Automation and Specialized Consulting.**
-
-Invict Academy is a state-of-the-art, end-to-end platform designed to streamline the complex journey of international students targeting Italian higher education. It bridges the gap between ambitious students and the prestigious Italian academic system through a data-driven, user-centric approach.
+Welcome to the Invict Academy mono-repository! This repository houses the entire platform, utilizing Turborepo for workspace management safely combining a Next.js Frontend, a NestJS API Backend, and a shared Prisma Database layer.
 
 ---
 
-## 📈 Business Value & ROI
+## 🚀 Live Services & Architecture
 
-### 1. High-Conversion Lead Management
-Capture and qualify leads faster with our **AI-Integrated Eligibility Wizard**. By automating the initial evaluation phase, we reduce manual processing time by **60%**, allowing consultants to focus on high-intent candidates.
+* **Frontend (Next.js Application)**: Running on `localhost:3000`
+* **Backend (NestJS API)**: Running on `localhost:3001`
+* **API Documentation (Swagger)**: Available at `http://localhost:3001/api/docs`
+* **Database**: PostgreSQL (Hosted on Supabase, `eu-north-1`)
+* **Queue / Caching**: Redis (Hosted on Upstash)
 
-### 2. Streamlined Admission Pipeline (A to Z)
-Our platform manages the entire lifecycle of a student:
-- **Evaluation**: Instant feedback on academic eligibility.
-- **Admission**: Centralized document management and university tracking.
-- **Visa Coordination**: Automated task lists and progress tracking for embassy stages.
-- **Integration**: Support for the first 30 days in Italy (Housing, Permesso di Soggiorno).
 
-### 3. AI-Powered Scaling
-With integrated **OpenAI fallbacks**, our chatbot handles routine inquiries 24/7, providing instant answers about tuition, visa requirements, and housing, ensuring no lead is ever left waiting.
+## 💻 Getting Started (Local Development)
 
-### 4. Operational Excellence for Admins
-A powerful, unified dashboard provides **real-time analytics** on revenue, application trends, and staff performance. Advanced filtering and search capabilities ensure that no student falls through the cracks.
+### 1. Installation
+Install all dependencies across the monorepo:
+```bash
+npm install
+```
 
----
+### 2. Environment Setup
+Ensure your `.env` (root), `apps/api/.env`, and `apps/web/.env.local` files contain the correct Supabase `DATABASE_URL` (port `6543`) and `DIRECT_URL` (port `5432`), alongside your Upstash Redis credentials. 
 
-## 👥 The User Experience (POV)
+*(If you are launching for the first time, coordinate with the infrastructure admin for these keys).*
 
-### 👨‍🎓 For the Student: "My Path to Italy"
-The student dashboard isn't just a portal; it's a **personalized roadmap**.
-- **Visual Progress**: Real-time tracking from "Profile Ready" to "Arrived in Italy".
-- **Self-Service**: Manage documents, track application status, and communicate with consultants in one place.
-- **Clarity**: A 100% transparent view of their readiness score and outstanding tasks.
+### 3. Database Sync
+Pull down the latest schema configurations:
+```bash
+cd packages/db
+npx prisma generate
+```
 
-### 👩‍💼 For the Admin/Staff: "Control & Growth"
-A high-performance command center to manage the entire agency.
-- **Revenue Tracking**: Live MTD revenue and growth metrics.
-- **Lead Funnel**: Visual pipeline for student conversions.
-- **Automation**: One-click updates for application statuses and task notifications.
+### 4. Running the Servers
+You can boot individual specific workspaces, or fire up the entire platform concurrently:
 
----
+**Start Everything:**
+```bash
+npm run dev
+```
 
-## 🛠️ Technology Stack (Competitive Moat)
+**Start Frontend Only:**
+```bash
+npm run dev --workspace=web
+```
 
-- **Frontend**: Next.js 14, React, Tailwind CSS, Framer Motion (Premium UI/UX).
-- **Backend**: Node.js, Next.js API Routes, NestJS (High-scale API).
-- **Database**: PostgreSQL with Prisma ORM (Type-safe schemas).
-- **Integrations**: 
-    - **Payments**: Stripe (Secure, international fee collection).
-    - **AI**: OpenAI (Intelligent candidate support).
-    - **Emails**: Resend (Automated student notifications).
-    - **Tasks**: Redis + BullMQ (Robust background processing).
-
----
-
-## 🚀 Hosting & Deployment (Vercel Ready)
-
-The Invict Academy platform is architected for seamless deployment on **Vercel**.
-- **Monorepo Support**: Optimized for `pnpm` workspaces.
-- **Edge Deployment**: Fast, global performance for international students.
-- **Scalability**: Cold starts are minimized, ensuring a snappy experience for clients.
+**Start Backend Only:**
+```bash
+npm run dev --workspace=api
+```
 
 ---
 
-## 🏁 Demo Mode
-
-The current version includes a **Demo Fallback System**. If environment variables for live APIs are not provided, the dashboard will seamlessly transition to a high-quality mock data set, ensuring a perfect client walkthrough under any conditions.
-
----
-
-*© 2026 Invict Academy. All rights reserved.*
