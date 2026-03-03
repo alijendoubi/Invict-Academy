@@ -1,11 +1,14 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import twilio from "twilio";
+
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const twilio = require("twilio");
 
 @Injectable()
 export class WhatsAppService {
   private readonly logger = new Logger(WhatsAppService.name);
-  private client: ReturnType<typeof twilio> | null = null;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private client: any = null;
   private readonly from: string;
   private readonly enabled: boolean;
 

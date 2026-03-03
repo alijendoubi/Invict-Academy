@@ -45,37 +45,8 @@ export default function LeadsPage() {
                 throw new Error("API did not return an array")
             }
         } catch (error) {
-            console.error("Failed to fetch leads, using demo data:", error)
-            // Demo fallback data
-            setLeads([
-                {
-                    id: 'l1',
-                    firstName: 'Sarah',
-                    lastName: 'Johnson',
-                    email: 'sarah.j@example.com',
-                    phone: '+1 234 567 890',
-                    status: 'NEW',
-                    createdAt: new Date().toISOString()
-                },
-                {
-                    id: 'l2',
-                    firstName: 'Ahmed',
-                    lastName: 'Khan',
-                    email: 'ahmed.k@example.com',
-                    phone: '+971 50 123 4567',
-                    status: 'QUALIFIED',
-                    createdAt: new Date(Date.now() - 86400000).toISOString()
-                },
-                {
-                    id: 'l3',
-                    firstName: 'Elena',
-                    lastName: 'Petrova',
-                    email: 'elena.p@example.com',
-                    phone: '+7 900 123 4567',
-                    status: 'WON',
-                    createdAt: new Date(Date.now() - 172800000).toISOString()
-                }
-            ])
+            console.error("Failed to fetch leads:", error)
+            setLeads([])
         } finally {
             setLoading(false)
         }

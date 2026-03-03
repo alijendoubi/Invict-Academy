@@ -34,33 +34,8 @@ export default function ApplicationsPage() {
                     throw new Error("API did not return an array")
                 }
             } catch (error) {
-                console.error("Failed to fetch applications, using demo data:", error)
-                setApplications([
-                    {
-                        id: 'a1',
-                        university: 'Politecnico di Milano',
-                        program: 'MSc in Computer Science',
-                        status: 'SUBMITTED',
-                        createdAt: new Date().toISOString(),
-                        student: { user: { firstName: 'Marco', lastName: 'Rossi' } }
-                    },
-                    {
-                        id: 'a2',
-                        university: 'University of Bologna',
-                        program: 'MA in International Relations',
-                        status: 'APPROVED',
-                        createdAt: new Date(Date.now() - 604800000).toISOString(),
-                        student: { user: { firstName: 'Sarah', lastName: 'Smith' } }
-                    },
-                    {
-                        id: 'a3',
-                        university: 'Sapienza University of Rome',
-                        program: 'BSc in Architecture',
-                        status: 'DOCUMENTS_PENDING',
-                        createdAt: new Date(Date.now() - 259200000).toISOString(),
-                        student: { user: { firstName: 'Ahmed', lastName: 'Khan' } }
-                    }
-                ])
+                console.error("Failed to fetch applications:", error)
+                setApplications([])
             } finally {
                 setLoading(false)
             }
@@ -137,18 +112,10 @@ export default function ApplicationsPage() {
                         <form onSubmit={(e) => {
                             e.preventDefault();
                             setSubmitting(true);
-                            setTimeout(() => {
-                                setApplications([{
-                                    id: Math.random().toString(),
-                                    university: (e.target as any).university.value,
-                                    program: (e.target as any).program.value,
-                                    status: 'DRAFT',
-                                    createdAt: new Date().toISOString(),
-                                    student: { user: { firstName: 'New', lastName: 'Student' } }
-                                }, ...applications]);
-                                setSubmitting(false);
-                                setDialogOpen(false);
-                            }, 1000);
+                            // TODO: Connect to real /api/applications POST route
+                            alert("Application creation is not yet connected to the backend API.");
+                            setSubmitting(false);
+                            setDialogOpen(false);
                         }} className="space-y-4 pt-4">
                             <div className="space-y-2">
                                 <Label className="text-gray-300">Target University</Label>

@@ -59,24 +59,9 @@ export default function DashboardPage() {
 
                 setStats(formattedStats)
             } catch (err) {
-                console.error("Failed to fetch stats, using demo data", err)
-                // Demo fallback data
-                const demoData = {
-                    role: 'ADMIN',
-                    stats: [
-                        { name: "Total Leads", value: "1,248", change: "+12.5%", status: "up" },
-                        { name: "Active Students", value: "842", change: "+8.2%", status: "up" },
-                        { name: "Applications", value: "156", change: "+14.1%", status: "up" },
-                        { name: "Revenue (MTD)", value: "€42,500", change: "+18.4%", status: "up" },
-                    ]
-                }
-                setData(demoData)
-                const mockStats = demoData.stats.map((s: any) => ({
-                    ...s,
-                    icon: iconMap[s.name] || UserCircle,
-                    color: colorMap[s.name] || "text-gray-400"
-                }))
-                setStats(mockStats)
+                console.error("Failed to fetch stats:", err)
+                setData(null)
+                setStats([])
             } finally {
                 setLoading(false)
             }
@@ -84,12 +69,7 @@ export default function DashboardPage() {
         fetchStats()
     }, [])
 
-    const recentActivity = [
-        { type: "New Lead", name: "Sarah Johnson", time: "5 min ago", status: "NEW" },
-        { type: "Application Submitted", name: "Ahmed Khan", time: "1 hour ago", status: "SUBMITTED" },
-        { type: "Visa Approved", name: "Maria Garcia", time: "2 hours ago", status: "APPROVED" },
-        { type: "Payment Received", name: "John Doe", time: "3 hours ago", status: "PAID" },
-    ]
+    const recentActivity: any[] = []
 
     const studentSteps = [
         { id: 'ACTIVE', name: 'Profile Ready', description: 'Basic info completed' },

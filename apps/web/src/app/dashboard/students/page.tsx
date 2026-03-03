@@ -42,28 +42,8 @@ export default function StudentsPage() {
                 throw new Error("API did not return an array")
             }
         } catch (error) {
-            console.error("Error fetching students, using demo data:", error)
-            // Demo fallback data
-            setStudents([
-                {
-                    id: '1',
-                    status: 'ACTIVE',
-                    user: { firstName: 'Marco', lastName: 'Rossi', email: 'marco@example.com' },
-                    applications: [{}, {}]
-                },
-                {
-                    id: '2',
-                    status: 'VISA_IN_PROGRESS',
-                    user: { firstName: 'Chen', lastName: 'Wei', email: 'chen@example.com' },
-                    applications: [{}]
-                },
-                {
-                    id: '3',
-                    status: 'APPLYING',
-                    user: { firstName: 'Sarah', lastName: 'Smith', email: 'sarah@example.com' },
-                    applications: [{}]
-                }
-            ])
+            console.error("Error fetching students:", error)
+            setStudents([])
         } finally {
             setLoading(false)
         }
@@ -106,28 +86,42 @@ export default function StudentsPage() {
                         <DialogHeader>
                             <DialogTitle>Add New Student</DialogTitle>
                             <DialogDescription>
-                                Create a new student profile and send them an invitation email.
+                                Create a new student profile and view their temporary password.
                             </DialogDescription>
                         </DialogHeader>
-                        <form onSubmit={(e) => {
+                        <form onSubmit={async (e) => {
                             e.preventDefault();
                             setSubmitting(true);
-                            setTimeout(() => {
-                                setStudents([{
-                                    id: Math.random().toString(),
-                                    status: 'ACTIVE',
-                                    user: {
-                                        firstName: (e.target as any).firstName.value,
-                                        lastName: (e.target as any).lastName.value,
-                                        email: (e.target as any).email.value
-                                    },
-                                    universityInterest: (e.target as any).university.value,
-                                    degreeLevel: (e.target as any).degree.value,
-                                    createdAt: new Date().toISOString()
-                                }, ...students]);
-                                setSubmitting(false);
+
+                            const formData = new FormData(e.currentTarget as HTMLFormElement);
+                            const payload = {
+                                firstName: formData.get("firstName"),
+                                lastName: formData.get("lastName"),
+                                email: formData.get("email"),
+                                degreeLevel: formData.get("degree"),
+                                universityInterest: formData.get("university"),
+                            };
+
+                            try {
+                                const res = await fetch("/api/students", {
+                                    method: "POST",
+                                    headers: { "Content-Type": "application/json" },
+                                    body: JSON.stringify(payload)
+                                });
+
+                                const data = await res.json();
+                                if (!res.ok) throw new Error(data.error || "Failed to create student");
+
+                                // Show success alert with password so admin can share it
+                                alert(`Student created successfully!\n\nEmail: ${data.user.email}\nTemporary Password: ${data.temporaryPassword}\n\nPlease copy this password and share it with the student.`);
+
+                                fetchStudents();
                                 setDialogOpen(false);
-                            }, 1000);
+                            } catch (err: any) {
+                                alert(err.message);
+                            } finally {
+                                setSubmitting(false);
+                            }
                         }} className="space-y-4 pt-4">
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-2">

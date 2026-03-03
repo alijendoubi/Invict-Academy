@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
                 // Session storage optional
             }
 
-            const response = NextResponse.json({ success: true, user: { id: user.id, role: user.role, email: user.email } });
+            const response = NextResponse.json({ success: true, user: { id: user.id, role: user.role, email: user.email, requiresPasswordChange: user.requiresPasswordChange } });
             response.cookies.set('session', session, {
                 maxAge: 7 * 24 * 60 * 60,
                 httpOnly: true,

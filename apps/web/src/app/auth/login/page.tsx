@@ -38,8 +38,10 @@ export default function LoginPage() {
 
             const data = await res.json()
 
-            // Redirect based on role
-            if (data.user.role === "STUDENT") {
+            // Redirect based on password status and role
+            if (data.user.requiresPasswordChange) {
+                router.push("/auth/setup-profile")
+            } else if (data.user.role === "STUDENT") {
                 router.push("/dashboard/student")
             } else if (data.user.role === "ASSOCIATE") {
                 router.push("/dashboard/associate")
