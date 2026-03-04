@@ -20,7 +20,22 @@ export async function POST(request: NextRequest) {
         const formData = await request.formData();
         const file = formData.get('file') as File;
         const type = (formData.get('type') as string) || 'GENERAL';
-        const studentId = formData.get('studentId') as string;
+        let studentId = formData.get('studentId') as string;
+
+        // resolve studentId from session if missing (for students)
+        if ((!studentId || studentId === "null" || studentId === "undefined") && session.user?.role === 'STUDENT') {
+            const profile = await prisma.studentProfile.findUnique({
+                where: { userId: session.userId || session.user?.id }
+            });
+            if (profile) studentId = profile.id;
+        }
+
+        if (!studentId || studentId === "null" || studentId === "undefined") {
+            return NextResponse.json({
+                error: 'Student ID missing',
+                details: 'Please ensure you are logged in as a student or provide a valid student ID.'
+            }, { status: 400 });
+        }
 
         if (!file) {
             return NextResponse.json({ error: 'No file uploaded' }, { status: 400 });

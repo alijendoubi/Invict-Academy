@@ -61,7 +61,7 @@ export async function GET(request: NextRequest) {
                 select: {
                     id: true, email: true, firstName: true, lastName: true,
                     role: true, createdAt: true,
-                    studentProfile: { select: { phone: true, nationality: true } }
+                    studentProfile: { select: { id: true, phone: true, nationality: true } }
                 }
             });
 
