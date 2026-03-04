@@ -14,12 +14,7 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { CredentialsDialog } from "@/components/CredentialsDialog"
 
-const DEMO_USERS = [
-    { id: "u1", firstName: "Ali", lastName: "Jendoubi", email: "ali@invictacademy.com", role: "SUPER_ADMIN", createdAt: "2024-09-01T00:00:00Z", active: true },
-    { id: "u2", firstName: "Fatima", lastName: "Benali", email: "fatima@invictacademy.com", role: "ADMIN", createdAt: "2024-10-01T00:00:00Z", active: true },
-    { id: "u3", firstName: "Youssef", lastName: "Tounsi", email: "youssef@invictacademy.com", role: "ASSOCIATE", createdAt: "2024-11-01T00:00:00Z", active: true },
-    { id: "u4", firstName: "Demo", lastName: "Student", email: "student@invict.academy", role: "STUDENT", createdAt: "2025-01-01T00:00:00Z", active: true },
-]
+
 
 const ROLE_COLORS: Record<string, string> = {
     SUPER_ADMIN: "bg-red-500/10 text-red-400 border-red-500/20",
@@ -46,7 +41,7 @@ export default function UsersPage() {
                 else if (Array.isArray(data?.data)) setUsers(data.data)
                 else throw new Error("not array")
             } catch {
-                setUsers(DEMO_USERS)
+                setUsers([])
             } finally {
                 setLoading(false)
             }
@@ -237,7 +232,7 @@ export default function UsersPage() {
 
             <CredentialsDialog
                 isOpen={!!newCredentials}
-                onOpenChange={(op) => { if (!op) setNewCredentials(null) }}
+                onOpenChange={(op: boolean) => { if (!op) setNewCredentials(null) }}
                 credentials={newCredentials!}
                 title="User Account Created"
                 description={`A temporary password has been generated for ${newCredentials?.name}.`}

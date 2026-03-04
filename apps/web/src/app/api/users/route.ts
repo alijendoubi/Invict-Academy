@@ -11,8 +11,8 @@ export async function GET(request: NextRequest) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        // Only admins can list all users
-        if (session.user.role !== 'SUPER_ADMIN' && session.user.role !== 'ADMIN') {
+        // Only super admins can list all users
+        if (session.user.role !== 'SUPER_ADMIN') {
             return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
         }
 

@@ -17,8 +17,8 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        const isAdmin = ['SUPER_ADMIN', 'ADMIN'].includes(session.user.role);
-        if (!isAdmin) {
+        const isSuperAdmin = session.user.role === 'SUPER_ADMIN';
+        if (!isSuperAdmin) {
             return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
         }
 
