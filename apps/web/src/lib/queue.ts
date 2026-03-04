@@ -15,7 +15,7 @@ export interface DocumentJob {
 }
 
 export interface NotificationJob {
-    type: 'email' | 'sms' | 'push';
+    type: 'email' | 'sms' | 'push' | 'whatsapp';
     userId: string;
     data: Record<string, any>;
 }
@@ -114,13 +114,14 @@ export const queueService = {
         }
     },
 
-    async sendNotification(job: NotificationJob) {
+    async sendNotification(job: NotificationJob, delay?: number) {
         try {
             const queue = getNotificationQueue();
             if (!queue) return { success: false, error: 'Queue not available during build' };
             await queue.add('send-notification', job, {
                 attempts: 3,
                 backoff: { type: 'exponential', delay: 1000 },
+                delay: delay,
             });
             return { success: true };
         } catch (error) {

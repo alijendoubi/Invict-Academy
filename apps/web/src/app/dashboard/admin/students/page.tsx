@@ -59,26 +59,59 @@ export default function AdminStudentsPage() {
     const [selectedStatus, setSelectedStatus] = useState<ApplicationStatus | "">("")
     const [messageSent, setMessageSent] = useState(false)
 
+    const [meetingDate, setMeetingDate] = useState("")
+    const [meetingType, setMeetingType] = useState("Video Call")
+    const [scheduling, setScheduling] = useState(false)
+    const [scheduleSuccess, setScheduleSuccess] = useState(false)
+    const [consultations, setConsultations] = useState<any[]>([])
+    const [loadingConsults, setLoadingConsults] = useState(false)
+    const [displayStatus, setDisplayStatus] = useState<ApplicationStatus>("DRAFT")
+
+    const searchParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+    const targetStudentId = searchParams?.get('studentId');
+
     useEffect(() => {
         fetch("/api/students")
             .then(r => r.json())
             .then(data => {
                 const list = Array.isArray(data) ? data : Array.isArray(data?.data) ? data.data : []
                 setStudents(list)
-                if (list.length > 0) setSelectedStudent(list[0])
+                if (list.length > 0) {
+                    const target = targetStudentId ? list.find((s: any) => s.id === targetStudentId) : null;
+                    setSelectedStudent(target || list[0])
+                }
             })
             .catch(() => setStudents([]))
             .finally(() => setLoading(false))
-    }, [])
+    }, [targetStudentId])
 
-    const filtered = students.filter(s =>
+    useEffect(() => {
+        if (selectedStudent) {
+            setDisplayStatus(mapStatus(selectedStudent.status))
+            fetchConsultations(selectedStudent.id)
+        }
+    }, [selectedStudent])
+
+    async function fetchConsultations(studentId: string) {
+        setLoadingConsults(true)
+        try {
+            const res = await fetch(`/api/consultations/student/${studentId}`)
+            if (res.ok) {
+                const data = await res.json()
+                setConsultations(data)
+            }
+        } catch (error) {
+            console.error("Failed to fetch consultations:", error)
+        } finally {
+            setLoadingConsults(false)
+        }
+    }
+
+    const filtered = students.filter((s: any) =>
         `${s.user?.firstName} ${s.user?.lastName} ${s.user?.email}`
             .toLowerCase().includes(search.toLowerCase())
     )
 
-    const displayStatus = selectedStudent
-        ? (mapStatus(selectedStudent.status))
-        : "DRAFT"
 
     async function handleWhatsAppSend() {
         if (!whatsappMsg.trim() || !selectedStudent) return
@@ -97,6 +130,32 @@ export default function AdminStudentsPage() {
         setTimeout(() => setMessageSent(false), 3000)
     }
 
+    async function handleScheduleMeeting() {
+        if (!meetingDate || !selectedStudent) return
+        setScheduling(true)
+        try {
+            const res = await fetch("/api/consultations", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    studentId: selectedStudent.id,
+                    scheduledAt: meetingDate,
+                    notes: `Type: ${meetingType}`
+                }),
+            })
+            if (res.ok) {
+                setScheduleSuccess(true)
+                setTimeout(() => setScheduleSuccess(false), 3000)
+                setMeetingDate("")
+                fetchConsultations(selectedStudent.id)
+            }
+        } catch (error) {
+            console.error("Failed to schedule meeting:", error)
+        } finally {
+            setScheduling(false)
+        }
+    }
+
     async function handleStatusChange(newStatus: ApplicationStatus) {
         setSelectedStatus(newStatus)
         if (!selectedStudent) return
@@ -105,7 +164,7 @@ export default function AdminStudentsPage() {
             const appRes = await fetch(`/api/applications?studentId=${selectedStudent.id}`)
             const apps = await appRes.json()
             if (Array.isArray(apps) && apps.length > 0) {
-                await fetch(`/api/applications/${apps[0].id}/status`, {
+                await fetch(`/api/applications/${apps[0].id}`, {
                     method: "PATCH",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ status: newStatus }),
@@ -322,6 +381,33 @@ export default function AdminStudentsPage() {
                                     </div>
                                 </div>
 
+                                {/* Upcoming Consultations */}
+                                {consultations.length > 0 && (
+                                    <div className="p-6 rounded-3xl bg-white/[0.03] border border-white/10">
+                                        <p className="text-xs text-gray-500 uppercase tracking-widest font-semibold mb-4 text-center">Scheduled Consultations</p>
+                                        <div className="space-y-3">
+                                            {consultations.map((c: any) => (
+                                                <div key={c.id} className="flex items-center justify-between p-3 rounded-xl bg-white/[0.02] border border-white/5">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="h-8 w-8 rounded-lg bg-cyan-500/10 flex items-center justify-center">
+                                                            <Calendar size={14} className="text-cyan-400" />
+                                                        </div>
+                                                        <div>
+                                                            <p className="text-sm font-medium text-white">
+                                                                {new Date(c.scheduledAt).toLocaleDateString(undefined, { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                                                            </p>
+                                                            <p className="text-xs text-gray-500">{c.notes?.replace('Type: ', '') || 'Consultation'}</p>
+                                                        </div>
+                                                    </div>
+                                                    {c.reminderSent && (
+                                                        <Badge className="bg-green-500/10 text-green-400 border-green-500/10 text-[10px]">Reminder Sent</Badge>
+                                                    )}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+
                                 {/* Schedule Consultation */}
                                 <div className="p-6 rounded-3xl bg-gradient-to-br from-cyan-900/20 to-blue-900/10 border border-cyan-500/20">
                                     <div className="flex items-center gap-3 mb-4">
@@ -329,16 +415,36 @@ export default function AdminStudentsPage() {
                                         <p className="text-white font-semibold">Schedule a Consultation</p>
                                     </div>
                                     <div className="grid grid-cols-2 gap-3 mb-4">
-                                        <input type="datetime-local" className="bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-cyan-500/30" />
-                                        <select className="bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-gray-400 focus:outline-none focus:border-cyan-500/30">
+                                        <input
+                                            type="datetime-local"
+                                            value={meetingDate}
+                                            onChange={e => setMeetingDate(e.target.value)}
+                                            className="bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-cyan-500/30"
+                                        />
+                                        <select
+                                            value={meetingType}
+                                            onChange={e => setMeetingType(e.target.value)}
+                                            className="bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-gray-400 focus:outline-none focus:border-cyan-500/30"
+                                        >
                                             <option>Video Call</option>
                                             <option>WhatsApp Call</option>
                                             <option>Phone Call</option>
                                             <option>In Person</option>
                                         </select>
                                     </div>
-                                    <Button className="bg-cyan-500 text-black hover:bg-cyan-400 font-bold rounded-xl w-full flex items-center justify-center gap-2">
-                                        <Calendar size={14} /> Schedule & Send Reminder
+                                    <Button
+                                        onClick={handleScheduleMeeting}
+                                        disabled={scheduling || !meetingDate}
+                                        className={`rounded-xl w-full flex items-center justify-center gap-2 font-bold transition-all ${scheduleSuccess ? "bg-green-500 text-white" : "bg-cyan-500 text-black hover:bg-cyan-400"}`}
+                                    >
+                                        {scheduling ? (
+                                            <Loader2 size={14} className="animate-spin" />
+                                        ) : scheduleSuccess ? (
+                                            <CheckCircle2 size={14} />
+                                        ) : (
+                                            <Calendar size={14} />
+                                        )}
+                                        {scheduling ? "Scheduling..." : scheduleSuccess ? "Scheduled!" : "Schedule & Send Reminder"}
                                     </Button>
                                     <p className="text-gray-600 text-xs text-center mt-2">A WhatsApp reminder will be sent 24 hours before</p>
                                 </div>

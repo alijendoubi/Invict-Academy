@@ -68,6 +68,7 @@ export default function StudentsPage() {
 
     const fetchStudentProfile = async (id: string) => {
         setLoadingProfile(true)
+        setSelectedStudentId(id)
         try {
             const res = await fetch(`/api/students/${id}`)
             if (res.ok) {
@@ -447,9 +448,9 @@ export default function StudentsPage() {
                                         <Button variant="outline" className="border-white/10 text-gray-300">Close</Button>
                                     </DialogClose>
                                     <Button asChild className="bg-cyan-600 hover:bg-cyan-500">
-                                        <Link href={`/dashboard/messages?studentId=${studentProfile.id}`}>
+                                        <Link href={`/dashboard/admin/students?studentId=${studentProfile.id}`}>
                                             <MessageCircle size={16} className="mr-2" />
-                                            Message Student
+                                            Message Student (WhatsApp)
                                         </Link>
                                     </Button>
                                 </div>

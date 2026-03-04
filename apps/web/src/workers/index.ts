@@ -110,6 +110,27 @@ if (!isBuildPhase) {
                             // TODO: Implement SMS via Twilio
                             console.log(`Sending SMS to user ${userId}`);
                             break;
+                        case 'whatsapp':
+                            const { phone, studentName, scheduledAt, consultationId, messageType, message } = data;
+                            let msgBody = message;
+
+                            if (messageType === 'meeting_reminder') {
+                                msgBody = `Hi ${studentName}, this is a reminder for your consultation at Invict Academy scheduled for ${new Date(scheduledAt).toLocaleString()}. We look forward to seeing you!`;
+                            }
+
+                            if (phone && msgBody) {
+                                const { twilioService } = await import('../lib/twilio');
+                                const res = await twilioService.sendWhatsApp(phone, msgBody);
+
+                                if (res.success && consultationId) {
+                                    const { prisma } = await import('../lib/db');
+                                    await prisma.consultation.update({
+                                        where: { id: consultationId },
+                                        data: { reminderSent: true }
+                                    });
+                                }
+                            }
+                            break;
                         case 'push':
                             // TODO: Implement push notifications
                             console.log(`Sending push notification to user ${userId}`);

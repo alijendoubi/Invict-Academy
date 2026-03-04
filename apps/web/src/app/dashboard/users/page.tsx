@@ -63,14 +63,14 @@ export default function UsersPage() {
                 <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
                     <DialogTrigger asChild>
                         <Button className="bg-cyan-600 hover:bg-cyan-700 rounded-xl gap-2">
-                            <UserPlus size={16} /> Invite User
+                            <UserPlus size={16} /> Create User Account
                         </Button>
                     </DialogTrigger>
                     <DialogContent className="bg-[#0B1020] border-white/10 text-white">
                         <DialogHeader>
-                            <DialogTitle>Invite New User</DialogTitle>
+                            <DialogTitle>Create New User Account</DialogTitle>
                             <DialogDescription>
-                                Send an invitation to a new staff member or partner.
+                                Directly create a new account for a staff member, partner, or student.
                             </DialogDescription>
                         </DialogHeader>
                         <form onSubmit={async (e) => {
@@ -82,7 +82,7 @@ export default function UsersPage() {
                             const data = Object.fromEntries(formData.entries());
 
                             try {
-                                const res = await fetch("/api/users/invite", {
+                                const res = await fetch("/api/users/create", {
                                     method: "POST",
                                     headers: { "Content-Type": "application/json" },
                                     body: JSON.stringify(data),
@@ -91,7 +91,7 @@ export default function UsersPage() {
                                 const json = await res.json();
 
                                 if (!res.ok) {
-                                    setInviteError(json.error || "Failed to invite user");
+                                    setInviteError(json.error || "Failed to create user account");
                                     return;
                                 }
 
@@ -106,7 +106,7 @@ export default function UsersPage() {
                                     name: `${data.firstName} ${data.lastName}`
                                 });
                             } catch (err) {
-                                setInviteError("Network Error: Could not invite user");
+                                setInviteError("Network Error: Could not create user account");
                             } finally {
                                 setSubmitting(false);
                             }
@@ -146,9 +146,9 @@ export default function UsersPage() {
                                 <DialogClose asChild>
                                     <Button variant="outline" className="border-white/10 text-gray-300">Cancel</Button>
                                 </DialogClose>
-                                <Button type="submit" disabled={submitting} className="bg-cyan-600 hover:bg-cyan-500 text-white">
+                                <Button type="submit" disabled={submitting} className="bg-cyan-600 hover:bg-cyan-500 text-white font-bold">
                                     {submitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                                    Send Invitation
+                                    Create Account
                                 </Button>
                             </DialogFooter>
                         </form>
