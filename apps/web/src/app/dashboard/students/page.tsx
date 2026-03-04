@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import {
     Search, Plus, GraduationCap, MapPin,
-    Calendar, Loader2, Filter
+    Calendar, Loader2, Filter, Trash2
 } from "lucide-react"
 import {
     Select, SelectContent, SelectItem,
@@ -24,6 +24,9 @@ export default function StudentsPage() {
     const [statusFilter, setStatusFilter] = useState("all")
     const [submitting, setSubmitting] = useState(false)
     const [dialogOpen, setDialogOpen] = useState(false)
+    const [user, setUser] = useState<any>(null)
+    const [studentToDelete, setStudentToDelete] = useState<string | null>(null)
+    const [deleting, setDeleting] = useState(false)
 
     const fetchStudents = useCallback(async (search = searchTerm) => {
         setLoading(true)
@@ -51,7 +54,35 @@ export default function StudentsPage() {
 
     useEffect(() => {
         fetchStudents()
+        const fetchUser = async () => {
+            try {
+                const res = await fetch("/api/user/profile")
+                if (res.ok) setUser(await res.json())
+            } catch (error) {
+                console.error("Failed to fetch user:", error)
+            }
+        }
+        fetchUser()
     }, [fetchStudents])
+
+    const handleDeleteStudent = async () => {
+        if (!studentToDelete) return;
+        setDeleting(true)
+        try {
+            const res = await fetch(`/api/students/${studentToDelete}`, {
+                method: 'DELETE',
+            })
+            const data = await res.json()
+            if (!res.ok) throw new Error(data.error || "Failed to delete student")
+
+            setStudentToDelete(null)
+            fetchStudents()
+        } catch (error: any) {
+            alert(error.message)
+        } finally {
+            setDeleting(false)
+        }
+    }
 
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault()
@@ -169,6 +200,32 @@ export default function StudentsPage() {
                 </Dialog>
             </div>
 
+            {/* Delete Confirmation Dialog */}
+            <Dialog open={!!studentToDelete} onOpenChange={(open) => !open && setStudentToDelete(null)}>
+                <DialogContent className="bg-[#0B1020] border-white/10 text-white">
+                    <DialogHeader>
+                        <DialogTitle className="text-red-500">Delete Student Account</DialogTitle>
+                        <DialogDescription className="text-gray-400">
+                            Are you absolutely sure you want to delete this student? This action cannot be undone. It will permanently delete the student profile, user account, and all associated applications, documents, tasks, and history.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter className="pt-4">
+                        <DialogClose asChild>
+                            <Button variant="outline" className="border-white/10 text-gray-300">Cancel</Button>
+                        </DialogClose>
+                        <Button
+                            variant="destructive"
+                            disabled={deleting}
+                            onClick={handleDeleteStudent}
+                            className="bg-red-600 hover:bg-red-700 text-white"
+                        >
+                            {deleting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Trash2 className="mr-2 h-4 w-4" />}
+                            Delete Student
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
             {/* Stats */}
             <div className="grid gap-4 md:grid-cols-4">
                 {[
@@ -265,6 +322,16 @@ export default function StudentsPage() {
                                 <Button className="w-full mt-4 bg-white/5 hover:bg-white/10 text-white border-white/10" variant="outline">
                                     View Profile
                                 </Button>
+                                {user?.role === 'SUPER_ADMIN' && (
+                                    <Button
+                                        onClick={() => setStudentToDelete(student.id)}
+                                        className="w-full mt-2 bg-red-500/10 hover:bg-red-500/20 text-red-500 hover:text-red-400 border border-red-500/20"
+                                        variant="outline"
+                                    >
+                                        <Trash2 className="mr-2 h-4 w-4" />
+                                        Delete Student
+                                    </Button>
+                                )}
                             </CardContent>
                         </Card>
                     ))}
