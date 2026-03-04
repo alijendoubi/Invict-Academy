@@ -20,6 +20,7 @@ export default function ApplicationsPage() {
     const [students, setStudents] = useState<any[]>([])
     const [studentsLoading, setStudentsLoading] = useState(false)
     const [selectedStudentId, setSelectedStudentId] = useState("")
+    const [userRole, setUserRole] = useState<string | null>(null)
 
     const [searchTerm, setSearchTerm] = useState("")
 
@@ -43,6 +44,12 @@ export default function ApplicationsPage() {
     }
 
     useEffect(() => {
+        fetch("/api/user/profile")
+            .then(r => r.json())
+            .then(d => {
+                if (d?.role) setUserRole(d.role)
+            })
+            .catch(() => { })
         fetchApplications()
     }, [])
 
@@ -106,16 +113,26 @@ export default function ApplicationsPage() {
         const formData = new FormData(form)
 
         try {
+            const bodyData: any = {
+                universityName: formData.get("university"),
+                courseName: formData.get("program"),
+                type: formData.get("type") || "UNIVERSITY",
+                status: "DRAFT",
+                country: formData.get("country"),
+                intakeTerm: formData.get("intakeTerm"),
+            }
+
+            const deadline = formData.get("deadline")
+            if (deadline) bodyData.deadline = deadline
+
+            if (userRole !== "STUDENT") {
+                bodyData.studentId = selectedStudentId
+            }
+
             const res = await fetch("/api/applications", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    studentId: selectedStudentId,
-                    universityName: formData.get("university"),
-                    courseName: formData.get("program"),
-                    type: "UNIVERSITY",
-                    status: "DRAFT",
-                }),
+                body: JSON.stringify(bodyData),
             })
 
             if (!res.ok) {
@@ -163,42 +180,75 @@ export default function ApplicationsPage() {
                             </DialogDescription>
                         </DialogHeader>
                         <form onSubmit={handleCreateApplication} className="space-y-4 pt-4">
-                            <div className="space-y-2">
-                                <Label className="text-gray-300">Target University</Label>
-                                <Input name="university" required placeholder="e.g. Sapienza University of Rome" className="bg-white/5 border-white/10 text-white" />
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <Label className="text-gray-300">Target University</Label>
+                                    <Input name="university" required placeholder="e.g. Sapienza University of Rome" className="bg-white/5 border-white/10 text-white" />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label className="text-gray-300">Degree Program</Label>
+                                    <Input name="program" required placeholder="e.g. BSc in Architecture" className="bg-white/5 border-white/10 text-white" />
+                                </div>
                             </div>
-                            <div className="space-y-2">
-                                <Label className="text-gray-300">Degree Program</Label>
-                                <Input name="program" required placeholder="e.g. BSc in Architecture" className="bg-white/5 border-white/10 text-white" />
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <Label className="text-gray-300">Target Country</Label>
+                                    <Input name="country" required placeholder="e.g. Italy" className="bg-white/5 border-white/10 text-white" />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label className="text-gray-300">Application Type</Label>
+                                    <Select name="type" required defaultValue="UNIVERSITY">
+                                        <SelectTrigger className="bg-white/5 border-white/10 text-white">
+                                            <SelectValue placeholder="Select type..." />
+                                        </SelectTrigger>
+                                        <SelectContent className="bg-[#0B1020] border-white/10 text-white">
+                                            <SelectItem value="UNIVERSITY">University</SelectItem>
+                                            <SelectItem value="SCHOLARSHIP">Scholarship</SelectItem>
+                                            <SelectItem value="VISA">Visa</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
                             </div>
-                            <div className="space-y-2">
-                                <Label className="text-gray-300">Assign to Student</Label>
-                                <Select required value={selectedStudentId} onValueChange={setSelectedStudentId}>
-                                    <SelectTrigger className="bg-white/5 border-white/10 text-white">
-                                        <SelectValue placeholder={studentsLoading ? "Loading students..." : "Select student..."} />
-                                    </SelectTrigger>
-                                    <SelectContent className="bg-[#0B1020] border-white/10 text-white">
-                                        {studentsLoading ? (
-                                            <div className="flex items-center justify-center p-4">
-                                                <Loader2 className="h-4 w-4 animate-spin text-cyan-500" />
-                                            </div>
-                                        ) : students.length === 0 ? (
-                                            <div className="p-4 text-center text-gray-500 text-sm">No students found</div>
-                                        ) : (
-                                            students.map(s => (
-                                                <SelectItem key={s.id} value={s.id}>
-                                                    {s.user?.firstName} {s.user?.lastName} ({s.user?.email})
-                                                </SelectItem>
-                                            ))
-                                        )}
-                                    </SelectContent>
-                                </Select>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <Label className="text-gray-300">Intake Term</Label>
+                                    <Input name="intakeTerm" placeholder="e.g. Fall 2026" className="bg-white/5 border-white/10 text-white" />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label className="text-gray-300">Deadline (Optional)</Label>
+                                    <Input name="deadline" type="date" className="bg-white/5 border-white/10 text-white [color-scheme:dark]" />
+                                </div>
                             </div>
+                            {userRole !== "STUDENT" && (
+                                <div className="space-y-2">
+                                    <Label className="text-gray-300">Assign to Student</Label>
+                                    <Select required value={selectedStudentId} onValueChange={setSelectedStudentId}>
+                                        <SelectTrigger className="bg-white/5 border-white/10 text-white">
+                                            <SelectValue placeholder={studentsLoading ? "Loading students..." : "Select student..."} />
+                                        </SelectTrigger>
+                                        <SelectContent className="bg-[#0B1020] border-white/10 text-white">
+                                            {studentsLoading ? (
+                                                <div className="flex items-center justify-center p-4">
+                                                    <Loader2 className="h-4 w-4 animate-spin text-cyan-500" />
+                                                </div>
+                                            ) : students.length === 0 ? (
+                                                <div className="p-4 text-center text-gray-500 text-sm">No students found</div>
+                                            ) : (
+                                                students.map(s => (
+                                                    <SelectItem key={s.id} value={s.id}>
+                                                        {s.user?.firstName} {s.user?.lastName} ({s.user?.email})
+                                                    </SelectItem>
+                                                ))
+                                            )}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                            )}
                             <DialogFooter className="pt-4">
                                 <DialogClose asChild>
                                     <Button variant="outline" className="border-white/10 text-gray-300">Cancel</Button>
                                 </DialogClose>
-                                <Button type="submit" disabled={submitting || !selectedStudentId} className="bg-cyan-600 hover:bg-cyan-500 text-white">
+                                <Button type="submit" disabled={submitting || (userRole !== "STUDENT" && !selectedStudentId)} className="bg-cyan-600 hover:bg-cyan-500 text-white">
                                     {submitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
                                     Create Application
                                 </Button>

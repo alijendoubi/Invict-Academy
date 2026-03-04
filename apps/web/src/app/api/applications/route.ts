@@ -45,17 +45,40 @@ export async function POST(request: NextRequest) {
             courseName,
             type,
             status,
-            submissionDate
+            country,
+            intakeTerm,
+            deadline
         } = body;
+
+        let finalStudentId = studentId;
+
+        // If user is a student, securely infer their ID and ignore frontend payloads
+        if (session.user.role === 'STUDENT') {
+            const profile = await prisma.studentProfile.findUnique({
+                where: { userId: session.userId },
+                select: { id: true },
+            });
+            if (!profile) {
+                return NextResponse.json({ error: 'Student profile not found' }, { status: 404 });
+            }
+            finalStudentId = profile.id;
+        } else {
+            // Admins must explicitly provide the student ID
+            if (!finalStudentId) {
+                return NextResponse.json({ error: 'Student ID is required' }, { status: 400 });
+            }
+        }
 
         const application = await prisma.application.create({
             data: {
-                studentId,
+                studentId: finalStudentId,
                 university: universityName,
                 program: courseName,
-                country: "Italy", // Default for now
+                country: country || "Italy",
                 type: type || 'UNIVERSITY',
                 status: status || 'DRAFT',
+                intakeTerm: intakeTerm || null,
+                deadline: deadline ? new Date(deadline) : null,
             },
         });
 
