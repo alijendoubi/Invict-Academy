@@ -12,8 +12,13 @@ export async function GET(request: NextRequest) {
         }
 
         // Get the student profile ID
+        const userId = session.userId || session.user?.id;
+        if (!userId) {
+            return NextResponse.json([]);
+        }
+
         const profile = await prisma.studentProfile.findUnique({
-            where: { userId: session.userId },
+            where: { userId },
             select: { id: true },
         });
 

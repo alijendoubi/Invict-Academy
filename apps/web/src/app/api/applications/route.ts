@@ -11,9 +11,11 @@ export async function GET(request: NextRequest) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        const role = session.user.role;
+        const role = session.user.role?.toUpperCase();
         const isManagement = ['SUPER_ADMIN', 'ADMIN'].includes(role);
         const isStaff = role === 'STAFF';
+
+        console.log(`[DEBUG] Applications GET - User: ${session.user.email}, Role: ${role}, isManagement: ${isManagement}`);
 
         const where: any = {};
 
@@ -22,12 +24,17 @@ export async function GET(request: NextRequest) {
             where.student = { assignedToId: session.userId };
         } else if (!isManagement) {
             // Student only sees their own
+            const userId = session.userId || session.user?.id;
+            if (!userId) {
+                return NextResponse.json([]);
+            }
+
             const profile = await prisma.studentProfile.findUnique({
-                where: { userId: session.userId },
+                where: { userId },
                 select: { id: true },
             });
             if (!profile) {
-                return NextResponse.json({ applications: [] });
+                return NextResponse.json([]);
             }
             where.studentId = profile.id;
         }
@@ -76,8 +83,13 @@ export async function POST(request: NextRequest) {
 
         // If user is a student, securely infer their ID and ignore frontend payloads
         if (session.user.role === 'STUDENT') {
+            const userId = session.userId || session.user?.id;
+            if (!userId) {
+                return NextResponse.json({ error: 'User ID missing' }, { status: 401 });
+            }
+
             const profile = await prisma.studentProfile.findUnique({
-                where: { userId: session.userId },
+                where: { userId },
                 select: { id: true },
             });
             if (!profile) {

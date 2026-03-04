@@ -91,7 +91,7 @@ export default function DashboardPage() {
             .catch(() => { })
     }, [])
 
-    const recentActivity: any[] = []
+    const recentActivity = data?.recentActivity || []
 
     const studentSteps = [
         { id: 'ACTIVE', name: 'Profile Ready', description: 'Basic info completed' },
@@ -309,23 +309,16 @@ export default function DashboardPage() {
                             </div>
                         ) : (
                             <div className="space-y-4">
-                                {recentActivity.map((activity, i) => (
-                                    <div key={i} className="flex items-center justify-between py-3 border-b border-white/5 last:border-0">
+                                {recentActivity.map((activity: any) => (
+                                    <div key={activity.id} className="flex items-center justify-between py-3 border-b border-white/5 last:border-0">
                                         <div className="flex-1">
-                                            <p className="text-sm font-medium text-white">{activity.type}</p>
-                                            <p className="text-xs text-gray-400">{activity.name}</p>
+                                            <p className="text-sm font-medium text-white capitalize">{activity.action}</p>
+                                            <p className="text-xs text-gray-400">{activity.user} • {activity.entity}</p>
                                         </div>
                                         <div className="text-right">
-                                            <span className={cn(
-                                                "inline-flex items-center px-2 py-1 rounded-full text-xs font-medium",
-                                                activity.status === "NEW" && "bg-blue-500/10 text-blue-400",
-                                                activity.status === "SUBMITTED" && "bg-purple-500/10 text-purple-400",
-                                                activity.status === "APPROVED" && "bg-green-500/10 text-green-400",
-                                                activity.status === "PAID" && "bg-cyan-500/10 text-cyan-400"
-                                            )}>
-                                                {activity.status}
-                                            </span>
-                                            <p className="text-xs text-gray-500 mt-1">{activity.time}</p>
+                                            <p className="text-xs text-gray-500 mt-1">
+                                                {new Date(activity.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                            </p>
                                         </div>
                                     </div>
                                 ))}

@@ -91,11 +91,15 @@ export default function StudentsPage() {
 
             const res = await fetch(`/api/students?${params.toString()}`)
             const data = await res.json()
+            console.log('[DEBUG] Students API response (main):', data)
             let fetchedStudents = []
             if (Array.isArray(data)) {
                 fetchedStudents = data
             } else if (Array.isArray(data?.data)) {
                 fetchedStudents = data.data
+            } else if (data?.error) {
+                console.error('[ERROR] Students API (main):', data.error);
+                throw new Error(data.error)
             } else {
                 throw new Error("API did not return an array")
             }

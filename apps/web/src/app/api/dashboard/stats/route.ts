@@ -65,8 +65,8 @@ export async function GET(request: NextRequest) {
             });
         }
 
-        // Admin/Staff logic - Fetch counts in parallel
-        const [leadsCount, studentsCount, applicationsCount, revenueData] = await Promise.all([
+        // Admin/Staff logic - Fetch counts and recent activity in parallel
+        const [leadsCount, studentsCount, applicationsCount, revenueData, recentAuditLogs] = await Promise.all([
             prisma.lead.count(),
             prisma.studentProfile.count(),
             prisma.application.count(),
@@ -74,7 +74,21 @@ export async function GET(request: NextRequest) {
                 _sum: { amount: true },
                 where: { status: 'SUCCESS' },
             }),
+            prisma.auditLog.findMany({
+                take: 5,
+                orderBy: { createdAt: 'desc' },
+                include: { user: { select: { firstName: true, lastName: true } } }
+            })
         ]);
+
+        const recentActivity = recentAuditLogs.map(log => ({
+            id: log.id,
+            action: log.action.replace(/_/g, ' '),
+            entity: log.entity,
+            details: log.details,
+            user: log.user ? `${log.user.firstName} ${log.user.lastName}` : 'System',
+            timestamp: log.createdAt
+        }));
 
         return NextResponse.json({
             role: userRole,
@@ -82,29 +96,29 @@ export async function GET(request: NextRequest) {
                 {
                     name: "Total Leads",
                     value: leadsCount.toString(),
-                    change: "+5%",
+                    change: "All Time",
                     status: "up"
                 },
                 {
                     name: "Active Students",
                     value: studentsCount.toString(),
-                    change: "+2%",
+                    change: "Real-time",
                     status: "up"
                 },
                 {
                     name: "Applications",
                     value: applicationsCount.toString(),
-                    change: "+12%",
+                    change: "Across all states",
                     status: "up"
                 },
                 {
-                    name: "Revenue (MTD)",
+                    name: "Total Revenue",
                     value: `€${(revenueData._sum.amount || 0).toLocaleString()}`,
-                    change: "+8%",
+                    change: "Settled payments",
                     status: "up"
                 },
             ],
-            recentActivity: []
+            recentActivity
         });
 
     } catch (error) {

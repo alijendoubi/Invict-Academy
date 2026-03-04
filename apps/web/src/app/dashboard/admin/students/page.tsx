@@ -74,11 +74,18 @@ export default function AdminStudentsPage() {
         fetch("/api/students")
             .then(r => r.json())
             .then(data => {
+                console.log('[DEBUG] Students API response:', data)
                 const list = Array.isArray(data) ? data : Array.isArray(data?.data) ? data.data : []
+                if (!Array.isArray(data) && data?.error) {
+                    console.error('[ERROR] Students API error:', data.error);
+                }
                 setStudents(list)
                 if (list.length > 0) {
                     const target = targetStudentId ? list.find((s: any) => s.id === targetStudentId) : null;
                     setSelectedStudent(target || list[0])
+                } else if (!Array.isArray(data)) {
+                    // Force zero students state to avoid crash if data is error object
+                    setStudents([]);
                 }
             })
             .catch(() => setStudents([]))

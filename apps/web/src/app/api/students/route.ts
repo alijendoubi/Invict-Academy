@@ -11,9 +11,11 @@ export async function GET(request: NextRequest) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        const role = session.user.role;
+        const role = session.user.role?.toUpperCase();
         const isManagement = ['SUPER_ADMIN', 'ADMIN'].includes(role);
         const isStaff = role === 'STAFF';
+
+        console.log(`[DEBUG] Students GET - User: ${session.user.email}, Role: ${role}, isManagement: ${isManagement}`);
 
         if (!isManagement && !isStaff) {
             return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
@@ -28,7 +30,9 @@ export async function GET(request: NextRequest) {
             where.status = status;
         }
 
-        if (isStaff) {
+        // Only staff members are restricted to assigned students
+        // Admins and Super Admins see everyone
+        if (role === 'STAFF') {
             where.assignedToId = session.userId;
         }
 
@@ -39,6 +43,8 @@ export async function GET(request: NextRequest) {
                 { user: { email: { contains: search, mode: 'insensitive' } } },
             ];
         }
+
+        console.log('[DEBUG] Students GET - Final Where:', JSON.stringify(where));
 
         const students = await prisma.studentProfile.findMany({
             where,
@@ -51,10 +57,11 @@ export async function GET(request: NextRequest) {
             orderBy: { updatedAt: 'desc' },
         });
 
+        console.log('[DEBUG] Students GET - Success. Returning count:', students.length);
         return NextResponse.json(students);
-    } catch (error) {
-        console.error('Students GET error:', error);
-        return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    } catch (error: any) {
+        console.error('[ERROR] Students GET:', error.message || error);
+        return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });
     }
 }
 
