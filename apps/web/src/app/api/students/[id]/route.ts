@@ -2,6 +2,47 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { getSession } from '@/lib/auth';
 
+export async function GET(
+    request: NextRequest,
+    { params }: { params: { id: string } }
+) {
+    try {
+        const session = await getSession();
+        if (!session) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
+
+        const studentProfile = await prisma.studentProfile.findUnique({
+            where: { id: params.id },
+            include: {
+                user: {
+                    select: {
+                        firstName: true,
+                        lastName: true,
+                        email: true,
+                        role: true,
+                    }
+                },
+                applications: {
+                    orderBy: { updatedAt: 'desc' }
+                },
+                documents: {
+                    orderBy: { createdAt: 'desc' }
+                }
+            }
+        });
+
+        if (!studentProfile) {
+            return NextResponse.json({ error: 'Student profile not found' }, { status: 404 });
+        }
+
+        return NextResponse.json(studentProfile);
+    } catch (error) {
+        console.error('Student Profile GET error:', error);
+        return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    }
+}
+
 export async function DELETE(
     request: NextRequest,
     { params }: { params: { id: string } }

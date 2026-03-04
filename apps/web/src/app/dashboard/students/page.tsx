@@ -8,13 +8,15 @@ import { Badge } from "@/components/ui/badge"
 import {
     Search, Plus, GraduationCap, MapPin,
     Calendar, Loader2, Filter, Trash2,
-    Copy, Check, MessageCircle, KeyRound, UserCircle2
+    Copy, Check, MessageCircle, KeyRound,
+    UserCircle2, FileText
 } from "lucide-react"
 import {
     Select, SelectContent, SelectItem,
     SelectTrigger, SelectValue
 } from "@/components/ui/select"
 import { cn } from "@/lib/utils"
+import Link from "next/link"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
 
@@ -55,33 +57,67 @@ export default function StudentsPage() {
     const [studentToDelete, setStudentToDelete] = useState<string | null>(null)
     const [deleting, setDeleting] = useState(false)
     const [credentialData, setCredentialData] = useState<CredentialData | null>(null)
+    const [selectedStudentId, setSelectedStudentId] = useState<string | null>(null)
+    const [profileDialogOpen, setProfileDialogOpen] = useState(false)
+    const [studentProfile, setStudentProfile] = useState<any>(null)
+    const [loadingProfile, setLoadingProfile] = useState(false)
 
-    const fetchStudents = useCallback(async (search = searchTerm) => {
+    const searchParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+    const initialSearch = searchParams?.get('search') || "";
+    const initialTab = searchParams?.get('tab') || "overview";
+
+    const fetchStudentProfile = async (id: string) => {
+        setLoadingProfile(true)
+        try {
+            const res = await fetch(`/api/students/${id}`)
+            if (res.ok) {
+                setStudentProfile(await res.json())
+                setProfileDialogOpen(true)
+            }
+        } catch (error) {
+            console.error("Failed to fetch profile:", error)
+        } finally {
+            setLoadingProfile(false)
+        }
+    }
+
+    const fetchStudents = useCallback(async (searchValue = searchTerm) => {
         setLoading(true)
         try {
             const params = new URLSearchParams()
             if (statusFilter !== "all") params.append("status", statusFilter)
-            if (search) params.append("search", search)
+            if (searchValue) params.append("search", searchValue)
 
             const res = await fetch(`/api/students?${params.toString()}`)
             const data = await res.json()
+            let fetchedStudents = []
             if (Array.isArray(data)) {
-                setStudents(data)
+                fetchedStudents = data
             } else if (Array.isArray(data?.data)) {
-                setStudents(data.data)
+                fetchedStudents = data.data
             } else {
                 throw new Error("API did not return an array")
             }
+            setStudents(fetchedStudents)
+            return fetchedStudents
         } catch (error) {
             console.error("Error fetching students:", error)
             setStudents([])
+            return []
         } finally {
             setLoading(false)
         }
     }, [statusFilter, searchTerm])
 
     useEffect(() => {
-        fetchStudents()
+        const loadInitial = async () => {
+            const initialStudents = await fetchStudents(initialSearch)
+            if (initialSearch && initialStudents && initialStudents.length === 1) {
+                fetchStudentProfile(initialStudents[0].id)
+            }
+        }
+        loadInitial()
+
         const fetchUser = async () => {
             try {
                 const res = await fetch("/api/user/profile")
@@ -91,7 +127,7 @@ export default function StudentsPage() {
             }
         }
         fetchUser()
-    }, [fetchStudents])
+    }, [fetchStudents, initialSearch])
 
     const handleDeleteStudent = async () => {
         if (!studentToDelete) return;
@@ -297,6 +333,137 @@ export default function StudentsPage() {
                 </DialogContent>
             </Dialog>
 
+            {/* Student Profile Dialog */}
+            <Dialog open={profileDialogOpen} onOpenChange={setProfileDialogOpen}>
+                <DialogContent className="bg-[#0B1020] border-white/10 text-white max-w-4xl max-h-[90vh] overflow-y-auto p-0">
+                    {studentProfile ? (
+                        <div className="space-y-0">
+                            <div className="p-6 border-b border-white/5 bg-white/[0.02]">
+                                <div className="flex items-center gap-4">
+                                    <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-cyan-500/20 to-blue-600/20 flex items-center justify-center border border-white/5 ring-1 ring-cyan-500/10 shadow-lg">
+                                        <span className="text-2xl font-bold text-white">
+                                            {studentProfile.user.firstName[0]}{studentProfile.user.lastName[0]}
+                                        </span>
+                                    </div>
+                                    <div>
+                                        <DialogTitle className="text-2xl font-black text-white">
+                                            {studentProfile.user.firstName} {studentProfile.user.lastName}
+                                        </DialogTitle>
+                                        <DialogDescription className="text-gray-400">
+                                            {studentProfile.user.email} • Joined {new Date(studentProfile.createdAt).toLocaleDateString()}
+                                        </DialogDescription>
+                                    </div>
+                                    <div className="ml-auto">
+                                        <Badge className={cn("text-[10px] py-0.5 px-2", getStatusColor(studentProfile.status))}>
+                                            {studentProfile.status.replace(/_/g, ' ')}
+                                        </Badge>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="p-6">
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                    <Card className="bg-white/5 border-white/10">
+                                        <CardHeader className="pb-2">
+                                            <CardTitle className="text-sm font-bold text-gray-400 uppercase tracking-widest">Personal Details</CardTitle>
+                                        </CardHeader>
+                                        <CardContent className="space-y-4 pt-2">
+                                            <div className="space-y-1">
+                                                <p className="text-[10px] text-gray-500 uppercase">Degree Level</p>
+                                                <p className="text-white font-medium text-sm">{studentProfile.degreeLevel || "N/A"}</p>
+                                            </div>
+                                            <div className="space-y-1">
+                                                <p className="text-[10px] text-gray-500 uppercase">University Interest</p>
+                                                <p className="text-white font-medium text-sm">{studentProfile.universityInterest || "N/A"}</p>
+                                            </div>
+                                            <div className="space-y-1">
+                                                <p className="text-[10px] text-gray-500 uppercase">Nationality</p>
+                                                <p className="text-white font-medium text-sm">{studentProfile.nationality || "N/A"}</p>
+                                            </div>
+                                            <div className="space-y-1">
+                                                <p className="text-[10px] text-gray-500 uppercase">Phone</p>
+                                                <p className="text-white font-medium text-sm">{studentProfile.phone || "N/A"}</p>
+                                            </div>
+                                        </CardContent>
+                                    </Card>
+
+                                    <Card className="bg-white/5 border-white/10 md:col-span-2">
+                                        <CardHeader className="flex flex-row items-center justify-between pb-2">
+                                            <CardTitle className="text-sm font-bold text-gray-400 uppercase tracking-widest">Active Applications</CardTitle>
+                                            <Badge variant="outline" className="text-cyan-400 border-cyan-500/20">{studentProfile.applications?.length || 0}</Badge>
+                                        </CardHeader>
+                                        <CardContent className="pt-2">
+                                            <div className="space-y-3">
+                                                {studentProfile.applications?.length === 0 ? (
+                                                    <p className="text-sm text-gray-500 italic py-4">No applications started</p>
+                                                ) : (
+                                                    studentProfile.applications.map((app: any) => (
+                                                        <Link key={app.id} href={`/dashboard/applications/${app.id}`} className="block p-3 rounded-xl bg-white/[0.02] border border-white/5 hover:border-cyan-500/30 transition-all">
+                                                            <div className="flex items-center justify-between">
+                                                                <div>
+                                                                    <p className="text-white font-semibold text-sm">{app.university || "University Pending"}</p>
+                                                                    <p className="text-gray-500 text-[10px]">{app.program || "Course Pending"}</p>
+                                                                </div>
+                                                                <Badge className="text-[9px] bg-cyan-500/10 text-cyan-400 border-cyan-500/20">
+                                                                    {app.status.replace(/_/g, ' ')}
+                                                                </Badge>
+                                                            </div>
+                                                        </Link>
+                                                    ))
+                                                )}
+                                            </div>
+                                        </CardContent>
+                                    </Card>
+
+                                    <Card className="bg-white/5 border-white/10 md:col-span-3">
+                                        <CardHeader className="flex flex-row items-center justify-between pb-2">
+                                            <CardTitle className="text-sm font-bold text-gray-400 uppercase tracking-widest">Document Locker</CardTitle>
+                                            <Badge variant="outline" className="text-blue-400 border-blue-500/20">{studentProfile.documents?.length || 0}</Badge>
+                                        </CardHeader>
+                                        <CardContent className="pt-2">
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                                                {studentProfile.documents?.length === 0 ? (
+                                                    <p className="text-sm text-gray-500 italic py-4">No documents uploaded</p>
+                                                ) : (
+                                                    studentProfile.documents.map((doc: any) => (
+                                                        <div key={doc.id} className="p-3 rounded-xl bg-white/[0.02] border border-white/5 flex items-center gap-3">
+                                                            <div className="h-10 w-10 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-400 shrink-0">
+                                                                <FileText size={18} />
+                                                            </div>
+                                                            <div className="min-w-0">
+                                                                <p className="text-white font-medium text-[11px] truncate">{doc.filename}</p>
+                                                                <p className="text-gray-500 text-[9px]">{doc.type}</p>
+                                                            </div>
+                                                        </div>
+                                                    ))
+                                                )}
+                                            </div>
+                                        </CardContent>
+                                    </Card>
+                                </div>
+
+                                <div className="mt-6 flex justify-end gap-3">
+                                    <DialogClose asChild>
+                                        <Button variant="outline" className="border-white/10 text-gray-300">Close</Button>
+                                    </DialogClose>
+                                    <Button asChild className="bg-cyan-600 hover:bg-cyan-500">
+                                        <Link href={`/dashboard/messages?studentId=${studentProfile.id}`}>
+                                            <MessageCircle size={16} className="mr-2" />
+                                            Message Student
+                                        </Link>
+                                    </Button>
+                                </div>
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="py-20 flex flex-col items-center justify-center gap-4">
+                            <Loader2 className="h-8 w-8 animate-spin text-cyan-500" />
+                            <p className="text-gray-500 font-medium">Loading student profile...</p>
+                        </div>
+                    )}
+                </DialogContent>
+            </Dialog>
+
             {/* Delete Confirmation Dialog */}
             <Dialog open={!!studentToDelete} onOpenChange={(open) => !open && setStudentToDelete(null)}>
                 <DialogContent className="bg-[#0B1020] border-white/10 text-white">
@@ -416,8 +583,13 @@ export default function StudentsPage() {
                                         <span>Joined {new Date(student.createdAt).toLocaleDateString()}</span>
                                     </div>
                                 </div>
-                                <Button className="w-full mt-4 bg-white/5 hover:bg-white/10 text-white border-white/10" variant="outline">
-                                    View Profile
+                                <Button
+                                    className="w-full mt-4 bg-white/5 hover:bg-white/10 text-white border-white/10"
+                                    variant="outline"
+                                    onClick={() => fetchStudentProfile(student.id)}
+                                    disabled={loadingProfile}
+                                >
+                                    {loadingProfile && selectedStudentId === student.id ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : "View Profile"}
                                 </Button>
                                 {user?.role === 'SUPER_ADMIN' && (
                                     <Button
