@@ -7,15 +7,15 @@ import { Badge } from "@/components/ui/badge"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import Link from "next/link"
+import { motion, AnimatePresence } from "framer-motion"
 import {
     FileText, CheckCircle, Clock, AlertCircle,
     Calendar, MapPin, GraduationCap,
     Upload, MessageSquare, Bell, Plane,
     Mail, Pin, ExternalLink, ChevronRight,
-    Circle, CheckCircle2, Loader2
+    Circle, CheckCircle2, Loader2, ArrowRight
 } from "lucide-react"
-import { motion } from "framer-motion"
-import Link from "next/link"
 
 const APPLICATION_STEPS = [
     { key: "DOCUMENTS_RECEIVED", label: "Documents Received", icon: FileText, color: "text-blue-400" },
@@ -197,13 +197,20 @@ export default function StudentDashboardPage() {
                                         <CardTitle className="text-white text-lg">{app.university}</CardTitle>
                                         <p className="text-sm text-gray-400">{app.program} · {app.country}</p>
                                     </div>
-                                    <Badge className={`${app.currentStep === "COMPLETED" ? "bg-green-500/10 text-green-400 border-green-500/20" :
-                                        app.currentStep === "ADMISSION_LETTER" ? "bg-purple-500/10 text-purple-400 border-purple-500/20" :
-                                            app.currentStep === "VISA_PROCESS" ? "bg-orange-500/10 text-orange-400 border-orange-500/20" :
-                                                "bg-cyan-500/10 text-cyan-400 border-cyan-500/20"
-                                        } border`}>
-                                        {APPLICATION_STEPS.find(s => s.key === app.currentStep)?.label || app.currentStep}
-                                    </Badge>
+                                    <div className="flex items-center gap-3">
+                                        <Badge className={`${app.currentStep === "COMPLETED" ? "bg-green-500/10 text-green-400 border-green-500/20" :
+                                            app.currentStep === "ADMISSION_LETTER" ? "bg-purple-500/10 text-purple-400 border-purple-500/20" :
+                                                app.currentStep === "VISA_PROCESS" ? "bg-orange-500/10 text-orange-400 border-orange-500/20" :
+                                                    "bg-cyan-500/10 text-cyan-400 border-cyan-500/20"
+                                            } border`}>
+                                            {APPLICATION_STEPS.find(s => s.key === app.currentStep)?.label || app.currentStep}
+                                        </Badge>
+                                        <Button asChild size="sm" variant="ghost" className="h-8 text-cyan-400 hover:text-cyan-300 hover:bg-cyan-500/10 px-2 group">
+                                            <Link href={`/dashboard/applications/${app.id}`} className="flex items-center gap-1.5 font-bold">
+                                                View Details <ArrowRight size={14} className="group-hover:translate-x-0.5 transition-transform" />
+                                            </Link>
+                                        </Button>
+                                    </div>
                                 </div>
                             </CardHeader>
                             <CardContent className="pt-6">

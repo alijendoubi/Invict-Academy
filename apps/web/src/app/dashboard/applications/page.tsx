@@ -10,6 +10,7 @@ import { FileText, Clock, CheckCircle, XCircle, AlertCircle, Loader2, Search, Pl
 import { cn } from "@/lib/utils"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
+import Link from "next/link"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 export default function ApplicationsPage() {
@@ -355,11 +356,15 @@ export default function ApplicationsPage() {
                                             </div>
 
                                             <div className="flex gap-2">
-                                                <Button size="sm" className="bg-white/5 hover:bg-white/10 text-white border-white/10 h-8" variant="outline">
-                                                    View Details
+                                                <Button size="sm" asChild className="bg-white/5 hover:bg-white/10 text-white border-white/10 h-8" variant="outline">
+                                                    <Link href={`/dashboard/applications/${app.id}`}>
+                                                        View Details
+                                                    </Link>
                                                 </Button>
-                                                <Button size="sm" variant="outline" className="border-white/10 text-gray-300 h-8">
-                                                    Manage Tasks
+                                                <Button size="sm" asChild variant="outline" className="border-white/10 text-gray-300 h-8">
+                                                    <Link href={`/dashboard/applications/${app.id}?tab=tasks`}>
+                                                        Manage Tasks
+                                                    </Link>
                                                 </Button>
                                             </div>
                                         </CardContent>
