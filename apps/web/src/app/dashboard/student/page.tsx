@@ -322,7 +322,13 @@ export default function StudentDashboardPage() {
                                                     method: "POST",
                                                     body: formData,
                                                 })
-                                                if (!res.ok) throw new Error("Upload failed")
+
+                                                const data = await res.json().catch(() => null);
+
+                                                if (!res.ok) {
+                                                    throw new Error(data?.error || data?.details || "Upload failed");
+                                                }
+
                                                 setUploadSuccess(true)
                                                 setTimeout(() => {
                                                     setIsUploadModalOpen(false)

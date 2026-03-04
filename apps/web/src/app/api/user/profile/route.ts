@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
+import { prisma } from '@/lib/db';
+import { hash, compare } from 'bcryptjs';
 
 export const dynamic = 'force-dynamic';
 
@@ -54,7 +56,6 @@ export async function GET(request: NextRequest) {
 
         // Real DB lookup
         try {
-            const { prisma } = await import('@/lib/db');
             const user = await prisma.user.findUnique({
                 where: { id: userId },
                 select: {

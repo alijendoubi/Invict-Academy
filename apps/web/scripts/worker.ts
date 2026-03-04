@@ -25,8 +25,7 @@ const worker = new Worker('notifications', async job => {
                 userId: 'SYSTEM', // or link to lead if user created
                 channel: 'EMAIL',
                 type: 'LEAD_WELCOME',
-                content: `Sent welcome email to ${job.data.email}`,
-                user: { connect: { id: '...' } } // This would fail if no user. Schema might need loose linking or optional user.
+                content: `Sent welcome email to ${job.data.email}`
             }
         }).catch(err => console.error("Log error", err));
     }

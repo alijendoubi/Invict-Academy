@@ -1,6 +1,6 @@
 export const en = {
     lang: "en",
-    dir: "ltr" as const,
+    dir: "ltr" as "ltr" | "rtl",
     nav: {
         services: "Services",
         explore: "Explore & Apply",
@@ -49,7 +49,7 @@ export const en = {
             { title: "12 Countries, 200+ Programs", desc: "Access to programs across Italy, Germany, France, Spain and beyond — all in one place." },
             { title: "WhatsApp Updates 24/7", desc: "Real-time updates on your application status via WhatsApp. We never leave you guessing." }
         ],
-whyUsBadge: "Why Invict Academy",
+        whyUsBadge: "Why Invict Academy",
         whyUsTitleLine1: "The Agency That",
         whyUsTitleLine2: "Actually Delivers",
         whyUsDesc: "No vague promises. Clear timelines, real accountability, and guaranteed results or your money back.",

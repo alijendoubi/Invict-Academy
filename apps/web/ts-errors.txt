@@ -1,0 +1,18 @@
+scripts/worker.ts(24,13): error TS2322: Type '{ userId: string; channel: string; type: string; content: string; user: { connect: { id: string; }; }; }' is not assignable to type '(Without<NotificationLogCreateInput, NotificationLogUncheckedCreateInput> & NotificationLogUncheckedCreateInput) | (Without<...> & NotificationLogCreateInput)'.
+  Types of property 'user' are incompatible.
+    Type '{ connect: { id: string; }; }' is not assignable to type 'undefined'.
+src/app/(public)/eligibility/page.tsx(265,146): error TS2367: This comparison appears to be unintentional because the types '"ltr"' and '"rtl"' have no overlap.
+src/app/(public)/eligibility/page.tsx(314,70): error TS2367: This comparison appears to be unintentional because the types '"ltr"' and '"rtl"' have no overlap.
+src/app/(public)/eligibility/page.tsx(321,51): error TS2367: This comparison appears to be unintentional because the types '"ltr"' and '"rtl"' have no overlap.
+src/app/(public)/eligibility/page.tsx(323,100): error TS2367: This comparison appears to be unintentional because the types '"ltr"' and '"rtl"' have no overlap.
+src/app/(public)/eligibility/page.tsx(329,51): error TS2367: This comparison appears to be unintentional because the types '"ltr"' and '"rtl"' have no overlap.
+src/app/(public)/eligibility/page.tsx(331,69): error TS2367: This comparison appears to be unintentional because the types '"ltr"' and '"rtl"' have no overlap.
+src/app/api/user/profile/route.ts(106,40): error TS2304: Cannot find name 'prisma'.
+src/app/api/user/profile/route.ts(122,32): error TS2304: Cannot find name 'prisma'.
+src/app/api/user/profile/route.ts(127,34): error TS2304: Cannot find name 'compare'.
+src/app/api/user/profile/route.ts(131,41): error TS2304: Cannot find name 'hash'.
+src/app/api/user/profile/route.ts(150,35): error TS2304: Cannot find name 'prisma'.
+src/contexts/LanguageContext.tsx(7,74): error TS2322: Type 'Omit<{ lang: string; dir: "ltr"; nav: { services: string; explore: string; whyUs: string; booklet: string; universities: string; about: string; community: string; login: string; startFree: string; }; hero: { ...; }; ... 8 more ...; contact: { ...; }; }, "dir"> & { ...; }' is not assignable to type '{ lang: string; dir: "ltr"; nav: { services: string; explore: string; whyUs: string; booklet: string; universities: string; about: string; community: string; login: string; startFree: string; }; hero: { ...; }; ... 8 more ...; contact: { ...; }; }'.
+  Types of property 'dir' are incompatible.
+    Type '"rtl"' is not assignable to type '"ltr"'.
+src/lib/stripe.ts(4,5): error TS2322: Type '"2024-12-18.acacia"' is not assignable to type '"2026-01-28.clover"'.

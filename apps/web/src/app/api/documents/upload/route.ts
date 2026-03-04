@@ -1,11 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { getSession } from '@/lib/auth';
-import { writeFile, mkdir } from 'fs/promises';
-import { join } from 'path';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 
 export const dynamic = 'force-dynamic';
+export const maxDuration = 60; // Max duration for Vercel functions (seconds)
+
+// No built-in Next.js body parser limits apply to route.ts when reading from request.formData() directly, 
+// but in Pages router it would need config.api.bodyParser.
+// S3 configuration directly handles the payload.
 
 export async function POST(request: NextRequest) {
     try {
@@ -27,15 +30,20 @@ export async function POST(request: NextRequest) {
         const buffer = Buffer.from(bytes);
 
         // S3-like Path Structure: students/{studentId}/{type}/{uuid}-{filename}
-        const fileName = `${crypto.randomUUID()}-${file.name}`;
+        const sanitizedFilename = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
+        const fileName = `${crypto.randomUUID()}-${sanitizedFilename}`;
         const s3Key = `students/${studentId}/${type}/${fileName}`;
 
-        const isProduction = process.env.NODE_ENV === 'production';
         const s3Bucket = process.env.S3_BUCKET;
 
-        if (s3Bucket) {
+        if (!s3Bucket) {
+            console.error("S3_BUCKET configuration missing from environment variables.");
+            return NextResponse.json({ error: 'S3 configuration missing' }, { status: 500 });
+        }
+
+        try {
             const s3 = new S3Client({
-                region: process.env.S3_REGION || 'us-east-1',
+                region: process.env.S3_REGION || 'eu-north-1',
                 endpoint: process.env.S3_ENDPOINT,
                 credentials: {
                     accessKeyId: process.env.S3_ACCESS_KEY || '',
@@ -52,14 +60,9 @@ export async function POST(request: NextRequest) {
                     ContentType: file.type,
                 })
             );
-        } else if (!isProduction) {
-            // Local development fallback
-            const uploadDir = join(process.cwd(), 'public', 'uploads', 'students', studentId, type);
-            await mkdir(uploadDir, { recursive: true });
-            const localPath = join(uploadDir, fileName);
-            await writeFile(localPath, buffer);
-        } else {
-            return NextResponse.json({ error: 'S3 configuration missing' }, { status: 500 });
+        } catch (s3Error) {
+            console.error("S3 Upload Error:", s3Error);
+            return NextResponse.json({ error: 'Failed to upload to S3', details: String(s3Error) }, { status: 500 });
         }
 
         // Save metadata to database
@@ -78,7 +81,7 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({
             message: 'Document uploaded successfully',
             document,
-            url: s3Bucket ? `s3://${s3Bucket}/${s3Key}` : `/uploads/${s3Key}` // Local dev fallback
+            url: `s3://${s3Bucket}/${s3Key}`
         });
 
     } catch (error) {
