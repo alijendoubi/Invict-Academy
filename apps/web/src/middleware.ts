@@ -40,7 +40,26 @@ export async function middleware(request: NextRequest) {
             return NextResponse.redirect(new URL('/auth/login', request.nextUrl));
         }
         try {
-            await decrypt(cookie);
+            const payload = await decrypt(cookie);
+            const userRole = payload?.user?.role;
+
+            // Define management-only routes
+            const managementRoutes = [
+                '/dashboard/leads',
+                '/dashboard/students',
+                '/dashboard/users',
+                '/dashboard/associates',
+                '/dashboard/admin'
+            ];
+
+            const isManagementRoute = managementRoutes.some(route => pathname.startsWith(route));
+
+            if (isManagementRoute && !['SUPER_ADMIN', 'ADMIN', 'STAFF'].includes(userRole)) {
+                // Redirect students to their own dashboard or root dashboard
+                // Assuming students have their own specific page or just the overview
+                return NextResponse.redirect(new URL('/dashboard', request.nextUrl));
+            }
+
         } catch (err) {
             return NextResponse.redirect(new URL('/auth/login', request.nextUrl));
         }

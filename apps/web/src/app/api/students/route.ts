@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
-import { getSession } from '@/lib/auth';
+import { getSession, logAudit } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
 
@@ -11,6 +11,14 @@ export async function GET(request: NextRequest) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
+        const role = session.user.role;
+        const isManagement = ['SUPER_ADMIN', 'ADMIN'].includes(role);
+        const isStaff = role === 'STAFF';
+
+        if (!isManagement && !isStaff) {
+            return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+        }
+
         const { searchParams } = new URL(request.url);
         const status = searchParams.get('status');
         const search = searchParams.get('search');
@@ -18,6 +26,10 @@ export async function GET(request: NextRequest) {
         const where: any = {};
         if (status && status !== 'all') {
             where.status = status;
+        }
+
+        if (isStaff) {
+            where.assignedToId = session.userId;
         }
 
         if (search) {
@@ -86,13 +98,16 @@ export async function POST(request: NextRequest) {
                         universityInterest,
                         degreeLevel,
                         status: status || 'ACTIVE',
+                        assignedToId: session.user.role === 'STAFF' ? session.userId : null
                     }
                 }
-            },
+            } as any,
             include: {
                 studentProfile: true,
             }
-        });
+        }) as any;
+
+        await logAudit('CREATE_STUDENT', 'User', user.id, `Created student ${firstName} ${lastName}`);
 
         // We return the temporary password ONLY this one time so the admin can copy it
         return NextResponse.json({

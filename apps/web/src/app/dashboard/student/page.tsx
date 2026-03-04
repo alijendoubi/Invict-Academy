@@ -87,7 +87,6 @@ export default function StudentDashboardPage() {
     useEffect(() => {
         const load = async () => {
             try {
-                // Try API, fall back to demo data gracefully
                 const [profileRes, appsRes] = await Promise.allSettled([
                     fetch("/api/user/profile"),
                     fetch("/api/applications/my"),
@@ -122,7 +121,7 @@ export default function StudentDashboardPage() {
                     .catch(() => { })
                     .finally(() => setDocsLoading(false))
             } catch {
-                // Silently use demo data
+                // Error handled by empty states
             } finally {
                 setLoading(false)
             }
@@ -130,14 +129,7 @@ export default function StudentDashboardPage() {
         load()
     }, [])
 
-    const demoProfile = profile || {
-        firstName: "Student",
-        studentProfile: {}
-    }
-    const demoApps = applications || []
-    const demoMessages = messages || []
-
-    const unreadCount = demoMessages.filter(m => !m.readAt).length
+    const unreadCount = messages.filter(m => !m.readAt).length
 
     if (loading) {
         return (
@@ -160,7 +152,7 @@ export default function StudentDashboardPage() {
                         <div>
                             <p className="text-cyan-400 text-sm font-semibold uppercase tracking-widest mb-1">Student Portal</p>
                             <h1 className="text-3xl font-black text-white mb-1">
-                                Welcome back, {demoProfile.firstName}! 👋
+                                Welcome back, {profile?.firstName}! 👋
                             </h1>
                             <p className="text-gray-400">Track your application and stay connected with our admission team.</p>
                         </div>
@@ -183,7 +175,7 @@ export default function StudentDashboardPage() {
             <div className="max-w-7xl mx-auto p-6 space-y-6">
 
                 {/* Application Journey Tracker */}
-                {demoApps.map((app) => (
+                {applications.map((app) => (
                     <motion.div
                         key={app.id}
                         initial={{ opacity: 0, y: 20 }}
@@ -242,7 +234,7 @@ export default function StudentDashboardPage() {
                             <CardContent className="pt-4 space-y-4">
                                 {/* Message thread */}
                                 <div className="space-y-3 max-h-64 overflow-y-auto pr-1">
-                                    {demoMessages.map((msg, i) => (
+                                    {messages.map((msg, i) => (
                                         <motion.div
                                             key={msg.id}
                                             initial={{ opacity: 0, x: msg.fromAdmin !== false ? -8 : 8 }}
@@ -267,7 +259,7 @@ export default function StudentDashboardPage() {
                                             </div>
                                         </motion.div>
                                     ))}
-                                    {demoMessages.length === 0 && (
+                                    {messages.length === 0 && (
                                         <div className="text-center py-10 text-gray-600">
                                             <Mail size={36} className="mx-auto mb-2 opacity-20" />
                                             <p className="text-sm">No messages yet. Your advisor will be in touch soon.</p>
@@ -332,7 +324,6 @@ export default function StudentDashboardPage() {
                             </CardContent>
                         </Card>
 
-
                         {/* Required Documents — Live List */}
                         <Card className="bg-[#0B1020] border-white/10">
                             <CardHeader className="border-b border-white/5">
@@ -370,7 +361,7 @@ export default function StudentDashboardPage() {
                                                         : <Clock size={14} className="text-yellow-400 shrink-0" />}
                                                 <div className="flex-1 min-w-0">
                                                     <p className="text-sm text-white truncate">{doc.filename}</p>
-                                                    <p className="text-xs text-gray-600">{doc.type} · {new Date(doc.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}</p>
+                                                    <p className="text-xs text-gray-600">{doc.type} · {new Date(doc.createdAt).toLocaleDateString('en-GB', { day: "numeric", month: "short" })}</p>
                                                 </div>
                                                 <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${doc.status === 'APPROVED' ? 'bg-green-500/20 text-green-400' :
                                                     doc.status === 'REJECTED' ? 'bg-red-500/20 text-red-400' :
@@ -399,7 +390,7 @@ export default function StudentDashboardPage() {
                                             setUploadError(null)
                                             setUploadSuccess(false)
                                             const formData = new FormData(e.currentTarget)
-                                            formData.append("studentId", demoProfile.studentProfile?.id || "demo-123")
+                                            formData.append("studentId", profile?.studentProfile?.id || "")
                                             try {
                                                 const res = await fetch("/api/documents/upload", {
                                                     method: "POST",

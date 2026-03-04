@@ -11,7 +11,29 @@ export async function GET(request: NextRequest) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
+        const role = session.user.role;
+        const isManagement = ['SUPER_ADMIN', 'ADMIN'].includes(role);
+        const isStaff = role === 'STAFF';
+
+        const where: any = {};
+
+        if (isStaff) {
+            // Staff only sees assigned students' applications
+            where.student = { assignedToId: session.userId };
+        } else if (!isManagement) {
+            // Student only sees their own
+            const profile = await prisma.studentProfile.findUnique({
+                where: { userId: session.userId },
+                select: { id: true },
+            });
+            if (!profile) {
+                return NextResponse.json({ applications: [] });
+            }
+            where.studentId = profile.id;
+        }
+
         const applications = await prisma.application.findMany({
+            where,
             include: {
                 student: {
                     include: {

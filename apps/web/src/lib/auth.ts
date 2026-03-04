@@ -32,6 +32,59 @@ export async function getSession() {
     }
 }
 
+export async function hasRole(allowedRoles: string[]) {
+    const session = await getSession();
+    if (!session) return false;
+    return allowedRoles.includes(session.user.role);
+}
+
+/**
+ * Gets the student profile ID for the current authenticated user.
+ */
+export async function getStudentProfileId() {
+    const session = await getSession();
+    if (!session || session.user.role !== 'STUDENT') return null;
+
+    const { prisma } = await import('@/lib/db');
+    const profile = await prisma.studentProfile.findUnique({
+        where: { userId: session.userId },
+        select: { id: true }
+    });
+    return profile?.id || null;
+}
+
+/**
+ * Verifies if the current user has access to a specific student's data.
+ * - ADMIN/SUPER_ADMIN: Always true
+ * - STAFF: True if the student is assigned to them (planned)
+ * - STUDENT: True if it's their own ID
+ */
+export async function verifyStudentAccess(studentId: string) {
+    const session = await getSession();
+    if (!session) return false;
+
+    const role = session.user.role;
+    if (role === 'SUPER_ADMIN' || role === 'ADMIN') return true;
+
+    if (role === 'STUDENT') {
+        const myProfileId = await getStudentProfileId();
+        return myProfileId === studentId;
+    }
+
+    if (role === 'STAFF') {
+        const { prisma } = await import('@/lib/db');
+        const profile = await prisma.studentProfile.findUnique({
+            where: { id: studentId },
+            select: { assignedToId: true }
+        });
+
+        // Staff has access if the student is assigned to them
+        return profile?.assignedToId === session.userId;
+    }
+
+    return false;
+}
+
 export async function login(formData: FormData) {
     // Logic moved to API route for better handling but helper exists
 }
@@ -45,4 +98,26 @@ export async function updateSession(request: NextRequest) {
     const session = request.cookies.get('session')?.value;
     if (!session) return;
     // Refresh logic here if needed
+}
+
+/**
+ * Utility to log audit events.
+ */
+export async function logAudit(action: string, entity: string, entityId: string, details?: string) {
+    const session = await getSession();
+    const { prisma } = await import('@/lib/db');
+
+    try {
+        await prisma.auditLog.create({
+            data: {
+                userId: session?.userId || null,
+                action,
+                entity,
+                entityId,
+                details
+            }
+        });
+    } catch (error) {
+        console.error('Audit Log failed:', error);
+    }
 }

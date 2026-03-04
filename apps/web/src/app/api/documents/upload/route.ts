@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
-import { getSession } from '@/lib/auth';
+import { getSession, verifyStudentAccess, logAudit } from '@/lib/auth';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 
 export const dynamic = 'force-dynamic';
@@ -35,6 +35,12 @@ export async function POST(request: NextRequest) {
                 error: 'Student ID missing',
                 details: 'Please ensure you are logged in as a student or provide a valid student ID.'
             }, { status: 400 });
+        }
+
+        // Access Control: Verify if the current user can upload for this student
+        const hasAccess = await verifyStudentAccess(studentId);
+        if (!hasAccess) {
+            return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
         }
 
         if (!file) {
@@ -80,14 +86,6 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'Failed to upload to S3', details: String(s3Error) }, { status: 500 });
         }
 
-        // If it's the demo fallback studentId, skip DB creation to prevent Foreign Key constraint errors
-        if (studentId === "demo-123") {
-            return NextResponse.json({
-                message: 'Demo mode: Document uploaded successfully to S3',
-                document: { id: "demo-doc-123", s3Key, filename: file.name, status: 'PENDING' },
-                url: `s3://${s3Bucket}/${s3Key}`
-            });
-        }
 
         // Save metadata to database
         const document = await prisma.document.create({
@@ -101,6 +99,8 @@ export async function POST(request: NextRequest) {
                 status: 'PENDING',
             }
         });
+
+        await logAudit('UPLOAD_DOCUMENT', 'Document', document.id, `Uploaded ${file.name} for student ${studentId}`);
 
         return NextResponse.json({
             message: 'Document uploaded successfully',
@@ -123,9 +123,21 @@ export async function GET(request: NextRequest) {
         }
 
         const { searchParams } = new URL(request.url);
-        const studentId = searchParams.get('studentId');
+        let studentId = searchParams.get('studentId');
 
-        if (!studentId) {
+        const isAdmin = ['SUPER_ADMIN', 'ADMIN', 'STAFF'].includes(session.user.role);
+
+        if (!isAdmin) {
+            // If student, ignore studentId param and use their own profile ID
+            const profile = await prisma.studentProfile.findUnique({
+                where: { userId: session.userId },
+                select: { id: true },
+            });
+            if (!profile) {
+                return NextResponse.json({ error: 'Student profile not found' }, { status: 404 });
+            }
+            studentId = profile.id;
+        } else if (!studentId) {
             return NextResponse.json({ error: 'Student ID required' }, { status: 400 });
         }
 

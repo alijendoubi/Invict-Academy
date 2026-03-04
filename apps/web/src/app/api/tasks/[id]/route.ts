@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
-import { getSession } from '@/lib/auth';
+import { getSession, verifyStudentAccess, logAudit } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
 
@@ -27,6 +27,15 @@ export async function PATCH(
             return NextResponse.json({ error: 'Task not found' }, { status: 404 });
         }
 
+        // Access Control: Tasks are typically linked to applications or leads.
+        // For applications, we check the student access.
+        if (task.applicationId) {
+            const hasAccess = await verifyStudentAccess(task.application?.studentId as string);
+            if (!hasAccess) {
+                return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+            }
+        }
+
         const isAdmin = ['SUPER_ADMIN', 'ADMIN', 'STAFF'].includes(session.user.role);
 
         let updateData: any = {};
@@ -49,6 +58,8 @@ export async function PATCH(
             where: { id },
             data: updateData
         });
+
+        await logAudit('UPDATE_TASK', 'Task', id, `Updated task: ${Object.keys(updateData).join(', ')}`);
 
         return NextResponse.json(updatedTask);
     } catch (error) {

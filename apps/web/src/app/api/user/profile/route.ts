@@ -5,30 +5,6 @@ import { hash, compare } from 'bcryptjs';
 
 export const dynamic = 'force-dynamic';
 
-// Demo profile data — returned when session is a demo user
-const DEMO_PROFILES: Record<string, any> = {
-    'admin@invict.academy': {
-        id: 'demo-admin-invict-academy',
-        email: 'admin@invict.academy',
-        firstName: 'Demo',
-        lastName: 'Administrator',
-        role: 'ADMIN',
-        createdAt: new Date().toISOString(),
-        phone: null,
-        nationality: null,
-    },
-    'student@invict.academy': {
-        id: 'demo-student-invict-academy',
-        email: 'student@invict.academy',
-        firstName: 'Demo',
-        lastName: 'Student',
-        role: 'STUDENT',
-        createdAt: new Date().toISOString(),
-        phone: '+39 347 7590963',
-        nationality: 'Tunisian',
-    },
-};
-
 export async function GET(request: NextRequest) {
     try {
         const session = await getSession();
@@ -38,21 +14,6 @@ export async function GET(request: NextRequest) {
 
         const userId: string = session.userId || session.user?.id || '';
         const email: string = session.user?.email || '';
-
-        // Return demo profile without DB
-        if (userId.startsWith('demo-') || DEMO_PROFILES[email]) {
-            const profile = DEMO_PROFILES[email] || {
-                id: userId,
-                email,
-                firstName: 'Demo',
-                lastName: 'User',
-                role: session.user?.role || 'ADMIN',
-                createdAt: new Date().toISOString(),
-                phone: null,
-                nationality: null,
-            };
-            return NextResponse.json(profile);
-        }
 
         // Real DB lookup
         try {

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
-import { getSession } from '@/lib/auth';
+import { getSession, verifyStudentAccess, logAudit } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
 
@@ -46,16 +46,10 @@ export async function GET(
             return NextResponse.json({ error: 'Application not found' }, { status: 404 });
         }
 
-        // Access Control: Only the owner student or Admin/Staff roles
-        const isStudent = session.user.role === 'STUDENT';
-        if (isStudent) {
-            const profile = await prisma.studentProfile.findUnique({
-                where: { userId: session.userId },
-                select: { id: true }
-            });
-            if (!profile || profile.id !== application.studentId) {
-                return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-            }
+        // Access Control
+        const hasAccess = await verifyStudentAccess(application.studentId);
+        if (!hasAccess) {
+            return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
         }
 
         return NextResponse.json(application);
@@ -89,18 +83,12 @@ export async function PATCH(
             return NextResponse.json({ error: 'Application not found' }, { status: 404 });
         }
 
-        const isStudent = session.user.role === 'STUDENT';
-        const isAdmin = ['SUPER_ADMIN', 'ADMIN', 'STAFF'].includes(session.user.role);
-
-        if (isStudent) {
-            const profile = await prisma.studentProfile.findUnique({
-                where: { userId: session.userId },
-                select: { id: true }
-            });
-            if (!profile || profile.id !== application.studentId) {
-                return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-            }
+        const hasAccess = await verifyStudentAccess(application.studentId);
+        if (!hasAccess) {
+            return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
         }
+
+        const isAdmin = ['SUPER_ADMIN', 'ADMIN', 'STAFF'].includes(session.user.role);
 
         // Only admins can change status? Or maybe students can change intake/etc?
         // Let's allow updates for now with proper checks.
@@ -117,6 +105,8 @@ export async function PATCH(
             where: { id },
             data: updateData,
         });
+
+        await logAudit('UPDATE_APPLICATION', 'Application', id, `Updated application fields: ${Object.keys(updateData).join(', ')}`);
 
         return NextResponse.json(updatedApplication);
     } catch (error) {

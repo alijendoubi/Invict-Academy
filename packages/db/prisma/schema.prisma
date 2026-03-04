@@ -101,6 +101,7 @@ model User {
   assignedLeads    Lead[]          @relation("StaffLeads")
   createdTasks     Task[]          @relation("TaskCreator")
   assignedTasks    Task[]          @relation("TaskAssignee")
+  agentStudents    StudentProfile[] @relation("AgentStudents")
   auditLogs        AuditLog[]
   notifications    NotificationLog[]
   sessions         Session[]
@@ -189,6 +190,9 @@ model StudentProfile {
   invoices         Invoice[]
   consultations    Consultation[]
   messages         StudentMessage[]
+  
+  assignedToId     String?
+  assignedTo       User?         @relation("AgentStudents", fields: [assignedToId], references: [id])
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

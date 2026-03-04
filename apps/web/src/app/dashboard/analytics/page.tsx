@@ -37,16 +37,7 @@ export default function AnalyticsPage() {
         )
     }
 
-    const { kpis, monthlyData: revenueData, conversionFunnel: leadConversionData, applicationStatusData, monthlyData: monthlyStats } = data
-
-    // Optional: Demo students by country fallback
-    const studentsByCountry = [
-        { country: 'Italy', students: 89 },
-        { country: 'France', students: 45 },
-        { country: 'Germany', students: 38 },
-        { country: 'Spain', students: 27 },
-        { country: 'Netherlands', students: 18 },
-    ]
+    const { kpis, monthlyData: revenueData, conversionFunnel: leadConversionData, applicationStatusData, monthlyData: monthlyStats, studentsByCountry } = data
 
     return (
         <div className="space-y-6">

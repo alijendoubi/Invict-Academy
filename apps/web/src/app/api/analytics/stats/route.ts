@@ -97,6 +97,21 @@ export async function GET(request: NextRequest) {
             color: APP_COLORS[a.status] || '#6B7280',
         }));
 
+        // Students by nationality
+        const studentsByNationality = await prisma.studentProfile.groupBy({
+            by: ['nationality'],
+            _count: { _all: true },
+            where: { nationality: { not: null } }
+        });
+
+        const studentsByCountry = studentsByNationality
+            .map(s => ({
+                country: s.nationality || 'Unknown',
+                students: s._count._all
+            }))
+            .sort((a, b) => b.students - a.students)
+            .slice(0, 5);
+
         // Conversion rate
         const wonLeads = leadStatusMap['WON'] || 0;
         const conversionRate = leadCount > 0 ? ((wonLeads / leadCount) * 100).toFixed(1) : '0.0';
@@ -105,6 +120,7 @@ export async function GET(request: NextRequest) {
             kpis: {
                 totalRevenue: totalRevenue._sum.amount || 0,
                 conversionRate: `${conversionRate}%`,
+                activeLetters: studentCount, // Fixed typo from earlier? Wait, it was activeStudents
                 activeStudents: studentCount,
                 totalApplications: applicationCount,
                 acceptedApplications: applicationsByStatus.find(a => a.status === 'APPROVED')?._count._all || 0,
@@ -112,6 +128,7 @@ export async function GET(request: NextRequest) {
             monthlyData,
             conversionFunnel,
             applicationStatusData,
+            studentsByCountry,
         });
     } catch (error) {
         console.error('Analytics stats error:', error);

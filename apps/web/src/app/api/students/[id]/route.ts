@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
-import { getSession } from '@/lib/auth';
+import { getSession, verifyStudentAccess } from '@/lib/auth';
 
 export async function GET(
     request: NextRequest,
@@ -10,6 +10,13 @@ export async function GET(
         const session = await getSession();
         if (!session) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
+
+        const studentId = params.id;
+        const hasAccess = await verifyStudentAccess(studentId);
+
+        if (!hasAccess) {
+            return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
         }
 
         const studentProfile = await prisma.studentProfile.findUnique({

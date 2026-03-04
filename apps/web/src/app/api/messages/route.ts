@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
-import { getSession } from '@/lib/auth';
+import { getSession, verifyStudentAccess, getStudentProfileId } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
 
@@ -18,14 +18,16 @@ export async function GET(request: NextRequest) {
 
         let studentProfileId: string | null = null;
 
-        if (isAdmin && studentIdParam) {
+        if (studentIdParam) {
+            // Check access for the provided studentIdParam
+            const hasAccess = await verifyStudentAccess(studentIdParam);
+            if (!hasAccess) {
+                return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+            }
             studentProfileId = studentIdParam;
         } else {
-            const profile = await prisma.studentProfile.findUnique({
-                where: { userId: session.userId },
-                select: { id: true },
-            });
-            studentProfileId = profile?.id ?? null;
+            // Default to current user's profile
+            studentProfileId = await getStudentProfileId();
         }
 
         if (!studentProfileId) {
@@ -76,16 +78,16 @@ export async function POST(request: NextRequest) {
 
         let targetStudentId: string | null = null;
 
-        if (isAdmin && studentId) {
-            // Admin sending to a specific student
+        if (studentId) {
+            // Check if user has access to this student
+            const hasAccess = await verifyStudentAccess(studentId);
+            if (!hasAccess) {
+                return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+            }
             targetStudentId = studentId;
-        } else if (!isAdmin) {
-            // Student sending their own message
-            const profile = await prisma.studentProfile.findUnique({
-                where: { userId: session.userId },
-                select: { id: true },
-            });
-            targetStudentId = profile?.id ?? null;
+        } else {
+            // Default to sending to self (as a student)
+            targetStudentId = await getStudentProfileId();
         }
 
         if (!targetStudentId) {
