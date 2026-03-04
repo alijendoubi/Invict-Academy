@@ -261,12 +261,12 @@ export default function ApplicationDetailsPage() {
 
                         <div className="space-y-3 pt-4">
                             <Button asChild variant="outline" className="w-full border-white/10 hover:bg-white/5 text-gray-300 h-10 group rounded-xl">
-                                <Link href={`/dashboard/students?search=${application.student?.user?.email}`} className="flex items-center justify-between w-full">
+                                <Link href={`/dashboard/admin/students?studentId=${application.studentId}`} className="flex items-center justify-between w-full">
                                     View Profile <ChevronRight size={14} className="group-hover:translate-x-1 transition-transform" />
                                 </Link>
                             </Button>
                             <Button asChild variant="outline" className="w-full border-white/10 hover:bg-white/5 text-gray-300 h-10 group rounded-xl">
-                                <Link href={`/dashboard/messages?studentId=${application.studentId}`} className="flex items-center justify-between w-full">
+                                <Link href={`/dashboard/admin/students?studentId=${application.studentId}`} className="flex items-center justify-between w-full">
                                     Message Student <ChevronRight size={14} className="group-hover:translate-x-1 transition-transform" />
                                 </Link>
                             </Button>
@@ -407,7 +407,7 @@ export default function ApplicationDetailsPage() {
                                 <p className="text-gray-500 text-sm max-w-sm">All documents like Passport, Transcripts and Diplomas are managed centrally for all applications.</p>
                             </div>
                             <Button asChild className="bg-cyan-600 hover:bg-cyan-500 h-10 mt-4 rounded-xl px-6">
-                                <Link href={`/dashboard/students?search=${application.student?.user?.email}&tab=documents`}>
+                                <Link href={`/dashboard/admin/students?studentId=${application.studentId}&tab=documents`}>
                                     Go to Documents Section
                                 </Link>
                             </Button>
