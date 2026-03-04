@@ -403,7 +403,7 @@ export default function ApplicationDetailsPage() {
                                 <FileText size={32} strokeWidth={1} />
                             </div>
                             <div className="space-y-1">
-                                <p className="text-white font-semibold">View Student's Global Document Locker</p>
+                                <p className="text-white font-semibold">View Student&apos;s Global Document Locker</p>
                                 <p className="text-gray-500 text-sm max-w-sm">All documents like Passport, Transcripts and Diplomas are managed centrally for all applications.</p>
                             </div>
                             <Button asChild className="bg-cyan-600 hover:bg-cyan-500 h-10 mt-4 rounded-xl px-6">
