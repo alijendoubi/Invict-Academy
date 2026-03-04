@@ -65,6 +65,15 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'Failed to upload to S3', details: String(s3Error) }, { status: 500 });
         }
 
+        // If it's the demo fallback studentId, skip DB creation to prevent Foreign Key constraint errors
+        if (studentId === "demo-123") {
+            return NextResponse.json({
+                message: 'Demo mode: Document uploaded successfully to S3',
+                document: { id: "demo-doc-123", s3Key, filename: file.name, status: 'PENDING' },
+                url: `s3://${s3Bucket}/${s3Key}`
+            });
+        }
+
         // Save metadata to database
         const document = await prisma.document.create({
             data: {
@@ -84,9 +93,9 @@ export async function POST(request: NextRequest) {
             url: `s3://${s3Bucket}/${s3Key}`
         });
 
-    } catch (error) {
+    } catch (error: any) {
         console.error('Document upload error:', error);
-        return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+        return NextResponse.json({ error: error?.message || String(error), isInternalError: true }, { status: 500 });
     }
 }
 
