@@ -3,44 +3,5 @@ import { prisma } from '@/lib/db';
 import * as bcrypt from 'bcryptjs';
 
 export async function POST(request: NextRequest) {
-    try {
-        const body = await request.json();
-        const { email, password, firstName, lastName, role } = body;
-
-        const safeRole = role === 'ASSOCIATE' ? 'ASSOCIATE' : 'STUDENT';
-
-        // Check if user exists
-        const existingUser = await prisma.user.findUnique({ where: { email } });
-        if (existingUser) {
-            return NextResponse.json({ error: 'Email already registered' }, { status: 400 });
-        }
-
-        // Hash password
-        const hashedPassword = await bcrypt.hash(password, 10);
-
-        // Create user with profile based on role
-        const user = await prisma.user.create({
-            data: {
-                email,
-                password: hashedPassword,
-                firstName,
-                lastName,
-                role: safeRole,
-                studentProfile: safeRole === 'STUDENT' ? { create: {} } : undefined,
-                associateProfile: safeRole === 'ASSOCIATE' ? {
-                    create: {
-                        referralCode: Math.random().toString(36).substring(2, 10).toUpperCase()
-                    }
-                } : undefined,
-            },
-        });
-
-        return NextResponse.json({
-            success: true,
-            message: 'Account created successfully'
-        }, { status: 201 });
-    } catch (error) {
-        console.error('Registration error:', error);
-        return NextResponse.json({ error: 'Registration failed' }, { status: 500 });
-    }
+    return NextResponse.json({ error: 'Public registration is disabled' }, { status: 403 });
 }
