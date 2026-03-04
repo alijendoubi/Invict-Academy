@@ -130,22 +130,12 @@ export default function StudentDashboardPage() {
         load()
     }, [])
 
-    // Demo data fallback for preview
     const demoProfile = profile || {
-        firstName: "Ahmed", lastName: "Rahman",
-        email: "ahmed@example.com",
-        studentProfile: { id: "demo-123", status: "APPLYING", phone: "+213555000111" }
+        firstName: "Student",
+        studentProfile: {}
     }
-    const demoApps = applications.length > 0 ? applications : [
-        {
-            id: "1", university: "Sapienza University of Rome", country: "Italy", program: "Computer Science MSc",
-            status: "UNDER_REVIEW", currentStep: "UNDER_REVIEW", updatedAt: new Date().toISOString()
-        },
-    ]
-    const demoMessages = messages.length > 0 ? messages : [
-        { id: "1", subject: "Welcome to Invict Academy!", content: "Your student account is now active. Our team will be in touch shortly to discuss your application.", isPinned: true, readAt: null, createdAt: new Date().toISOString() },
-        { id: "2", subject: "Documents Update", content: "Please make sure to upload a clear copy of your Diploma and Transcripts. Our team has reviewed your draft and everything looks promising!", isPinned: false, readAt: new Date().toISOString(), createdAt: new Date(Date.now() - 86400000).toISOString() },
-    ]
+    const demoApps = applications || []
+    const demoMessages = messages || []
 
     const unreadCount = demoMessages.filter(m => !m.readAt).length
 
@@ -254,10 +244,10 @@ export default function StudentDashboardPage() {
                                             className={`flex ${msg.fromAdmin !== false ? "justify-start" : "justify-end"}`}
                                         >
                                             <div className={`max-w-[85%] p-3.5 rounded-2xl border text-sm ${msg.fromAdmin !== false
-                                                    ? msg.isPinned
-                                                        ? "bg-cyan-500/5 border-cyan-500/20 rounded-tl-sm"
-                                                        : "bg-white/[0.03] border-white/10 rounded-tl-sm"
-                                                    : "bg-blue-600/10 border-blue-500/20 rounded-tr-sm text-right"
+                                                ? msg.isPinned
+                                                    ? "bg-cyan-500/5 border-cyan-500/20 rounded-tl-sm"
+                                                    : "bg-white/[0.03] border-white/10 rounded-tl-sm"
+                                                : "bg-blue-600/10 border-blue-500/20 rounded-tr-sm text-right"
                                                 }`}>
                                                 <p className={`text-xs font-semibold mb-1 ${msg.fromAdmin !== false ? "text-cyan-400" : "text-blue-400"}`}>
                                                     {msg.fromAdmin !== false ? "Invict Advisor" : "You"}
