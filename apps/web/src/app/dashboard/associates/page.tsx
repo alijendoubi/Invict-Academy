@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Search, UserPlus, Loader2, Mail, CheckCircle2, TrendingUp, Users, Coins, ExternalLink } from "lucide-react"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
+import { CredentialsDialog } from "@/components/CredentialsDialog"
 
 const DEMO_ASSOCIATES = [
     { id: "a1", name: "Karim Mansouri", email: "karim@gmail.com", country: "Tunisia 🇹🇳", referrals: 12, converted: 8, commission: 1600, status: "ACTIVE", joinedAt: "2024-09-01" },
@@ -21,6 +22,8 @@ export default function AssociatesPage() {
     const [search, setSearch] = useState("")
     const [submitting, setSubmitting] = useState(false)
     const [dialogOpen, setDialogOpen] = useState(false)
+    const [addError, setAddError] = useState("")
+    const [newCredentials, setNewCredentials] = useState<{ email: string, password: string, name: string } | null>(null)
 
     useEffect(() => {
         const load = async () => {
@@ -39,7 +42,7 @@ export default function AssociatesPage() {
     }, [])
 
     const filtered = associates.filter(a =>
-        !search || `${a.name} ${a.email} ${a.country}`.toLowerCase().includes(search.toLowerCase())
+        !search || `${a.name} ${a.email} ${a.country} `.toLowerCase().includes(search.toLowerCase())
     )
 
     const totalReferrals = associates.reduce((s, a) => s + (a.referrals || 0), 0)
@@ -66,28 +69,49 @@ export default function AssociatesPage() {
                                 Register a new partner/affiliate to the network.
                             </DialogDescription>
                         </DialogHeader>
-                        <form onSubmit={(e) => {
+                        <form onSubmit={async (e) => {
                             e.preventDefault();
                             setSubmitting(true);
-                            setTimeout(() => {
-                                setAssociates([{
-                                    id: Math.random().toString(),
-                                    name: (e.target as any).associateName.value,
-                                    email: (e.target as any).email.value,
-                                    country: (e.target as any).country.value,
-                                    referrals: 0,
-                                    converted: 0,
-                                    commission: 0,
-                                    status: 'PENDING',
-                                    joinedAt: new Date().toISOString()
-                                }, ...associates]);
-                                setSubmitting(false);
+                            setAddError("");
+
+                            const formData = new FormData(e.currentTarget);
+                            const data = Object.fromEntries(formData.entries());
+
+                            try {
+                                const res = await fetch("/api/associates", {
+                                    method: "POST",
+                                    headers: { "Content-Type": "application/json" },
+                                    body: JSON.stringify(data),
+                                });
+
+                                const json = await res.json();
+
+                                if (!res.ok) {
+                                    setAddError(json.error || "Failed to add associate");
+                                    return;
+                                }
+
+                                // Fetch updated list
+                                const refreshRes = await fetch("/api/associates");
+                                if (refreshRes.ok) {
+                                    setAssociates(await refreshRes.json());
+                                }
+
                                 setDialogOpen(false);
-                            }, 1000);
+                                setNewCredentials({
+                                    email: data.email as string,
+                                    password: json.tempPassword,
+                                    name: data.name as string
+                                });
+                            } catch (err) {
+                                setAddError("Network Error: Could not add associate");
+                            } finally {
+                                setSubmitting(false);
+                            }
                         }} className="space-y-4 pt-4">
                             <div className="space-y-2">
                                 <Label className="text-gray-300">Full Name</Label>
-                                <Input name="associateName" required placeholder="e.g. Karim Mansouri" className="bg-white/5 border-white/10 text-white" />
+                                <Input name="name" required placeholder="e.g. Karim Mansouri" className="bg-white/5 border-white/10 text-white" />
                             </div>
                             <div className="space-y-2">
                                 <Label className="text-gray-300">Email Address</Label>
@@ -97,6 +121,9 @@ export default function AssociatesPage() {
                                 <Label className="text-gray-300">Country Location</Label>
                                 <Input name="country" required placeholder="e.g. Tunisia" className="bg-white/5 border-white/10 text-white" />
                             </div>
+                            {addError && (
+                                <p className="text-red-400 text-sm mt-2 font-medium">{addError}</p>
+                            )}
                             <DialogFooter className="pt-4">
                                 <DialogClose asChild>
                                     <Button variant="outline" className="border-white/10 text-gray-300">Cancel</Button>
@@ -117,7 +144,7 @@ export default function AssociatesPage() {
                     { label: "Total Associates", value: associates.length, color: "text-white", icon: Users },
                     { label: "Total Referrals", value: totalReferrals, color: "text-blue-400", icon: TrendingUp },
                     { label: "Converted", value: totalConverted, color: "text-green-400", icon: CheckCircle2 },
-                    { label: "Commissions Earned", value: `€${totalCommission.toLocaleString()}`, color: "text-yellow-400", icon: Coins },
+                    { label: "Commissions Earned", value: `€${totalCommission.toLocaleString()} `, color: "text-yellow-400", icon: Coins },
                 ].map(s => (
                     <Card key={s.label} className="bg-[#0B1020] border-white/10">
                         <CardContent className="p-4">
@@ -125,7 +152,7 @@ export default function AssociatesPage() {
                                 <p className="text-gray-400 text-sm">{s.label}</p>
                                 <s.icon size={14} className={s.color} />
                             </div>
-                            <p className={`text-2xl font-black ${s.color}`}>{s.value}</p>
+                            <p className={`text - 2xl font - black ${s.color} `}>{s.value}</p>
                         </CardContent>
                     </Card>
                 ))}
@@ -149,7 +176,7 @@ export default function AssociatesPage() {
                                 <div className="h-10 w-10 rounded-full bg-gradient-to-br from-purple-500/30 to-blue-600/30 flex items-center justify-center text-white font-bold">
                                     {a.name?.charAt(0)}
                                 </div>
-                                <Badge className={`text-[10px] px-1.5 py-0 border ${a.status === "ACTIVE" ? "bg-green-500/10 text-green-400 border-green-500/20" : "bg-yellow-500/10 text-yellow-400 border-yellow-500/20"}`}>
+                                <Badge className={`text - [10px] px - 1.5 py - 0 border ${a.status === "ACTIVE" ? "bg-green-500/10 text-green-400 border-green-500/20" : "bg-yellow-500/10 text-yellow-400 border-yellow-500/20"} `}>
                                     {a.status}
                                 </Badge>
                             </div>
@@ -160,7 +187,7 @@ export default function AssociatesPage() {
                                 {[
                                     { label: "Referrals", value: a.referrals },
                                     { label: "Converted", value: a.converted },
-                                    { label: "Commission", value: `€${a.commission}` },
+                                    { label: "Commission", value: `€${a.commission} ` },
                                 ].map(stat => (
                                     <div key={stat.label} className="p-2 rounded-xl bg-white/[0.02] border border-white/5">
                                         <p className="text-white font-bold text-sm">{stat.value}</p>
@@ -175,6 +202,14 @@ export default function AssociatesPage() {
                     </Card>
                 ))}
             </div>
+
+            <CredentialsDialog
+                isOpen={!!newCredentials}
+                onOpenChange={(op) => { if (!op) setNewCredentials(null) }}
+                credentials={newCredentials!}
+                title="Associate Account Created"
+                description={`A temporary password has been generated for ${newCredentials?.name}.`}
+            />
         </div>
     )
 }

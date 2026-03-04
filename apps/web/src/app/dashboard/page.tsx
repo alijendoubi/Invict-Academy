@@ -3,9 +3,12 @@
 import { useEffect, useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import {
     Users, UserCircle, GraduationCap, TrendingUp,
-    DollarSign, FileText, Loader2, Shield, CheckCircle2
+    DollarSign, FileText, Loader2, Shield, CheckCircle2, Upload
 } from "lucide-react"
 import Link from "next/link"
 import { cn } from "@/lib/utils"
@@ -23,6 +26,19 @@ export default function DashboardPage() {
     const [data, setData] = useState<any>(null)
     const [stats, setStats] = useState<Stat[]>([])
     const [loading, setLoading] = useState(true)
+    const [uploadDialogOpen, setUploadDialogOpen] = useState(false)
+    const [uploadDocType, setUploadDocType] = useState("PASSPORT")
+    const [uploading, setUploading] = useState(false)
+    const [uploadError, setUploadError] = useState<string | null>(null)
+    const [uploadSuccess, setUploadSuccess] = useState(false)
+    const [studentId, setStudentId] = useState<string | null>(null)
+
+    const openUpload = (docType: string) => {
+        setUploadDocType(docType)
+        setUploadError(null)
+        setUploadSuccess(false)
+        setUploadDialogOpen(true)
+    }
 
     useEffect(() => {
         const iconMap: Record<string, any> = {
@@ -67,6 +83,12 @@ export default function DashboardPage() {
             }
         }
         fetchStats()
+
+        // Fetch the student profile id for uploads
+        fetch('/api/user/profile')
+            .then(r => r.json())
+            .then(d => { if (d?.studentProfile?.id) setStudentId(d.studentProfile.id) })
+            .catch(() => { })
     }, [])
 
     const recentActivity: any[] = []
@@ -190,7 +212,13 @@ export default function DashboardPage() {
                                         <p className="text-sm font-medium text-white">Upload Passport</p>
                                         <p className="text-xs text-gray-400">Required for university evaluation</p>
                                     </div>
-                                    <Button size="sm" variant="outline" className="text-xs border-white/10">Upload</Button>
+                                    <Button
+                                        size="sm"
+                                        className="text-xs bg-cyan-600 hover:bg-cyan-500 text-white border-0 gap-1.5"
+                                        onClick={() => openUpload("PASSPORT")}
+                                    >
+                                        <Upload size={12} /> Upload
+                                    </Button>
                                 </div>
                                 <div className="flex items-center gap-4 p-4 rounded-lg bg-white/5 border border-white/5">
                                     <div className="h-8 w-8 rounded-full bg-cyan-500/10 flex items-center justify-center text-cyan-400">2</div>
@@ -198,8 +226,86 @@ export default function DashboardPage() {
                                         <p className="text-sm font-medium text-white">Academic Transcript</p>
                                         <p className="text-xs text-gray-400">Original and translated copies</p>
                                     </div>
-                                    <Button size="sm" variant="outline" className="text-xs border-white/10">Upload</Button>
+                                    <Button
+                                        size="sm"
+                                        className="text-xs bg-cyan-600 hover:bg-cyan-500 text-white border-0 gap-1.5"
+                                        onClick={() => openUpload("TRANSCRIPT")}
+                                    >
+                                        <Upload size={12} /> Upload
+                                    </Button>
                                 </div>
+
+                                {/* Upload Dialog */}
+                                <Dialog open={uploadDialogOpen} onOpenChange={(open) => { setUploadDialogOpen(open); if (!open) { setUploadError(null); setUploadSuccess(false) } }}>
+                                    <DialogContent className="bg-[#0B1020] border-white/10 text-white max-w-md">
+                                        <DialogHeader>
+                                            <DialogTitle className="flex items-center gap-2">
+                                                <Upload size={18} className="text-cyan-400" />
+                                                Upload {uploadDocType === "PASSPORT" ? "Passport" : "Academic Transcript"}
+                                            </DialogTitle>
+                                            <DialogDescription className="text-gray-400">
+                                                Accepted formats: PDF, JPG, PNG (max 10 MB)
+                                            </DialogDescription>
+                                        </DialogHeader>
+                                        <form onSubmit={async (e) => {
+                                            e.preventDefault()
+                                            setUploading(true)
+                                            setUploadError(null)
+                                            const formData = new FormData(e.currentTarget as HTMLFormElement)
+                                            formData.set("type", uploadDocType)
+                                            if (studentId) formData.append("studentId", studentId)
+                                            try {
+                                                const res = await fetch("/api/documents/upload", { method: "POST", body: formData })
+                                                const result = await res.json().catch(() => null)
+                                                if (!res.ok) throw new Error(result?.error || result?.details || "Upload failed")
+                                                setUploadSuccess(true)
+                                                setTimeout(() => { setUploadDialogOpen(false); setUploadSuccess(false) }, 1800)
+                                            } catch (err: any) {
+                                                setUploadError(err.message || "Upload failed")
+                                            } finally {
+                                                setUploading(false)
+                                            }
+                                        }}>
+                                            <div className="space-y-4 py-2">
+                                                {uploadError && (
+                                                    <p className="text-sm text-red-400 bg-red-500/10 border border-red-500/20 rounded-lg p-3">{uploadError}</p>
+                                                )}
+                                                {uploadSuccess && (
+                                                    <p className="text-sm text-green-400 bg-green-500/10 border border-green-500/20 rounded-lg p-3 flex items-center gap-2">
+                                                        <CheckCircle2 size={14} /> Uploaded successfully!
+                                                    </p>
+                                                )}
+                                                <div className="space-y-2">
+                                                    <Label className="text-gray-300">Select File</Label>
+                                                    <Input
+                                                        name="file"
+                                                        type="file"
+                                                        required
+                                                        accept=".pdf,.jpg,.jpeg,.png"
+                                                        className="bg-white/5 border-white/10 text-white file:text-cyan-400 file:bg-cyan-500/10 file:border-0 file:rounded-md file:px-3 file:py-1 file:mr-3 cursor-pointer"
+                                                    />
+                                                </div>
+                                            </div>
+                                            <DialogFooter className="pt-2">
+                                                <Button
+                                                    type="button"
+                                                    variant="outline"
+                                                    className="border-white/10 text-gray-300"
+                                                    onClick={() => setUploadDialogOpen(false)}
+                                                >
+                                                    Cancel
+                                                </Button>
+                                                <Button
+                                                    type="submit"
+                                                    disabled={uploading}
+                                                    className="bg-cyan-600 hover:bg-cyan-500 text-white"
+                                                >
+                                                    {uploading ? <><Loader2 size={14} className="mr-2 animate-spin" /> Uploading...</> : <><Upload size={14} className="mr-2" /> Upload</>}
+                                                </Button>
+                                            </DialogFooter>
+                                        </form>
+                                    </DialogContent>
+                                </Dialog>
                             </div>
                         ) : (
                             <div className="space-y-4">

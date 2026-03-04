@@ -48,7 +48,7 @@ function timeAgo(ts: string) {
 
 export default function QRAnalyticsPage() {
     const [stats, setStats] = useState(DEMO_STATS)
-    const [loading, setLoading] = useState(false)
+    const [loading, setLoading] = useState(true)
 
     async function refresh() {
         setLoading(true)
@@ -59,8 +59,12 @@ export default function QRAnalyticsPage() {
         setLoading(false)
     }
 
-    const maxScans = Math.max(...stats.topSources.map(s => s.scans))
-    const maxFunnel = stats.conversionFunnel[0].count
+    useEffect(() => {
+        refresh()
+    }, [])
+
+    const maxScans = Math.max(...stats.topSources.map(s => s.scans), 1)
+    const maxFunnel = Math.max(stats.conversionFunnel[0].count, 1)
 
     return (
         <div className="p-6 min-h-screen">
@@ -83,7 +87,7 @@ export default function QRAnalyticsPage() {
                     { label: "Total Scans", value: stats.totalScans, icon: QrCode, color: "text-cyan-400", bg: "bg-cyan-500/10" },
                     { label: "Unique Sessions", value: stats.uniqueSessions, icon: Smartphone, color: "text-blue-400", bg: "bg-blue-500/10" },
                     { label: "Countries", value: stats.countries, icon: Globe, color: "text-purple-400", bg: "bg-purple-500/10" },
-                    { label: "Consultation Rate", value: `${Math.round((89 / 847) * 100)}%`, icon: TrendingUp, color: "text-green-400", bg: "bg-green-500/10" },
+                    { label: "Consultation Rate", value: `${stats.totalScans > 0 ? Math.round((stats.conversionFunnel[4].count / stats.totalScans) * 100) : 0}%`, icon: TrendingUp, color: "text-green-400", bg: "bg-green-500/10" },
                 ].map((kpi, i) => (
                     <motion.div key={i} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.06 }}
                         className="p-5 rounded-3xl bg-white/[0.02] border border-white/5">
@@ -163,7 +167,7 @@ export default function QRAnalyticsPage() {
                         })}
                         <div className="pt-3 border-t border-white/5">
                             <p className="text-xs text-gray-500 text-center">
-                                QR → Consultation conversion: <span className="text-green-400 font-bold">10.5%</span>
+                                QR → Consultation conversion: <span className="text-green-400 font-bold">{stats.totalScans > 0 ? ((stats.conversionFunnel[4].count / stats.totalScans) * 100).toFixed(1) : 0}%</span>
                             </p>
                         </div>
                     </CardContent>

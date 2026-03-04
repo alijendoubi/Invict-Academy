@@ -78,6 +78,11 @@ export default function StudentDashboardPage() {
     const [uploadError, setUploadError] = useState<string | null>(null)
     const [uploadSuccess, setUploadSuccess] = useState(false)
     const [isUploadModalOpen, setIsUploadModalOpen] = useState(false)
+    const [documents, setDocuments] = useState<any[]>([])
+    const [docsLoading, setDocsLoading] = useState(true)
+    const [reply, setReply] = useState("")
+    const [sendingReply, setSendingReply] = useState(false)
+    const [replySent, setReplySent] = useState(false)
 
     useEffect(() => {
         const load = async () => {
@@ -90,10 +95,9 @@ export default function StudentDashboardPage() {
                 if (profileRes.status === "fulfilled") {
                     const data = await profileRes.value.json()
                     setProfile(data)
-                    // Load messages and consultation using studentId from profile
                     if (data?.studentProfile?.id) {
                         const [msgRes, consultRes] = await Promise.allSettled([
-                            fetch(`/api/student-messages/student/${data.studentProfile.id}`),
+                            fetch(`/api/messages`),
                             fetch(`/api/consultations/student/${data.studentProfile.id}`),
                         ])
                         if (msgRes.status === "fulfilled") {
@@ -110,6 +114,13 @@ export default function StudentDashboardPage() {
                     const apps = await appsRes.value.json()
                     setApplications(Array.isArray(apps) ? apps : [])
                 }
+
+                // Fetch real documents
+                fetch('/api/documents/my')
+                    .then(r => r.json())
+                    .then(d => setDocuments(Array.isArray(d) ? d : []))
+                    .catch(() => { })
+                    .finally(() => setDocsLoading(false))
             } catch {
                 // Silently use demo data
             } finally {
@@ -231,72 +242,147 @@ export default function StudentDashboardPage() {
                                     </CardTitle>
                                 </div>
                             </CardHeader>
-                            <CardContent className="space-y-3 pt-4">
-                                {demoMessages.map((msg, i) => (
-                                    <motion.div
-                                        key={msg.id}
-                                        initial={{ opacity: 0, x: -10 }}
-                                        animate={{ opacity: 1, x: 0 }}
-                                        transition={{ delay: i * 0.05 }}
-                                        className={`p-4 rounded-xl border transition-all ${msg.isPinned ? "bg-cyan-500/5 border-cyan-500/20" :
-                                            !msg.readAt ? "bg-white/5 border-white/10" :
-                                                "bg-white/[0.02] border-white/5"
-                                            }`}
-                                    >
-                                        <div className="flex items-start justify-between gap-3">
-                                            <div className="flex items-start gap-3 flex-1">
-                                                {msg.isPinned && <Pin size={12} className="text-cyan-400 mt-1 shrink-0" />}
-                                                {!msg.readAt && !msg.isPinned && <div className="h-2 w-2 rounded-full bg-cyan-400 mt-2 shrink-0" />}
-                                                <div>
-                                                    <p className={`font-semibold text-sm ${!msg.readAt ? "text-white" : "text-gray-300"}`}>
-                                                        {msg.subject || "Message from Invict Academy"}
-                                                    </p>
-                                                    <p className="text-gray-400 text-sm mt-1 leading-relaxed">{msg.content}</p>
-                                                    <p className="text-gray-600 text-xs mt-2">
-                                                        {new Date(msg.createdAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
-                                                    </p>
-                                                </div>
+                            <CardContent className="pt-4 space-y-4">
+                                {/* Message thread */}
+                                <div className="space-y-3 max-h-64 overflow-y-auto pr-1">
+                                    {demoMessages.map((msg, i) => (
+                                        <motion.div
+                                            key={msg.id}
+                                            initial={{ opacity: 0, x: msg.fromAdmin !== false ? -8 : 8 }}
+                                            animate={{ opacity: 1, x: 0 }}
+                                            transition={{ delay: i * 0.04 }}
+                                            className={`flex ${msg.fromAdmin !== false ? "justify-start" : "justify-end"}`}
+                                        >
+                                            <div className={`max-w-[85%] p-3.5 rounded-2xl border text-sm ${msg.fromAdmin !== false
+                                                    ? msg.isPinned
+                                                        ? "bg-cyan-500/5 border-cyan-500/20 rounded-tl-sm"
+                                                        : "bg-white/[0.03] border-white/10 rounded-tl-sm"
+                                                    : "bg-blue-600/10 border-blue-500/20 rounded-tr-sm text-right"
+                                                }`}>
+                                                <p className={`text-xs font-semibold mb-1 ${msg.fromAdmin !== false ? "text-cyan-400" : "text-blue-400"}`}>
+                                                    {msg.fromAdmin !== false ? "Invict Advisor" : "You"}
+                                                    {msg.isPinned && <span className="ml-1 text-[10px]">📌</span>}
+                                                </p>
+                                                <p className="text-gray-300 leading-relaxed">{msg.content}</p>
+                                                <p className="text-gray-700 text-[10px] mt-1.5">
+                                                    {new Date(msg.createdAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
+                                                </p>
                                             </div>
+                                        </motion.div>
+                                    ))}
+                                    {demoMessages.length === 0 && (
+                                        <div className="text-center py-10 text-gray-600">
+                                            <Mail size={36} className="mx-auto mb-2 opacity-20" />
+                                            <p className="text-sm">No messages yet. Your advisor will be in touch soon.</p>
                                         </div>
-                                    </motion.div>
-                                ))}
-                                {demoMessages.length === 0 && (
-                                    <div className="text-center py-12 text-gray-600">
-                                        <Mail size={40} className="mx-auto mb-3 opacity-20" />
-                                        <p>No messages yet</p>
+                                    )}
+                                </div>
+
+                                {/* Reply input */}
+                                <div className="pt-3 border-t border-white/5">
+                                    <p className="text-xs text-gray-600 mb-2">Send a message to your advisor:</p>
+                                    <div className="flex gap-2 items-end">
+                                        <textarea
+                                            value={reply}
+                                            onChange={e => setReply(e.target.value)}
+                                            onKeyDown={e => {
+                                                if (e.key === 'Enter' && !e.shiftKey) {
+                                                    e.preventDefault()
+                                                    // trigger click on send button
+                                                    const btn = e.currentTarget.parentElement?.querySelector('button') as HTMLButtonElement
+                                                    btn?.click()
+                                                }
+                                            }}
+                                            placeholder="Type your message… (Enter to send)"
+                                            rows={2}
+                                            className="flex-1 bg-white/[0.03] border border-white/10 rounded-xl px-3 py-2 text-sm text-white placeholder:text-gray-600 focus:outline-none focus:border-cyan-500/40 resize-none"
+                                        />
+                                        <button
+                                            disabled={sendingReply || !reply.trim()}
+                                            onClick={async () => {
+                                                if (!reply.trim()) return
+                                                setSendingReply(true)
+                                                try {
+                                                    const res = await fetch('/api/messages', {
+                                                        method: 'POST',
+                                                        headers: { 'Content-Type': 'application/json' },
+                                                        body: JSON.stringify({ content: reply }),
+                                                    })
+                                                    if (res.ok) {
+                                                        const newMsg = await res.json()
+                                                        setMessages(prev => [...prev, newMsg])
+                                                        setReply('')
+                                                        setReplySent(true)
+                                                        setTimeout(() => setReplySent(false), 3000)
+                                                    }
+                                                } catch { }
+                                                finally { setSendingReply(false) }
+                                            }}
+                                            className="px-4 py-2 rounded-xl bg-cyan-600 hover:bg-cyan-500 disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-semibold transition-colors flex items-center gap-1.5 h-10"
+                                        >
+                                            {sendingReply
+                                                ? <Loader2 size={14} className="animate-spin" />
+                                                : <ChevronRight size={14} />}
+                                            Send
+                                        </button>
                                     </div>
-                                )}
+                                    {replySent && (
+                                        <p className="text-xs text-green-400 mt-1.5 flex items-center gap-1">
+                                            <CheckCircle size={11} /> Message sent!
+                                        </p>
+                                    )}
+                                </div>
                             </CardContent>
                         </Card>
 
-                        {/* Required Documents Checklist */}
+
+                        {/* Required Documents — Live List */}
                         <Card className="bg-[#0B1020] border-white/10">
                             <CardHeader className="border-b border-white/5">
                                 <CardTitle className="text-white flex items-center gap-2">
                                     <FileText size={18} className="text-purple-400" />
-                                    Required Documents
+                                    My Documents
+                                    {documents.length > 0 && (
+                                        <span className="ml-auto text-xs text-gray-500">
+                                            {documents.filter(d => d.status === 'APPROVED').length}/{documents.length} approved
+                                        </span>
+                                    )}
                                 </CardTitle>
                             </CardHeader>
                             <CardContent className="pt-4">
-                                <div className="grid grid-cols-2 gap-3">
-                                    {[
-                                        { name: "Passport", done: true },
-                                        { name: "High School Diploma", done: true },
-                                        { name: "Transcripts", done: false },
-                                        { name: "CV / Resume", done: false },
-                                        { name: "Motivation Letter", done: false },
-                                        { name: "Language Certificate", done: false },
-                                    ].map((doc, i) => (
-                                        <div key={i} className={`flex items-center gap-3 p-3 rounded-lg border ${doc.done ? "bg-green-500/5 border-green-500/20" : "bg-white/[0.02] border-white/5"
-                                            }`}>
-                                            {doc.done
-                                                ? <CheckCircle size={14} className="text-green-400 shrink-0" />
-                                                : <Circle size={14} className="text-gray-600 shrink-0" />
-                                            }
-                                            <span className={`text-sm ${doc.done ? "text-green-300" : "text-gray-400"}`}>{doc.name}</span>
-                                        </div>
-                                    ))}
-                                </div>
+                                {docsLoading ? (
+                                    <div className="flex items-center justify-center py-8">
+                                        <Loader2 size={20} className="animate-spin text-cyan-500" />
+                                    </div>
+                                ) : documents.length === 0 ? (
+                                    <div className="text-center py-8 text-gray-600 text-sm">
+                                        <FileText size={32} className="mx-auto mb-2 opacity-20" />
+                                        No documents uploaded yet.
+                                    </div>
+                                ) : (
+                                    <div className="grid grid-cols-1 gap-2 mb-4">
+                                        {documents.map((doc, i) => (
+                                            <div key={doc.id || i} className={`flex items-center gap-3 p-3 rounded-xl border ${doc.status === 'APPROVED' ? 'bg-green-500/5 border-green-500/20' :
+                                                doc.status === 'REJECTED' ? 'bg-red-500/5 border-red-500/20' :
+                                                    'bg-white/[0.02] border-white/5'
+                                                }`}>
+                                                {doc.status === 'APPROVED'
+                                                    ? <CheckCircle size={14} className="text-green-400 shrink-0" />
+                                                    : doc.status === 'REJECTED'
+                                                        ? <Circle size={14} className="text-red-400 shrink-0" />
+                                                        : <Clock size={14} className="text-yellow-400 shrink-0" />}
+                                                <div className="flex-1 min-w-0">
+                                                    <p className="text-sm text-white truncate">{doc.filename}</p>
+                                                    <p className="text-xs text-gray-600">{doc.type} · {new Date(doc.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}</p>
+                                                </div>
+                                                <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${doc.status === 'APPROVED' ? 'bg-green-500/20 text-green-400' :
+                                                    doc.status === 'REJECTED' ? 'bg-red-500/20 text-red-400' :
+                                                        'bg-yellow-500/20 text-yellow-400'
+                                                    }`}>{doc.status}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
                                 <Dialog open={isUploadModalOpen} onOpenChange={setIsUploadModalOpen}>
                                     <DialogTrigger asChild>
                                         <Button className="w-full mt-4 bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 hover:bg-cyan-500/20 rounded-xl" size="sm">

@@ -1,5 +1,6 @@
 "use client"
 
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
@@ -9,46 +10,42 @@ import {
 import { TrendingUp, Users, DollarSign, FileText, Calendar } from "lucide-react"
 
 export default function AnalyticsPage() {
-    // Mock data - replace with real API calls
-    const revenueData = [
-        { month: 'Jan', revenue: 12500, target: 15000 },
-        { month: 'Feb', revenue: 15800, target: 15000 },
-        { month: 'Mar', revenue: 18200, target: 18000 },
-        { month: 'Apr', revenue: 21500, target: 20000 },
-        { month: 'May', revenue: 24800, target: 22000 },
-        { month: 'Jun', revenue: 28300, target: 25000 },
-    ]
+    const [loading, setLoading] = useState(true)
+    const [data, setData] = useState<any>(null)
 
-    const leadConversionData = [
-        { stage: 'Leads', count: 248 },
-        { stage: 'Contacted', count: 189 },
-        { stage: 'Qualified', count: 142 },
-        { stage: 'Converted', count: 89 },
-    ]
+    useEffect(() => {
+        const load = async () => {
+            try {
+                const res = await fetch("/api/analytics/stats")
+                if (res.ok) {
+                    setData(await res.json())
+                }
+            } catch (err) {
+                console.error("Failed to load analytics", err)
+            } finally {
+                setLoading(false)
+            }
+        }
+        load()
+    }, [])
 
-    const applicationStatusData = [
-        { name: 'Draft', value: 12, color: '#6B7280' },
-        { name: 'Submitted', value: 45, color: '#3B82F6' },
-        { name: 'In Review', value: 38, color: '#8B5CF6' },
-        { name: 'Accepted', value: 78, color: '#10B981' },
-        { name: 'Rejected', value: 21, color: '#EF4444' },
-    ]
+    if (loading || !data) {
+        return (
+            <div className="h-[60vh] flex items-center justify-center">
+                <div className="h-8 w-8 animate-spin rounded-full border-4 border-cyan-500 border-r-transparent" />
+            </div>
+        )
+    }
 
+    const { kpis, monthlyData: revenueData, conversionFunnel: leadConversionData, applicationStatusData, monthlyData: monthlyStats } = data
+
+    // Optional: Demo students by country fallback
     const studentsByCountry = [
         { country: 'Italy', students: 89 },
         { country: 'France', students: 45 },
         { country: 'Germany', students: 38 },
         { country: 'Spain', students: 27 },
         { country: 'Netherlands', students: 18 },
-    ]
-
-    const monthlyStats = [
-        { month: 'Jan', leads: 42, students: 12, applications: 28 },
-        { month: 'Feb', leads: 38, students: 15, applications: 32 },
-        { month: 'Mar', leads: 51, students: 18, applications: 41 },
-        { month: 'Apr', leads: 45, students: 14, applications: 35 },
-        { month: 'May', leads: 48, students: 16, applications: 38 },
-        { month: 'Jun', leads: 52, students: 19, applications: 45 },
     ]
 
     return (
@@ -71,8 +68,7 @@ export default function AnalyticsPage() {
                         <div className="flex items-center justify-between">
                             <div>
                                 <p className="text-sm text-gray-400">Total Revenue</p>
-                                <p className="text-2xl font-bold text-white">€121,100</p>
-                                <p className="text-xs text-green-400 mt-1">+18% from last period</p>
+                                <p className="text-2xl font-bold text-white">€{kpis.totalRevenue.toLocaleString()}</p>
                             </div>
                             <div className="h-12 w-12 rounded-lg bg-green-500/20 flex items-center justify-center">
                                 <DollarSign className="h-6 w-6 text-green-400" />
@@ -86,8 +82,7 @@ export default function AnalyticsPage() {
                         <div className="flex items-center justify-between">
                             <div>
                                 <p className="text-sm text-gray-400">Conversion Rate</p>
-                                <p className="text-2xl font-bold text-white">35.9%</p>
-                                <p className="text-xs text-cyan-400 mt-1">+5.2% improvement</p>
+                                <p className="text-2xl font-bold text-white">{kpis.conversionRate}</p>
                             </div>
                             <div className="h-12 w-12 rounded-lg bg-cyan-500/20 flex items-center justify-center">
                                 <TrendingUp className="h-6 w-6 text-cyan-400" />
@@ -101,8 +96,7 @@ export default function AnalyticsPage() {
                         <div className="flex items-center justify-between">
                             <div>
                                 <p className="text-sm text-gray-400">Active Students</p>
-                                <p className="text-2xl font-bold text-white">217</p>
-                                <p className="text-xs text-purple-400 mt-1">+12 this month</p>
+                                <p className="text-2xl font-bold text-white">{kpis.activeStudents}</p>
                             </div>
                             <div className="h-12 w-12 rounded-lg bg-purple-500/20 flex items-center justify-center">
                                 <Users className="h-6 w-6 text-purple-400" />
@@ -116,8 +110,8 @@ export default function AnalyticsPage() {
                         <div className="flex items-center justify-between">
                             <div>
                                 <p className="text-sm text-gray-400">Applications</p>
-                                <p className="text-2xl font-bold text-white">194</p>
-                                <p className="text-xs text-blue-400 mt-1">78 accepted</p>
+                                <p className="text-2xl font-bold text-white">{kpis.totalApplications}</p>
+                                <p className="text-xs text-blue-400 mt-1">{kpis.acceptedApplications} accepted</p>
                             </div>
                             <div className="h-12 w-12 rounded-lg bg-blue-500/20 flex items-center justify-center">
                                 <FileText className="h-6 w-6 text-blue-400" />
@@ -201,7 +195,7 @@ export default function AnalyticsPage() {
                                             fill="#8884d8"
                                             dataKey="value"
                                         >
-                                            {applicationStatusData.map((entry, index) => (
+                                            {applicationStatusData.map((entry: any, index: number) => (
                                                 <Cell key={`cell-${index}`} fill={entry.color} />
                                             ))}
                                         </Pie>

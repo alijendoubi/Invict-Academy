@@ -11,73 +11,6 @@ import {
     TrendingUp, Wallet, Calendar, FileText, ChevronDown, ChevronUp, Lock
 } from "lucide-react"
 
-// ─── Demo data ──────────────────────────────────────────────────────
-const DEMO_SUMMARY = {
-    totalPaid: 1200,
-    totalDue: 600,
-    nextPaymentDate: "2026-03-15",
-    nextPaymentAmount: 300,
-    currency: "EUR",
-    packageName: "Full Service – Italy (PoliMi Track)",
-    startDate: "2025-10-01",
-}
-
-const DEMO_INVOICES = [
-    {
-        id: "INV-2025-001",
-        description: "Initial Deposit – File Opening & Assessment",
-        amount: 300,
-        status: "PAID",
-        dueDate: "2025-10-01",
-        paidDate: "2025-10-01",
-        receiptUrl: "#",
-    },
-    {
-        id: "INV-2025-002",
-        description: "University Application & Document Preparation",
-        amount: 400,
-        status: "PAID",
-        dueDate: "2025-11-01",
-        paidDate: "2025-11-03",
-        receiptUrl: "#",
-    },
-    {
-        id: "INV-2025-003",
-        description: "Visa & Pre-Departure Support",
-        amount: 500,
-        status: "PAID",
-        dueDate: "2025-12-15",
-        paidDate: "2025-12-14",
-        receiptUrl: "#",
-    },
-    {
-        id: "INV-2026-001",
-        description: "Scholarship Filing & Post-Arrival Orientation",
-        amount: 300,
-        status: "PENDING",
-        dueDate: "2026-03-15",
-        paidDate: null,
-        receiptUrl: null,
-    },
-    {
-        id: "INV-2026-002",
-        description: "Permit di Soggiorno & Housing Support",
-        amount: 300,
-        status: "UPCOMING",
-        dueDate: "2026-05-01",
-        paidDate: null,
-        receiptUrl: null,
-    },
-]
-
-const DEMO_MILESTONES = [
-    { label: "File Opened", done: true, date: "Oct 2025" },
-    { label: "Application Submitted", done: true, date: "Nov 2025" },
-    { label: "Visa Approved", done: true, date: "Dec 2025" },
-    { label: "Scholarship Filed", done: false, date: "Mar 2026" },
-    { label: "Permit di Soggiorno", done: false, date: "May 2026" },
-]
-
 // ─── Helpers ────────────────────────────────────────────────────────
 const STATUS_CONFIG = {
     PAID: { label: "Paid", color: "bg-green-500/10 text-green-400 border-green-500/20", icon: CheckCircle2 },
@@ -86,19 +19,28 @@ const STATUS_CONFIG = {
     OVERDUE: { label: "Overdue", color: "bg-red-500/10 text-red-400 border-red-500/20", icon: AlertCircle },
 }
 
-function fmt(amount: number, currency = "EUR") {
+function fmt(amount: number | undefined, currency = "EUR") {
+    if (amount === undefined) return "—"
     return new Intl.NumberFormat("en-EU", { style: "currency", currency, minimumFractionDigits: 0 }).format(amount)
 }
 
-function fmtDate(dateStr: string | null) {
+function fmtDate(dateStr: string | null | undefined) {
     if (!dateStr) return "—"
     return new Date(dateStr).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })
 }
 
 // ─── Component ──────────────────────────────────────────────────────
 export default function PaymentsPage() {
-    const [invoices, setInvoices] = useState(DEMO_INVOICES)
-    const [summary, setSummary] = useState(DEMO_SUMMARY)
+    const [invoices, setInvoices] = useState<any[]>([])
+    const [summary, setSummary] = useState<any>({
+        totalPaid: 0,
+        totalDue: 0,
+        nextPaymentDate: null,
+        nextPaymentAmount: 0,
+        currency: "EUR",
+        packageName: "",
+        startDate: null,
+    })
     const [expandedId, setExpandedId] = useState<string | null>(null)
     const [loading, setLoading] = useState(true)
 
@@ -161,7 +103,7 @@ export default function PaymentsPage() {
                     {
                         label: "Next Payment Due",
                         value: fmtDate(summary.nextPaymentDate),
-                        sub: `${fmt(summary.nextPaymentAmount)} — ${DEMO_INVOICES.find(i => i.status === "PENDING")?.description?.split("–")[0] || "Next invoice"}`,
+                        sub: `${fmt(summary.nextPaymentAmount)} — ${invoices.find(i => i.status === "PENDING")?.description?.split("–")[0] || "Next invoice"}`,
                         icon: Calendar,
                         color: "text-cyan-400",
                         bg: "bg-cyan-500/10",
@@ -202,21 +144,6 @@ export default function PaymentsPage() {
                             animate={{ width: `${progressPct}%` }}
                             transition={{ duration: 1, delay: 0.3 }}
                         />
-                    </div>
-                    {/* Milestone row */}
-                    <div className="flex items-center justify-between">
-                        {DEMO_MILESTONES.map((m, i) => (
-                            <div key={i} className="flex flex-col items-center gap-1.5 flex-1 relative">
-                                {i < DEMO_MILESTONES.length - 1 && (
-                                    <div className={`absolute top-[10px] left-1/2 w-full h-[1px] ${m.done ? "bg-cyan-500/40" : "bg-white/10"}`} />
-                                )}
-                                <div className={`h-5 w-5 rounded-full flex items-center justify-center z-10 ${m.done ? "bg-cyan-500" : "bg-white/10 border border-white/20"}`}>
-                                    {m.done ? <CheckCircle2 size={10} className="text-black" /> : <span className="text-[8px] text-gray-500">{i + 1}</span>}
-                                </div>
-                                <p className={`text-[10px] text-center ${m.done ? "text-white" : "text-gray-600"} hidden md:block`}>{m.label}</p>
-                                <p className={`text-[9px] ${m.done ? "text-cyan-400" : "text-gray-700"} hidden md:block`}>{m.date}</p>
-                            </div>
-                        ))}
                     </div>
                 </CardContent>
             </Card>
@@ -362,6 +289,6 @@ export default function PaymentsPage() {
                     </div>
                 </CardContent>
             </Card>
-        </div>
+        </div >
     )
 }

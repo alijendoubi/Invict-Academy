@@ -7,11 +7,12 @@ import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import {
     Users, UserPlus, Search, Mail, Phone, Shield,
-    MoreHorizontal, Loader2, CheckCircle2, XCircle
+    MoreHorizontal, Loader2, CheckCircle2, XCircle, Copy, Share2, Eye, EyeOff, Key
 } from "lucide-react"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { CredentialsDialog } from "@/components/CredentialsDialog"
 
 const DEMO_USERS = [
     { id: "u1", firstName: "Ali", lastName: "Jendoubi", email: "ali@invictacademy.com", role: "SUPER_ADMIN", createdAt: "2024-09-01T00:00:00Z", active: true },
@@ -33,6 +34,8 @@ export default function UsersPage() {
     const [search, setSearch] = useState("")
     const [submitting, setSubmitting] = useState(false)
     const [dialogOpen, setDialogOpen] = useState(false)
+    const [inviteError, setInviteError] = useState("")
+    const [newCredentials, setNewCredentials] = useState<{ email: string, password: string, name: string } | null>(null)
 
     useEffect(() => {
         const load = async () => {
@@ -75,22 +78,43 @@ export default function UsersPage() {
                                 Send an invitation to a new staff member or partner.
                             </DialogDescription>
                         </DialogHeader>
-                        <form onSubmit={(e) => {
+                        <form onSubmit={async (e) => {
                             e.preventDefault();
                             setSubmitting(true);
-                            setTimeout(() => {
-                                setUsers([{
-                                    id: Math.random().toString(),
-                                    firstName: (e.target as any).firstName.value,
-                                    lastName: (e.target as any).lastName.value,
-                                    email: (e.target as any).email.value,
-                                    role: (e.target as any).role.value,
-                                    createdAt: new Date().toISOString(),
-                                    active: true
-                                }, ...users]);
-                                setSubmitting(false);
+                            setInviteError("");
+
+                            const formData = new FormData(e.currentTarget);
+                            const data = Object.fromEntries(formData.entries());
+
+                            try {
+                                const res = await fetch("/api/users/invite", {
+                                    method: "POST",
+                                    headers: { "Content-Type": "application/json" },
+                                    body: JSON.stringify(data),
+                                });
+
+                                const json = await res.json();
+
+                                if (!res.ok) {
+                                    setInviteError(json.error || "Failed to invite user");
+                                    return;
+                                }
+
+                                // Update UI with new user
+                                setUsers([json.user, ...users]);
                                 setDialogOpen(false);
-                            }, 1000);
+
+                                // Show credentials dialog
+                                setNewCredentials({
+                                    email: data.email as string,
+                                    password: json.tempPassword,
+                                    name: `${data.firstName} ${data.lastName}`
+                                });
+                            } catch (err) {
+                                setInviteError("Network Error: Could not invite user");
+                            } finally {
+                                setSubmitting(false);
+                            }
                         }} className="space-y-4 pt-4">
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-2">
@@ -114,11 +138,15 @@ export default function UsersPage() {
                                     </SelectTrigger>
                                     <SelectContent className="bg-[#0B1020] border-white/10 text-white">
                                         <SelectItem value="ADMIN">Admin</SelectItem>
+                                        <SelectItem value="STAFF">Staff</SelectItem>
                                         <SelectItem value="ASSOCIATE">Associate</SelectItem>
                                         <SelectItem value="STUDENT">Student</SelectItem>
                                     </SelectContent>
                                 </Select>
                             </div>
+                            {inviteError && (
+                                <p className="text-red-400 text-sm mt-2 font-medium">{inviteError}</p>
+                            )}
                             <DialogFooter className="pt-4">
                                 <DialogClose asChild>
                                     <Button variant="outline" className="border-white/10 text-gray-300">Cancel</Button>
@@ -206,6 +234,14 @@ export default function UsersPage() {
                     )}
                 </CardContent>
             </Card>
+
+            <CredentialsDialog
+                isOpen={!!newCredentials}
+                onOpenChange={(op) => { if (!op) setNewCredentials(null) }}
+                credentials={newCredentials!}
+                title="User Account Created"
+                description={`A temporary password has been generated for ${newCredentials?.name}.`}
+            />
         </div>
     )
 }

@@ -17,31 +17,49 @@ export default function ApplicationsPage() {
     const [loading, setLoading] = useState(true)
     const [submitting, setSubmitting] = useState(false)
     const [dialogOpen, setDialogOpen] = useState(false)
+    const [students, setStudents] = useState<any[]>([])
+    const [studentsLoading, setStudentsLoading] = useState(false)
+    const [selectedStudentId, setSelectedStudentId] = useState("")
 
     const [searchTerm, setSearchTerm] = useState("")
 
-    useEffect(() => {
-        const fetchApplications = async () => {
-            try {
-                const res = await fetch("/api/applications")
-                const data = await res.json()
-                // Ensure we always set an array — API may return {error:...} or wrapped data
-                if (Array.isArray(data)) {
-                    setApplications(data)
-                } else if (Array.isArray(data?.data)) {
-                    setApplications(data.data)
-                } else {
-                    throw new Error("API did not return an array")
-                }
-            } catch (error) {
-                console.error("Failed to fetch applications:", error)
+    const fetchApplications = async () => {
+        try {
+            const res = await fetch("/api/applications")
+            const data = await res.json()
+            if (Array.isArray(data)) {
+                setApplications(data)
+            } else if (Array.isArray(data?.data)) {
+                setApplications(data.data)
+            } else {
                 setApplications([])
-            } finally {
-                setLoading(false)
             }
+        } catch (error) {
+            console.error("Failed to fetch applications:", error)
+            setApplications([])
+        } finally {
+            setLoading(false)
         }
+    }
+
+    useEffect(() => {
         fetchApplications()
     }, [])
+
+    // Load real students when the dialog opens
+    useEffect(() => {
+        if (!dialogOpen) return
+        setStudentsLoading(true)
+        fetch("/api/students")
+            .then(r => r.json())
+            .then(data => {
+                if (Array.isArray(data)) setStudents(data)
+                else if (Array.isArray(data?.data)) setStudents(data.data)
+                else setStudents([])
+            })
+            .catch(() => setStudents([]))
+            .finally(() => setStudentsLoading(false))
+    }, [dialogOpen])
 
     const filteredApplications = applications.filter(app =>
         app.university?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -81,6 +99,41 @@ export default function ApplicationsPage() {
         return 10
     }
 
+    const handleCreateApplication = async (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault()
+        setSubmitting(true)
+        const form = e.currentTarget
+        const formData = new FormData(form)
+
+        try {
+            const res = await fetch("/api/applications", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    studentId: selectedStudentId,
+                    universityName: formData.get("university"),
+                    courseName: formData.get("program"),
+                    type: "UNIVERSITY",
+                    status: "DRAFT",
+                }),
+            })
+
+            if (!res.ok) {
+                const err = await res.json()
+                throw new Error(err.error || "Failed to create application")
+            }
+
+            form.reset()
+            setSelectedStudentId("")
+            setDialogOpen(false)
+            fetchApplications()
+        } catch (err: any) {
+            alert(err.message)
+        } finally {
+            setSubmitting(false)
+        }
+    }
+
     if (loading) {
         return (
             <div className="h-[60vh] flex items-center justify-center">
@@ -109,14 +162,7 @@ export default function ApplicationsPage() {
                                 Create a new university application for a student.
                             </DialogDescription>
                         </DialogHeader>
-                        <form onSubmit={(e) => {
-                            e.preventDefault();
-                            setSubmitting(true);
-                            // TODO: Connect to real /api/applications POST route
-                            alert("Application creation is not yet connected to the backend API.");
-                            setSubmitting(false);
-                            setDialogOpen(false);
-                        }} className="space-y-4 pt-4">
+                        <form onSubmit={handleCreateApplication} className="space-y-4 pt-4">
                             <div className="space-y-2">
                                 <Label className="text-gray-300">Target University</Label>
                                 <Input name="university" required placeholder="e.g. Sapienza University of Rome" className="bg-white/5 border-white/10 text-white" />
@@ -127,14 +173,24 @@ export default function ApplicationsPage() {
                             </div>
                             <div className="space-y-2">
                                 <Label className="text-gray-300">Assign to Student</Label>
-                                <Select required>
+                                <Select required value={selectedStudentId} onValueChange={setSelectedStudentId}>
                                     <SelectTrigger className="bg-white/5 border-white/10 text-white">
-                                        <SelectValue placeholder="Select student..." />
+                                        <SelectValue placeholder={studentsLoading ? "Loading students..." : "Select student..."} />
                                     </SelectTrigger>
                                     <SelectContent className="bg-[#0B1020] border-white/10 text-white">
-                                        <SelectItem value="1">Sarah Smith (sarah@example.com)</SelectItem>
-                                        <SelectItem value="2">Ahmed Khan (ahmed@example.com)</SelectItem>
-                                        <SelectItem value="3">Marco Rossi (marco@example.com)</SelectItem>
+                                        {studentsLoading ? (
+                                            <div className="flex items-center justify-center p-4">
+                                                <Loader2 className="h-4 w-4 animate-spin text-cyan-500" />
+                                            </div>
+                                        ) : students.length === 0 ? (
+                                            <div className="p-4 text-center text-gray-500 text-sm">No students found</div>
+                                        ) : (
+                                            students.map(s => (
+                                                <SelectItem key={s.id} value={s.id}>
+                                                    {s.user?.firstName} {s.user?.lastName} ({s.user?.email})
+                                                </SelectItem>
+                                            ))
+                                        )}
                                     </SelectContent>
                                 </Select>
                             </div>
@@ -142,7 +198,7 @@ export default function ApplicationsPage() {
                                 <DialogClose asChild>
                                     <Button variant="outline" className="border-white/10 text-gray-300">Cancel</Button>
                                 </DialogClose>
-                                <Button type="submit" disabled={submitting} className="bg-cyan-600 hover:bg-cyan-500 text-white">
+                                <Button type="submit" disabled={submitting || !selectedStudentId} className="bg-cyan-600 hover:bg-cyan-500 text-white">
                                     {submitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
                                     Create Application
                                 </Button>
@@ -196,104 +252,75 @@ export default function ApplicationsPage() {
                     <TabsTrigger value="approved" className="data-[state=active]:bg-white/5 data-[state=active]:text-cyan-400">Approved</TabsTrigger>
                 </TabsList>
 
-                <TabsContent value="all" className="space-y-4">
-                    {filteredApplications.length === 0 ? (
-                        <Card className="bg-[#0B1020] border-white/10">
-                            <CardContent className="p-12 text-center text-gray-400 flex flex-col items-center gap-2">
-                                <FileText className="h-8 w-8 opacity-20" />
-                                <p>No applications found</p>
-                            </CardContent>
-                        </Card>
-                    ) : (
-                        filteredApplications.map((app) => (
-                            <Card key={app.id} className="bg-[#0B1020] border-white/10 hover:border-cyan-500/30 transition-colors group">
-                                <CardContent className="p-6">
-                                    <div className="flex flex-col md:flex-row md:items-start justify-between gap-4 mb-4">
-                                        <div className="flex-1">
-                                            <div className="flex flex-wrap items-center gap-3 mb-2">
-                                                <h3 className="text-lg font-semibold text-white">{app.university || "University pending"}</h3>
-                                                <Badge className={cn("text-[10px] py-0 px-1.5", getStatusColor(app.status))}>
-                                                    <span className="flex items-center gap-1">
-                                                        {getStatusIcon(app.status)}
-                                                        {app.status.replace(/_/g, ' ')}
-                                                    </span>
-                                                </Badge>
+                {(["all", "submitted", "approved"] as const).map(tab => {
+                    const tabApps = tab === "all"
+                        ? filteredApplications
+                        : filteredApplications.filter(a => a.status === tab.toUpperCase())
+
+                    return (
+                        <TabsContent key={tab} value={tab} className="space-y-4">
+                            {tabApps.length === 0 ? (
+                                <Card className="bg-[#0B1020] border-white/10">
+                                    <CardContent className="p-12 text-center text-gray-400 flex flex-col items-center gap-2">
+                                        <FileText className="h-8 w-8 opacity-20" />
+                                        <p>No applications found</p>
+                                    </CardContent>
+                                </Card>
+                            ) : (
+                                tabApps.map((app) => (
+                                    <Card key={app.id} className="bg-[#0B1020] border-white/10 hover:border-cyan-500/30 transition-colors group">
+                                        <CardContent className="p-6">
+                                            <div className="flex flex-col md:flex-row md:items-start justify-between gap-4 mb-4">
+                                                <div className="flex-1">
+                                                    <div className="flex flex-wrap items-center gap-3 mb-2">
+                                                        <h3 className="text-lg font-semibold text-white">{app.university || "University pending"}</h3>
+                                                        <Badge className={cn("text-[10px] py-0 px-1.5", getStatusColor(app.status))}>
+                                                            <span className="flex items-center gap-1">
+                                                                {getStatusIcon(app.status)}
+                                                                {app.status.replace(/_/g, ' ')}
+                                                            </span>
+                                                        </Badge>
+                                                    </div>
+                                                    <p className="text-gray-400 text-sm mb-1">{app.program || "Course information pending"}</p>
+                                                    <p className="text-gray-500 text-xs">Student: {app.student?.user?.firstName} {app.student?.user?.lastName}</p>
+                                                </div>
+                                                <div className="md:text-right shrink-0">
+                                                    <p className="text-xs text-gray-500 mb-1">Created on</p>
+                                                    <p className="text-sm text-white font-medium">{new Date(app.createdAt).toLocaleDateString()}</p>
+                                                </div>
                                             </div>
-                                            <p className="text-gray-400 text-sm mb-1">{app.program || "Course information pending"}</p>
-                                            <p className="text-gray-500 text-xs">Student: {app.student?.user?.firstName} {app.student?.user?.lastName}</p>
-                                        </div>
-                                        <div className="md:text-right shrink-0">
-                                            <p className="text-xs text-gray-500 mb-1">Created on</p>
-                                            <p className="text-sm text-white font-medium">{new Date(app.createdAt).toLocaleDateString()}</p>
-                                        </div>
-                                    </div>
 
-                                    {/* Progress Bar */}
-                                    <div className="mb-4">
-                                        <div className="flex items-center justify-between text-sm mb-2">
-                                            <span className="text-xs text-gray-500">Progress</span>
-                                            <span className="text-cyan-400 font-medium">{calculateProgress(app)}%</span>
-                                        </div>
-                                        <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
-                                            <div
-                                                className="h-full bg-gradient-to-r from-cyan-500 to-blue-600 transition-all duration-500"
-                                                style={{ width: `${calculateProgress(app)}%` }}
-                                            />
-                                        </div>
-                                    </div>
+                                            {/* Progress Bar */}
+                                            <div className="mb-4">
+                                                <div className="flex items-center justify-between text-sm mb-2">
+                                                    <span className="text-xs text-gray-500">Progress</span>
+                                                    <span className="text-cyan-400 font-medium">{calculateProgress(app)}%</span>
+                                                </div>
+                                                <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
+                                                    <div
+                                                        className="h-full bg-gradient-to-r from-cyan-500 to-blue-600 transition-all duration-500"
+                                                        style={{ width: `${calculateProgress(app)}%` }}
+                                                    />
+                                                </div>
+                                            </div>
 
-                                    <div className="flex gap-2">
-                                        <Button size="sm" className="bg-white/5 hover:bg-white/10 text-white border-white/10 h-8" variant="outline">
-                                            View Details
-                                        </Button>
-                                        <Button size="sm" variant="outline" className="border-white/10 text-gray-300 h-8">
-                                            Manage Tasks
-                                        </Button>
-                                    </div>
-                                </CardContent>
-                            </Card>
-                        ))
-                    )}
-                </TabsContent>
-
-                <TabsContent value="submitted">
-                    <div className="space-y-4">
-                        {filteredApplications.filter(a => a.status === "SUBMITTED").length === 0 ? (
-                            <Card className="bg-[#0B1020] border-white/10">
-                                <CardContent className="p-12 text-center text-gray-400">
-                                    No submitted applications found
-                                </CardContent>
-                            </Card>
-                        ) : (
-                            filteredApplications.filter(a => a.status === "SUBMITTED").map(app => (
-                                <div key={app.id} className="text-gray-300 p-4 bg-white/5 rounded border border-white/10">
-                                    {app.university} - {app.program}
-                                </div>
-                            ))
-                        )}
-                    </div>
-                </TabsContent>
-
-                <TabsContent value="approved">
-                    <div className="space-y-4">
-                        {filteredApplications.filter(a => a.status === "APPROVED").length === 0 ? (
-                            <Card className="bg-[#0B1020] border-white/10">
-                                <CardContent className="p-12 text-center text-gray-400">
-                                    No approved applications found
-                                </CardContent>
-                            </Card>
-                        ) : (
-                            filteredApplications.filter(a => a.status === "APPROVED").map(app => (
-                                <div key={app.id} className="text-gray-300 p-4 bg-white/5 rounded border border-white/10">
-                                    {app.university} - {app.program}
-                                </div>
-                            ))
-                        )}
-                    </div>
-                </TabsContent>
+                                            <div className="flex gap-2">
+                                                <Button size="sm" className="bg-white/5 hover:bg-white/10 text-white border-white/10 h-8" variant="outline">
+                                                    View Details
+                                                </Button>
+                                                <Button size="sm" variant="outline" className="border-white/10 text-gray-300 h-8">
+                                                    Manage Tasks
+                                                </Button>
+                                            </div>
+                                        </CardContent>
+                                    </Card>
+                                ))
+                            )}
+                        </TabsContent>
+                    )
+                })}
             </Tabs>
 
         </div>
     )
 }
-

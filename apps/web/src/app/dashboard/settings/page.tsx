@@ -37,6 +37,9 @@ export default function SettingsPage() {
     const [loading, setLoading] = useState(true)
     const [saving, setSaving] = useState(false)
     const [successMessage, setSuccessMessage] = useState("")
+    const [passwordSaving, setPasswordSaving] = useState(false)
+    const [passwordMessage, setPasswordMessage] = useState("")
+    const [passwordError, setPasswordError] = useState("")
 
     useEffect(() => {
         const fetchProfile = async () => {
@@ -87,6 +90,47 @@ export default function SettingsPage() {
             console.error("Failed to update profile:", error)
         } finally {
             setSaving(false)
+        }
+    }
+
+    const handlePasswordUpdate = async (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault()
+        setPasswordSaving(true)
+        setPasswordMessage("")
+        setPasswordError("")
+
+        const formData = new FormData(e.currentTarget)
+        const data = Object.fromEntries(formData.entries())
+
+        if (data.newPassword !== data.confirmPassword) {
+            setPasswordError("New passwords do not match")
+            setPasswordSaving(false)
+            return
+        }
+
+        try {
+            const res = await fetch("/api/user/profile", {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    currentPassword: data.currentPassword,
+                    newPassword: data.newPassword
+                }),
+            })
+
+            const json = await res.json()
+
+            if (res.ok) {
+                setPasswordMessage("Password updated successfully")
+                e.currentTarget.reset()
+                setTimeout(() => setPasswordMessage(""), 3000)
+            } else {
+                setPasswordError(json.error || "Failed to update password")
+            }
+        } catch (error) {
+            setPasswordError("An error occurred")
+        } finally {
+            setPasswordSaving(false)
         }
     }
 
@@ -211,31 +255,47 @@ export default function SettingsPage() {
                 </TabsContent>
 
                 <TabsContent value="security">
-                    <Card className="bg-[#0B1020] border-white/10">
-                        <CardHeader className="bg-white/[0.02] border-b border-white/5">
-                            <CardTitle className="text-white text-lg">Change Password</CardTitle>
-                            <CardDescription className="text-gray-500">
-                                Ensure your account is using a long, random password to stay secure
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent className="p-6 space-y-4">
-                            <div className="space-y-2">
-                                <Label htmlFor="current" className="text-gray-300">Current Password</Label>
-                                <Input id="current" type="password" name="currentPassword" title="Current Password" placeholder="Current Password" className="bg-white/5 border-white/10 text-white" />
-                            </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="new" className="text-gray-300">New Password</Label>
-                                <Input id="new" type="password" name="newPassword" title="New Password" placeholder="New Password" className="bg-white/5 border-white/10 text-white" />
-                            </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="confirm" className="text-gray-300">Confirm New Password</Label>
-                                <Input id="confirm" type="password" name="confirmPassword" title="Confirm Password" placeholder="Confirm Password" className="bg-white/5 border-white/10 text-white" />
-                            </div>
-                        </CardContent>
-                        <CardFooter className="border-t border-white/5 bg-white/[0.02] p-4 flex justify-end">
-                            <Button className="bg-cyan-600 hover:bg-cyan-700">Update Password</Button>
-                        </CardFooter>
-                    </Card>
+                    <form onSubmit={handlePasswordUpdate}>
+                        <Card className="bg-[#0B1020] border-white/10">
+                            <CardHeader className="bg-white/[0.02] border-b border-white/5">
+                                <CardTitle className="text-white text-lg">Change Password</CardTitle>
+                                <CardDescription className="text-gray-500">
+                                    Ensure your account is using a long, random password to stay secure
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent className="p-6 space-y-4">
+                                <div className="space-y-2">
+                                    <Label htmlFor="current" className="text-gray-300">Current Password</Label>
+                                    <Input id="current" type="password" name="currentPassword" required placeholder="Current Password" className="bg-white/5 border-white/10 text-white" />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="new" className="text-gray-300">New Password</Label>
+                                    <Input id="new" type="password" name="newPassword" required placeholder="New Password" className="bg-white/5 border-white/10 text-white" />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="confirm" className="text-gray-300">Confirm New Password</Label>
+                                    <Input id="confirm" type="password" name="confirmPassword" required placeholder="Confirm Password" className="bg-white/5 border-white/10 text-white" />
+                                </div>
+                            </CardContent>
+                            <CardFooter className="border-t border-white/5 bg-white/[0.02] p-4 flex items-center justify-between">
+                                <div className="flex items-center gap-2 text-sm text-green-400">
+                                    {passwordMessage && (
+                                        <>
+                                            <CheckCircle2 className="h-4 w-4" />
+                                            {passwordMessage}
+                                        </>
+                                    )}
+                                    {passwordError && (
+                                        <span className="text-red-400">{passwordError}</span>
+                                    )}
+                                </div>
+                                <Button type="submit" disabled={passwordSaving} className="bg-cyan-600 hover:bg-cyan-700">
+                                    {passwordSaving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                                    Update Password
+                                </Button>
+                            </CardFooter>
+                        </Card>
+                    </form>
                 </TabsContent>
 
                 <TabsContent value="notifications">

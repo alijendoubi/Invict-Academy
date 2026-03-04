@@ -1,6 +1,6 @@
 "use client"
 
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import Link from "next/link"
 import Image from "next/image"
 import { cn } from "@/lib/utils"
@@ -8,9 +8,124 @@ import { Button } from "@/components/ui/button"
 import {
     LayoutDashboard, Users, UserCircle, FileText,
     Settings, LogOut, Menu, X, GraduationCap,
-    Briefcase, DollarSign, Bell, QrCode, MessageSquare
+    Briefcase, DollarSign, Bell, QrCode, MessageSquare,
+    FileCheck2, UserPlus, MessageCircle, AlertTriangle, CheckCircle2
 } from "lucide-react"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
+
+const NOTIF_ICONS: Record<string, any> = {
+    MESSAGE: MessageCircle,
+    DOCUMENT: FileCheck2,
+    LEAD: UserPlus,
+    STUDENT: UserCircle,
+    SUCCESS: CheckCircle2,
+    WARNING: AlertTriangle,
+}
+
+const NOTIF_COLORS: Record<string, string> = {
+    MESSAGE: "text-cyan-400 bg-cyan-500/10",
+    DOCUMENT: "text-purple-400 bg-purple-500/10",
+    LEAD: "text-blue-400 bg-blue-500/10",
+    STUDENT: "text-green-400 bg-green-500/10",
+    SUCCESS: "text-green-400 bg-green-500/10",
+    WARNING: "text-yellow-400 bg-yellow-500/10",
+}
+
+function timeAgo(ts: string) {
+    const diff = Math.floor((Date.now() - new Date(ts).getTime()) / 60000)
+    if (diff < 1) return "Just now"
+    if (diff < 60) return `${diff}m ago`
+    if (diff < 1440) return `${Math.floor(diff / 60)}h ago`
+    return `${Math.floor(diff / 1440)}d ago`
+}
+
+function NotificationBell() {
+    const router = useRouter()
+    const [open, setOpen] = useState(false)
+    const [notifications, setNotifications] = useState<any[]>([])
+    const ref = useRef<HTMLDivElement>(null)
+
+    useEffect(() => {
+        fetch("/api/notifications")
+            .then(r => r.json())
+            .then(d => Array.isArray(d) ? setNotifications(d) : [])
+            .catch(() => { })
+    }, [])
+
+    // Close on outside click
+    useEffect(() => {
+        const handler = (e: MouseEvent) => {
+            if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
+        }
+        document.addEventListener("mousedown", handler)
+        return () => document.removeEventListener("mousedown", handler)
+    }, [])
+
+    const unreadCount = notifications.filter(n => !n.read).length
+
+    return (
+        <div ref={ref} className="relative">
+            <button
+                onClick={() => setOpen(o => !o)}
+                className="relative p-2 text-gray-400 hover:text-white rounded-lg hover:bg-white/5 transition-colors"
+            >
+                <Bell className="h-5 w-5" />
+                {unreadCount > 0 && (
+                    <span className="absolute top-1 right-1 h-4 w-4 bg-cyan-500 text-black text-[9px] font-black rounded-full flex items-center justify-center">
+                        {unreadCount > 9 ? "9+" : unreadCount}
+                    </span>
+                )}
+            </button>
+
+            {open && (
+                <div className="absolute right-0 top-full mt-2 w-80 bg-[#0B1020] border border-white/10 rounded-2xl shadow-2xl shadow-black/50 overflow-hidden z-50">
+                    <div className="flex items-center justify-between px-4 py-3 border-b border-white/10">
+                        <p className="text-white font-bold text-sm">Notifications</p>
+                        {unreadCount > 0 && (
+                            <span className="text-xs text-cyan-400 bg-cyan-500/10 px-2 py-0.5 rounded-full">
+                                {unreadCount} unread
+                            </span>
+                        )}
+                    </div>
+
+                    <div className="max-h-80 overflow-y-auto divide-y divide-white/5">
+                        {notifications.length === 0 ? (
+                            <div className="py-10 text-center text-gray-600 text-sm">
+                                <Bell className="h-8 w-8 mx-auto mb-2 opacity-20" />
+                                No notifications
+                            </div>
+                        ) : (
+                            notifications.map(n => {
+                                const Icon = NOTIF_ICONS[n.type] || Bell
+                                const colorClass = NOTIF_COLORS[n.type] || "text-gray-400 bg-white/5"
+                                return (
+                                    <button
+                                        key={n.id}
+                                        onClick={() => { setOpen(false); router.push(n.href || "/dashboard") }}
+                                        className={`w-full text-left px-4 py-3 hover:bg-white/5 transition-colors flex items-start gap-3 ${!n.read ? "bg-cyan-500/5" : ""
+                                            }`}
+                                    >
+                                        <div className={`h-8 w-8 rounded-xl flex items-center justify-center shrink-0 ${colorClass}`}>
+                                            <Icon size={14} />
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <p className={`text-sm font-semibold truncate ${!n.read ? "text-white" : "text-gray-300"}`}>
+                                                {n.title}
+                                            </p>
+                                            <p className="text-xs text-gray-500 truncate mt-0.5">{n.body}</p>
+                                            <p className="text-xs text-gray-700 mt-1">{timeAgo(n.createdAt)}</p>
+                                        </div>
+                                        {!n.read && <div className="h-2 w-2 rounded-full bg-cyan-400 shrink-0 mt-1.5" />}
+                                    </button>
+                                )
+                            })
+                        )}
+                    </div>
+                </div>
+            )}
+        </div>
+    )
+}
 
 const navigation = [
     { name: "Overview", href: "/dashboard", icon: LayoutDashboard, roles: ["all"] },
@@ -170,10 +285,7 @@ export default function DashboardLayout({
                         </button>
                         <div className="flex-1" />
                         <div className="flex items-center gap-4">
-                            <button className="relative p-2 text-gray-400 hover:text-white rounded-lg hover:bg-white/5">
-                                <Bell className="h-5 w-5" />
-                                <span className="absolute top-1 right-1 h-2 w-2 bg-cyan-500 rounded-full" />
-                            </button>
+                            <NotificationBell />
                         </div>
                     </div>
                 </header>

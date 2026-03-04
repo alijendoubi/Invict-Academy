@@ -7,7 +7,8 @@ import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import {
     Search, Plus, GraduationCap, MapPin,
-    Calendar, Loader2, Filter, Trash2
+    Calendar, Loader2, Filter, Trash2,
+    Copy, Check, MessageCircle, KeyRound, UserCircle2
 } from "lucide-react"
 import {
     Select, SelectContent, SelectItem,
@@ -16,6 +17,32 @@ import {
 import { cn } from "@/lib/utils"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
+
+interface CredentialData {
+    email: string
+    password: string
+    firstName: string
+    lastName: string
+}
+
+function CopyButton({ value }: { value: string }) {
+    const [copied, setCopied] = useState(false)
+    const copy = () => {
+        navigator.clipboard.writeText(value).then(() => {
+            setCopied(true)
+            setTimeout(() => setCopied(false), 2000)
+        })
+    }
+    return (
+        <button
+            onClick={copy}
+            className="flex items-center gap-1 px-2 py-1 rounded-lg bg-white/10 hover:bg-white/15 text-gray-300 hover:text-white transition-all text-xs font-medium shrink-0"
+        >
+            {copied ? <Check size={12} className="text-green-400" /> : <Copy size={12} />}
+            {copied ? "Copied!" : "Copy"}
+        </button>
+    )
+}
 
 export default function StudentsPage() {
     const [students, setStudents] = useState<any[]>([])
@@ -27,6 +54,7 @@ export default function StudentsPage() {
     const [user, setUser] = useState<any>(null)
     const [studentToDelete, setStudentToDelete] = useState<string | null>(null)
     const [deleting, setDeleting] = useState(false)
+    const [credentialData, setCredentialData] = useState<CredentialData | null>(null)
 
     const fetchStudents = useCallback(async (search = searchTerm) => {
         setLoading(true)
@@ -143,8 +171,13 @@ export default function StudentsPage() {
                                 const data = await res.json();
                                 if (!res.ok) throw new Error(data.error || "Failed to create student");
 
-                                // Show success alert with password so admin can share it
-                                alert(`Student created successfully!\n\nEmail: ${data.user.email}\nTemporary Password: ${data.temporaryPassword}\n\nPlease copy this password and share it with the student.`);
+                                // Show credential dialog instead of alert
+                                setCredentialData({
+                                    email: data.user.email,
+                                    password: data.temporaryPassword,
+                                    firstName: data.user.firstName,
+                                    lastName: data.user.lastName,
+                                });
 
                                 fetchStudents();
                                 setDialogOpen(false);
@@ -199,6 +232,70 @@ export default function StudentsPage() {
                     </DialogContent>
                 </Dialog>
             </div>
+
+            {/* ─── Credentials Dialog ────────────────────────────── */}
+            <Dialog open={!!credentialData} onOpenChange={(open) => !open && setCredentialData(null)}>
+                <DialogContent className="bg-[#0B1020] border-white/10 text-white max-w-md">
+                    <DialogHeader>
+                        <div className="flex items-center gap-3 mb-1">
+                            <div className="h-10 w-10 rounded-xl bg-cyan-500/10 flex items-center justify-center">
+                                <UserCircle2 size={20} className="text-cyan-400" />
+                            </div>
+                            <div>
+                                <DialogTitle className="text-white">Student Account Created</DialogTitle>
+                                <DialogDescription className="text-gray-400 text-sm">
+                                    Share these login credentials with {credentialData?.firstName}.
+                                </DialogDescription>
+                            </div>
+                        </div>
+                    </DialogHeader>
+
+                    <div className="space-y-3 py-2">
+                        {/* Email Row */}
+                        <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/10">
+                            <p className="text-gray-500 text-xs uppercase tracking-widest mb-2">Email Address</p>
+                            <div className="flex items-center justify-between gap-3">
+                                <p className="text-white font-mono text-sm truncate">{credentialData?.email}</p>
+                                <CopyButton value={credentialData?.email ?? ""} />
+                            </div>
+                        </div>
+
+                        {/* Password Row */}
+                        <div className="p-4 rounded-2xl bg-amber-500/5 border border-amber-500/20">
+                            <div className="flex items-center gap-1.5 mb-2">
+                                <KeyRound size={11} className="text-amber-400" />
+                                <p className="text-amber-400 text-xs uppercase tracking-widest">Temporary Password</p>
+                            </div>
+                            <div className="flex items-center justify-between gap-3">
+                                <p className="text-white font-mono text-lg font-bold tracking-wider">{credentialData?.password}</p>
+                                <CopyButton value={credentialData?.password ?? ""} />
+                            </div>
+                            <p className="text-amber-400/60 text-xs mt-2">Student will be prompted to change this on first login.</p>
+                        </div>
+
+                        {/* WhatsApp Share Button */}
+                        <a
+                            href={`https://wa.me/?text=${encodeURIComponent(`Hi ${credentialData?.firstName}, your Invict Academy account is ready!%0A%0AEmail: ${credentialData?.email}%0APassword: ${credentialData?.password}%0A%0APlease log in at invictacademy.com and change your password.`)}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center justify-center gap-2 w-full py-3 rounded-2xl bg-green-600 hover:bg-green-500 text-white font-semibold transition-colors text-sm"
+                        >
+                            <MessageCircle size={16} />
+                            Send via WhatsApp
+                        </a>
+                    </div>
+
+                    <DialogFooter>
+                        <Button
+                            onClick={() => setCredentialData(null)}
+                            variant="outline"
+                            className="w-full border-white/10 text-gray-300 hover:text-white"
+                        >
+                            Done
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
 
             {/* Delete Confirmation Dialog */}
             <Dialog open={!!studentToDelete} onOpenChange={(open) => !open && setStudentToDelete(null)}>
