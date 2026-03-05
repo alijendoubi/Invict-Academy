@@ -9,8 +9,9 @@ import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { getCountry } from "@/lib/destinations"
 
-export default function CountryPage({ params }: { params: { country: string } }) {
-    const country = getCountry(params.country)
+export default async function CountryPage({ params }: { params: Promise<{ country: string }> }) {
+    const p = await params
+    const country = getCountry(p.country)
     if (!country) notFound()
 
     return (

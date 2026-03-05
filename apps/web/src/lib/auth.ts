@@ -21,7 +21,8 @@ export async function decrypt(input: string): Promise<any> {
 }
 
 export async function getSession() {
-    const session = cookies().get('session')?.value;
+    const cookieStore = await cookies();
+    const session = cookieStore.get('session')?.value;
     if (!session) return null;
     try {
         const payload = await decrypt(session);
@@ -90,8 +91,9 @@ export async function login(formData: FormData) {
 }
 
 export async function logout() {
-    cookies().delete('session');
-    cookies().delete('refresh_token');
+    const cookieStore = await cookies();
+    cookieStore.delete('session');
+    cookieStore.delete('refresh_token');
 }
 
 export async function updateSession(request: NextRequest) {

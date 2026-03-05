@@ -24,7 +24,7 @@ export default function ExplorePage() {
     useEffect(() => {
         const params = new URLSearchParams(window.location.search)
         const source = params.get("source") || "brochure-general"
-        fetch(`/api/qr-analytics/scan?source=${source}`, { method: "POST" }).catch(() => { })
+        fetch(`/api/qr-analytics/scan?source=${source}`).catch(() => { })
     }, [])
 
     return (

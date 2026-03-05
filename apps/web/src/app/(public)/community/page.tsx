@@ -160,7 +160,7 @@ export default function CommunityPage() {
 
             {/* CTA Section */}
             <section className="py-24 relative overflow-hidden">
-                <div className="absolute inset-0 bg-[url('/pattern.svg')] opacity-5" />
+                <div className="absolute inset-0 bg-[url('/grid-pattern.svg')] opacity-5" />
                 <div className="container mx-auto px-4 text-center relative z-10 max-w-3xl">
                     <h2 className="text-4xl md:text-5xl font-black text-white mb-6 tracking-tight">
                         {t.community.joinTitle}

@@ -20,8 +20,9 @@ const REQUIRED_DOCS = [
     "Passport-size Photo",
 ]
 
-export default function UniversityPage({ params }: { params: { country: string; city: string; university: string } }) {
-    const uni = getUniversity(params.country, params.city, params.university)
+export default async function UniversityPage({ params }: { params: Promise<{ country: string; city: string; university: string }> }) {
+    const p = await params
+    const uni = getUniversity(p.country, p.city, p.university)
     if (!uni) notFound()
 
     const englishPrograms = uni.programs.filter(p => p.language === "English" || p.language === "Both")
@@ -35,9 +36,9 @@ export default function UniversityPage({ params }: { params: { country: string; 
                 <div className="max-w-7xl mx-auto flex items-center gap-2 text-sm text-gray-500 flex-wrap">
                     <Link href="/explore" className="hover:text-cyan-400">Explore</Link>
                     <span>/</span>
-                    <Link href={`/explore/${params.country}`} className="hover:text-cyan-400 capitalize">{params.country}</Link>
+                    <Link href={`/explore/${p.country}`} className="hover:text-cyan-400 capitalize">{p.country}</Link>
                     <span>/</span>
-                    <Link href={`/explore/${params.country}/${params.city}`} className="hover:text-cyan-400 capitalize">{params.city}</Link>
+                    <Link href={`/explore/${p.country}/${p.city}`} className="hover:text-cyan-400 capitalize">{p.city}</Link>
                     <span>/</span>
                     <span className="text-white">{uni.shortName || uni.name}</span>
                 </div>

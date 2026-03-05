@@ -4,23 +4,23 @@ import { getSession, verifyStudentAccess } from '@/lib/auth';
 
 export async function GET(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const { id } = await params;
         const session = await getSession();
         if (!session) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        const studentId = params.id;
-        const hasAccess = await verifyStudentAccess(studentId);
+        const hasAccess = await verifyStudentAccess(id);
 
         if (!hasAccess) {
             return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
         }
 
         const studentProfile = await prisma.studentProfile.findUnique({
-            where: { id: params.id },
+            where: { id },
             include: {
                 user: {
                     select: {
@@ -52,15 +52,14 @@ export async function GET(
 
 export async function DELETE(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const { id: studentProfileId } = await params;
         const session = await getSession();
         if (!session || session.user.role !== 'SUPER_ADMIN') {
             return NextResponse.json({ error: 'Unauthorized. Only Super Admins can delete student accounts.' }, { status: 403 });
         }
-
-        const studentProfileId = params.id;
 
         // Find the student profile to get the associated userId and invoices
         const studentProfile = await prisma.studentProfile.findUnique({
@@ -75,22 +74,17 @@ export async function DELETE(
         const userId = studentProfile.userId;
         const invoiceIds = studentProfile.invoices.map(i => i.id);
 
-        // Execute sequentially or in a transaction to handle Prisma constraints
-        // Relations without onDelete: Cascade need to be deleted manually
         await prisma.$transaction(async (tx) => {
-            // Delete payments tied to invoices
             if (invoiceIds.length > 0) {
                 await tx.payment.deleteMany({
                     where: { invoiceId: { in: invoiceIds } }
                 });
             }
 
-            // Delete invoices
             await tx.invoice.deleteMany({
                 where: { studentId: studentProfileId }
             });
 
-            // Clean up user-related records
             await tx.task.deleteMany({
                 where: { OR: [{ creatorId: userId }, { assignedToId: userId }] }
             });
@@ -103,14 +97,11 @@ export async function DELETE(
                 where: { userId: userId }
             });
 
-            // Due to schema cascade, deleting the user will automatically drop:
-            // Session, StudentProfile, Application, Document, Consultation, StudentMessage
             await tx.user.delete({
                 where: { id: userId }
             });
         });
 
-        // Add to audit logs AFTER the transaction using the admin session
         await prisma.auditLog.create({
             data: {
                 userId: session.user.id,

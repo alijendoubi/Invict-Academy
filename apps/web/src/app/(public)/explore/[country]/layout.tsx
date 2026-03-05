@@ -5,18 +5,19 @@ import Schema from '@/components/Schema'
 const DOMAIN = process.env.NEXT_PUBLIC_APP_URL || process.env.APP_URL || 'https://www.invictacademy.com'
 
 interface Props {
-    params: { country: string };
+    params: Promise<{ country: string }>;
     children: React.ReactNode;
 }
 
 export async function generateMetadata({ params }: Omit<Props, 'children'>): Promise<Metadata> {
-    const countryData = getCountry(params.country);
+    const p = await params;
+    const countryData = getCountry(p.country);
 
     if (!countryData) {
         return { title: 'Not Found' }
     }
 
-    const canonicalUrl = `${DOMAIN}/explore/${params.country}`;
+    const canonicalUrl = `${DOMAIN}/explore/${p.country}`;
 
     return {
         title: `Study in ${countryData.name} - Universities & Scholarships | Invict Academy`,
@@ -33,8 +34,9 @@ export async function generateMetadata({ params }: Omit<Props, 'children'>): Pro
     }
 }
 
-export default function CountryLayout({ params, children }: Props) {
-    const countryData = getCountry(params.country);
+export default async function CountryLayout({ params, children }: Props) {
+    const p = await params;
+    const countryData = getCountry(p.country);
 
     if (!countryData) return <>{children}</>;
 
@@ -43,7 +45,7 @@ export default function CountryLayout({ params, children }: Props) {
         "@type": "WebPage",
         "name": `Study in ${countryData.name}`,
         "description": countryData.overview,
-        "url": `${DOMAIN}/explore/${params.country}`,
+        "url": `${DOMAIN}/explore/${p.country}`,
     };
 
     const breadcrumbSchema = {
@@ -60,7 +62,7 @@ export default function CountryLayout({ params, children }: Props) {
                 "@type": "ListItem",
                 "position": 2,
                 "name": countryData.name,
-                "item": `${DOMAIN}/explore/${params.country}`
+                "item": `${DOMAIN}/explore/${p.country}`
             }
         ]
     };
