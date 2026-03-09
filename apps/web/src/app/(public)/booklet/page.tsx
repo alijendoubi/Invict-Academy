@@ -31,7 +31,7 @@ export default function BookletPage() {
     ]
 
     return (
-        <div className="flex flex-col min-h-screen bg-[#070A12] text-white overflow-hidden font-sans">
+        <div className="flex flex-col min-h-screen bg-background text-white overflow-hidden font-sans">
             {/* Hero */}
             <section className="relative pt-32 pb-20 px-6 lg:px-12 border-b border-white/5 overflow-hidden">
                 <div className="absolute inset-0">

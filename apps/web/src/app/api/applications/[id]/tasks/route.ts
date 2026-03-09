@@ -32,7 +32,20 @@ export async function POST(
         }
 
         const isAdmin = ['SUPER_ADMIN', 'ADMIN', 'STAFF'].includes(session.user.role);
-        if (!isAdmin) {
+        const isStudent = session.user.role === 'STUDENT';
+
+        let hasAccess = false;
+        if (isAdmin) {
+            hasAccess = true;
+        } else if (isStudent) {
+            const profile = await prisma.studentProfile.findUnique({
+                where: { userId: session.user.id },
+                select: { id: true }
+            });
+            if (profile && profile.id === application.studentId) hasAccess = true;
+        }
+
+        if (!hasAccess) {
             return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
         }
 
@@ -43,7 +56,7 @@ export async function POST(
                 priority: priority || 'MEDIUM',
                 dueDate: dueDate ? new Date(dueDate) : null,
                 applicationId,
-                creatorId: session.userId,
+                creatorId: session.user.id,
                 status: 'TODO'
             }
         });

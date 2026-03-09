@@ -111,7 +111,7 @@ export function ChatWidget() {
 
             {/* Chat Window */}
             {isOpen && (
-                <Card className="fixed bottom-6 right-6 z-50 w-[380px] h-[600px] bg-[#0B1020] border-white/10 shadow-2xl flex flex-col overflow-hidden">
+                <Card className="fixed bottom-6 right-6 z-50 w-[380px] h-[600px] bg-card border-white/10 shadow-2xl flex flex-col overflow-hidden">
                     {/* Header */}
                     <div className="bg-gradient-to-r from-cyan-600 to-blue-600 p-4 flex items-center justify-between">
                         <div className="flex items-center gap-3">
@@ -132,7 +132,7 @@ export function ChatWidget() {
                     </div>
 
                     {/* Messages */}
-                    <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-[#070A12]">
+                    <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-background">
                         {messages.map((message, index) => (
                             <div
                                 key={index}
@@ -185,7 +185,7 @@ export function ChatWidget() {
                     </div>
 
                     {/* Input */}
-                    <div className="p-4 bg-[#0B1020] border-t border-white/10">
+                    <div className="p-4 bg-card border-t border-white/10">
                         <div className="flex gap-2">
                             <Input
                                 value={input}

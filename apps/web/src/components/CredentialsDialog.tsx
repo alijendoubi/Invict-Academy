@@ -29,7 +29,7 @@ export function CredentialsDialog({ isOpen, onOpenChange, title, description, cr
 
     return (
         <Dialog open={isOpen} onOpenChange={onOpenChange}>
-            <DialogContent className="bg-[#0B1020] border-white/10 text-white sm:max-w-md">
+            <DialogContent className="bg-card border-white/10 text-white sm:max-w-md">
                 <DialogHeader>
                     <DialogTitle>{title}</DialogTitle>
                     <DialogDescription className="text-gray-400">

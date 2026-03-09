@@ -102,7 +102,7 @@ export default function QRAnalyticsPage() {
 
             <div className="grid lg:grid-cols-2 gap-6 mb-6">
                 {/* Top Sources Bar Chart */}
-                <Card className="bg-[#0B1020] border-white/10">
+                <Card className="bg-card border-white/10">
                     <CardHeader className="border-b border-white/5">
                         <CardTitle className="text-white text-base flex items-center gap-2">
                             <BarChart2 size={16} className="text-cyan-400" /> Scans by Source
@@ -135,7 +135,7 @@ export default function QRAnalyticsPage() {
                 </Card>
 
                 {/* Conversion Funnel */}
-                <Card className="bg-[#0B1020] border-white/10">
+                <Card className="bg-card border-white/10">
                     <CardHeader className="border-b border-white/5">
                         <CardTitle className="text-white text-base flex items-center gap-2">
                             <TrendingUp size={16} className="text-purple-400" /> Conversion Funnel
@@ -175,7 +175,7 @@ export default function QRAnalyticsPage() {
             </div>
 
             {/* Recent Scans */}
-            <Card className="bg-[#0B1020] border-white/10">
+            <Card className="bg-card border-white/10">
                 <CardHeader className="border-b border-white/5">
                     <CardTitle className="text-white text-base flex items-center gap-2">
                         <Clock size={16} className="text-blue-400" /> Recent Scans (Live)

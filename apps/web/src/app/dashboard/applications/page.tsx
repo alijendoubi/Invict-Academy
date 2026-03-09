@@ -173,7 +173,7 @@ export default function ApplicationsPage() {
                             <Plus className="mr-2 h-4 w-4" /> New Application
                         </Button>
                     </DialogTrigger>
-                    <DialogContent className="bg-[#0B1020] border-white/10 text-white">
+                    <DialogContent className="bg-card border-white/10 text-white">
                         <DialogHeader>
                             <DialogTitle>Start New Application</DialogTitle>
                             <DialogDescription>
@@ -202,7 +202,7 @@ export default function ApplicationsPage() {
                                         <SelectTrigger className="bg-white/5 border-white/10 text-white">
                                             <SelectValue placeholder="Select type..." />
                                         </SelectTrigger>
-                                        <SelectContent className="bg-[#0B1020] border-white/10 text-white">
+                                        <SelectContent className="bg-card border-white/10 text-white">
                                             <SelectItem value="UNIVERSITY">University</SelectItem>
                                             <SelectItem value="SCHOLARSHIP">Scholarship</SelectItem>
                                             <SelectItem value="VISA">Visa</SelectItem>
@@ -227,7 +227,7 @@ export default function ApplicationsPage() {
                                         <SelectTrigger className="bg-white/5 border-white/10 text-white">
                                             <SelectValue placeholder={studentsLoading ? "Loading students..." : "Select student..."} />
                                         </SelectTrigger>
-                                        <SelectContent className="bg-[#0B1020] border-white/10 text-white">
+                                        <SelectContent className="bg-card border-white/10 text-white">
                                             {studentsLoading ? (
                                                 <div className="flex items-center justify-center p-4">
                                                     <Loader2 className="h-4 w-4 animate-spin text-cyan-500" />
@@ -268,7 +268,7 @@ export default function ApplicationsPage() {
                     { label: "Approved", value: applications.filter(a => a.status === "APPROVED").length, icon: CheckCircle, color: "text-green-400" },
                     { label: "Rejected", value: applications.filter(a => a.status === "REJECTED").length, icon: XCircle, color: "text-red-400" },
                 ].map((stat) => (
-                    <Card key={stat.label} className="bg-[#0B1020] border-white/10">
+                    <Card key={stat.label} className="bg-card border-white/10">
                         <CardContent className="p-4">
                             <div className="flex items-center justify-between mb-2">
                                 <p className="text-sm text-gray-400">{stat.label}</p>
@@ -281,7 +281,7 @@ export default function ApplicationsPage() {
             </div>
 
             {/* Search */}
-            <Card className="bg-[#0B1020] border-white/10">
+            <Card className="bg-card border-white/10">
                 <CardContent className="p-4">
                     <div className="relative">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
@@ -297,7 +297,7 @@ export default function ApplicationsPage() {
 
             {/* Applications List */}
             <Tabs defaultValue="all" className="space-y-4">
-                <TabsList className="bg-[#0B1020] border border-white/10 p-1">
+                <TabsList className="bg-card border border-white/10 p-1">
                     <TabsTrigger value="all" className="data-[state=active]:bg-white/5 data-[state=active]:text-cyan-400">All Applications</TabsTrigger>
                     <TabsTrigger value="submitted" className="data-[state=active]:bg-white/5 data-[state=active]:text-cyan-400">Submitted</TabsTrigger>
                     <TabsTrigger value="approved" className="data-[state=active]:bg-white/5 data-[state=active]:text-cyan-400">Approved</TabsTrigger>
@@ -311,7 +311,7 @@ export default function ApplicationsPage() {
                     return (
                         <TabsContent key={tab} value={tab} className="space-y-4">
                             {tabApps.length === 0 ? (
-                                <Card className="bg-[#0B1020] border-white/10">
+                                <Card className="bg-card border-white/10">
                                     <CardContent className="p-12 text-center text-gray-400 flex flex-col items-center gap-2">
                                         <FileText className="h-8 w-8 opacity-20" />
                                         <p>No applications found</p>
@@ -319,7 +319,7 @@ export default function ApplicationsPage() {
                                 </Card>
                             ) : (
                                 tabApps.map((app) => (
-                                    <Card key={app.id} className="bg-[#0B1020] border-white/10 hover:border-cyan-500/30 transition-colors group">
+                                    <Card key={app.id} className="bg-card border-white/10 hover:border-cyan-500/30 transition-colors group">
                                         <CardContent className="p-6">
                                             <div className="flex flex-col md:flex-row md:items-start justify-between gap-4 mb-4">
                                                 <div className="flex-1">

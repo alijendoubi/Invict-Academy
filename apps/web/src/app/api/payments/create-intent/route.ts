@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
         }
 
         const body = await request.json();
-        const { amount, description, metadata } = body;
+        const { amount, description, metadata, invoiceId } = body;
 
         if (!amount || amount < 50) {
             return NextResponse.json({ error: 'Invalid amount' }, { status: 400 });
@@ -23,7 +23,8 @@ export async function POST(request: NextRequest) {
             currency: 'eur',
             description,
             metadata: {
-                userId: session.userId,
+                userId: session.user.id,
+                ...(invoiceId ? { invoiceId } : {}),
                 ...metadata,
             },
         });

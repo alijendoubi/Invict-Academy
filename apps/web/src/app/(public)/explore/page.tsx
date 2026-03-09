@@ -28,7 +28,7 @@ export default function ExplorePage() {
     }, [])
 
     return (
-        <div className="min-h-screen bg-[#070A12] text-white">
+        <div className="min-h-screen bg-background text-white">
             {/* Hero */}
             <section className="relative pt-24 pb-20 px-6 lg:px-12 overflow-hidden border-b border-white/5">
                 <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[500px] bg-cyan-500/5 rounded-full blur-[120px]" />

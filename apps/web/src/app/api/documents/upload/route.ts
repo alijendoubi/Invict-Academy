@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
         // resolve studentId from session if missing (for students)
         if ((!studentId || studentId === "null" || studentId === "undefined") && session.user?.role === 'STUDENT') {
             const profile = await prisma.studentProfile.findUnique({
-                where: { userId: session.userId || session.user?.id }
+                where: { userId: session.user.id || session.user?.id }
             });
             if (profile) studentId = profile.id;
         }
@@ -130,7 +130,7 @@ export async function GET(request: NextRequest) {
         if (!isAdmin) {
             // If student, ignore studentId param and use their own profile ID
             const profile = await prisma.studentProfile.findUnique({
-                where: { userId: session.userId },
+                where: { userId: session.user.id },
                 select: { id: true },
             });
             if (!profile) {

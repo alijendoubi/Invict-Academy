@@ -12,6 +12,11 @@ export async function GET(request: NextRequest) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
+        const isAdmin = ['SUPER_ADMIN', 'ADMIN', 'STAFF'].includes(session.user.role);
+        if (!isAdmin) {
+            return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+        }
+
         const { searchParams } = new URL(request.url);
         const status = searchParams.get('status');
         const search = searchParams.get('search');
@@ -77,7 +82,7 @@ export async function POST(request: NextRequest) {
                         : interestedCountry
                             ? [interestedCountry]
                             : ['Italy'],
-                ...(session?.userId ? { assignedToId: session.userId } : {}),
+                ...(session?.user?.id ? { assignedToId: session.user.id } : {}),
             },
         });
 

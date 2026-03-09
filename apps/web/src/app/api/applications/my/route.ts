@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
         }
 
         // Get the student profile ID
-        const userId = session.userId || session.user?.id;
+        const userId = session.user.id || session.user?.id;
         if (!userId) {
             return NextResponse.json([]);
         }

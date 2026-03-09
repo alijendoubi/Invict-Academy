@@ -5,7 +5,7 @@ import { Check } from "lucide-react"
 
 export default function ServicesPage() {
     return (
-        <div className="min-h-screen bg-[#070A12] text-white py-20">
+        <div className="min-h-screen bg-background text-white py-20">
             <div className="container mx-auto px-6">
                 <div className="text-center mb-16">
                     <h1 className="text-4xl font-bold mb-4">Our Services</h1>
@@ -14,7 +14,7 @@ export default function ServicesPage() {
 
                 <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
                     {/* Basic */}
-                    <Card className="bg-[#0B1020] border-white/10 flex flex-col">
+                    <Card className="bg-card border-white/10 flex flex-col">
                         <CardHeader>
                             <CardTitle className="text-xl text-gray-300">Consultation</CardTitle>
                         </CardHeader>
@@ -29,7 +29,7 @@ export default function ServicesPage() {
                     </Card>
 
                     {/* Standard */}
-                    <Card className="bg-[#0B1020] border-cyan-500/50 relative flex flex-col shadow-[0_0_40px_rgba(6,182,212,0.1)]">
+                    <Card className="bg-card border-cyan-500/50 relative flex flex-col shadow-[0_0_40px_rgba(6,182,212,0.1)]">
                         <div className="absolute top-0 right-0 bg-cyan-500 text-black text-xs font-bold px-3 py-1 rounded-bl-lg">POPULAR</div>
                         <CardHeader>
                             <CardTitle className="text-xl text-cyan-400">Admission & Visa</CardTitle>
@@ -47,7 +47,7 @@ export default function ServicesPage() {
                     </Card>
 
                     {/* Premium */}
-                    <Card className="bg-[#0B1020] border-white/10 flex flex-col">
+                    <Card className="bg-card border-white/10 flex flex-col">
                         <CardHeader>
                             <CardTitle className="text-xl text-purple-400">Full Ride (A-Z)</CardTitle>
                         </CardHeader>

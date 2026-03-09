@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
                     where: { id: conversationId },
                     create: {
                         id: conversationId,
-                        userId: session.userId,
+                        userId: session.user.id,
                         messages: messages,
                     },
                     update: {

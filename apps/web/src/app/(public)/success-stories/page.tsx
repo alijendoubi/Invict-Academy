@@ -55,7 +55,7 @@ const stats = [
 
 export default function SuccessStoriesPage() {
     return (
-        <div className="min-h-screen bg-[#070A12] text-white">
+        <div className="min-h-screen bg-background text-white">
             {/* Hero */}
             <section className="pt-28 pb-20 px-6 text-center relative overflow-hidden">
                 <div className="absolute inset-0 bg-gradient-to-b from-cyan-900/10 via-transparent to-transparent pointer-events-none" />
@@ -90,7 +90,7 @@ export default function SuccessStoriesPage() {
                     {stories.map((s, i) => (
                         <motion.div key={i} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }}
                             viewport={{ once: true }} transition={{ delay: i * 0.06 }}>
-                            <Card className="bg-[#0B1020] border-white/5 hover:border-white/10 transition-all h-full">
+                            <Card className="bg-card border-white/5 hover:border-white/10 transition-all h-full">
                                 <CardContent className="p-6 flex flex-col h-full">
                                     {/* Stars */}
                                     <div className="flex gap-0.5 mb-4">

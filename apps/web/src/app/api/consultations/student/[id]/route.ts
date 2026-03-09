@@ -15,6 +15,12 @@ export async function GET(
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
+        const { verifyStudentAccess } = await import('@/lib/auth');
+        const hasAccess = await verifyStudentAccess(id);
+        if (!hasAccess) {
+            return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+        }
+
         const consultations = await prisma.consultation.findMany({
             where: { studentId: id },
             orderBy: { scheduledAt: 'asc' },

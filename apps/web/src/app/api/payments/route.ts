@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
         } else if (!isAdmin) {
             // Student fetching their own payments
             studentProfile = await prisma.studentProfile.findUnique({
-                where: { userId: session.userId },
+                where: { userId: session.user.id },
                 include: { user: { select: { firstName: true, lastName: true, email: true } } },
             });
         } else {

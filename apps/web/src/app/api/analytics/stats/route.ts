@@ -49,25 +49,28 @@ export async function GET(request: NextRequest) {
             prisma.application.count(),
             // Monthly breakdown — last 6 months
             Promise.all(
-                Array.from({ length: 6 }, (_, i) => {
+                Array.from({ length: 6 }, async (_, i) => {
                     const date = new Date();
                     date.setMonth(date.getMonth() - (5 - i));
                     const start = new Date(date.getFullYear(), date.getMonth(), 1);
                     const end = new Date(date.getFullYear(), date.getMonth() + 1, 0, 23, 59, 59);
                     const month = start.toLocaleString('en-US', { month: 'short' });
-                    return Promise.all([
+
+                    const [leads, students, applications, revenue] = await Promise.all([
                         prisma.lead.count({ where: { createdAt: { gte: start, lte: end } } }),
                         prisma.studentProfile.count({ where: { createdAt: { gte: start, lte: end } } }),
                         prisma.application.count({ where: { createdAt: { gte: start, lte: end } } }),
                         prisma.payment.aggregate({ _sum: { amount: true }, where: { status: 'SUCCESS', createdAt: { gte: start, lte: end } } }),
-                    ]).then(([leads, students, applications, revenue]) => ({
+                    ]);
+
+                    return {
                         month,
                         leads,
                         students,
                         applications,
                         revenue: revenue._sum.amount || 0,
-                        target: 5000, // static target per month — could be made configurable
-                    }));
+                        target: 5000,
+                    };
                 })
             ),
         ]);
@@ -120,7 +123,6 @@ export async function GET(request: NextRequest) {
             kpis: {
                 totalRevenue: totalRevenue._sum.amount || 0,
                 conversionRate: `${conversionRate}%`,
-                activeLetters: studentCount, // Fixed typo from earlier? Wait, it was activeStudents
                 activeStudents: studentCount,
                 totalApplications: applicationCount,
                 acceptedApplications: applicationsByStatus.find(a => a.status === 'APPROVED')?._count._all || 0,

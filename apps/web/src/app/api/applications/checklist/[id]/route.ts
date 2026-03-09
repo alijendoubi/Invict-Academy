@@ -35,7 +35,7 @@ export async function PATCH(
 
         if (isStudent) {
             const profile = await prisma.studentProfile.findUnique({
-                where: { userId: session.userId },
+                where: { userId: session.user.id },
                 select: { id: true }
             });
             if (!profile || profile.id !== item.application.studentId) {

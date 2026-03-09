@@ -20,11 +20,11 @@ export function WhatsAppButton() {
                         initial={{ opacity: 0, x: 20, scale: 0.9 }}
                         animate={{ opacity: 1, x: 0, scale: 1 }}
                         exit={{ opacity: 0, x: 20, scale: 0.9 }}
-                        className="bg-[#0B1020] border border-white/10 rounded-2xl px-4 py-3 shadow-2xl max-w-[200px]"
+                        className="bg-card border border-white/10 rounded-2xl px-4 py-3 shadow-2xl max-w-[200px]"
                     >
                         <p className="text-white text-xs font-semibold">Chat with us on WhatsApp</p>
                         <p className="text-gray-500 text-xs">Replies in minutes</p>
-                        <div className="absolute bottom-3 right-[-6px] w-3 h-3 bg-[#0B1020] border-r border-b border-white/10 rotate-45" />
+                        <div className="absolute bottom-3 right-[-6px] w-3 h-3 bg-card border-r border-b border-white/10 rotate-45" />
                     </motion.div>
                 )}
             </AnimatePresence>

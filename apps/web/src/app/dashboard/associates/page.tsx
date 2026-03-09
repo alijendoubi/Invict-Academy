@@ -62,7 +62,7 @@ export default function AssociatesPage() {
                             <UserPlus size={16} /> Add Associate
                         </Button>
                     </DialogTrigger>
-                    <DialogContent className="bg-[#0B1020] border-white/10 text-white">
+                    <DialogContent className="bg-card border-white/10 text-white">
                         <DialogHeader>
                             <DialogTitle>Add New Associate</DialogTitle>
                             <DialogDescription>
@@ -146,7 +146,7 @@ export default function AssociatesPage() {
                     { label: "Converted", value: totalConverted, color: "text-green-400", icon: CheckCircle2 },
                     { label: "Commissions Earned", value: `€${totalCommission.toLocaleString()} `, color: "text-yellow-400", icon: Coins },
                 ].map(s => (
-                    <Card key={s.label} className="bg-[#0B1020] border-white/10">
+                    <Card key={s.label} className="bg-card border-white/10">
                         <CardContent className="p-4">
                             <div className="flex items-center justify-between mb-2">
                                 <p className="text-gray-400 text-sm">{s.label}</p>
@@ -170,7 +170,7 @@ export default function AssociatesPage() {
                         <Loader2 className="h-6 w-6 animate-spin text-cyan-500" />
                     </div>
                 ) : filtered.map(a => (
-                    <Card key={a.id} className="bg-[#0B1020] border-white/10 hover:border-white/20 transition-all">
+                    <Card key={a.id} className="bg-card border-white/10 hover:border-white/20 transition-all">
                         <CardContent className="p-5">
                             <div className="flex items-start justify-between mb-4">
                                 <div className="h-10 w-10 rounded-full bg-gradient-to-br from-purple-500/30 to-blue-600/30 flex items-center justify-center text-white font-bold">

@@ -30,7 +30,7 @@ export default async function UniversityPage({ params }: { params: Promise<{ cou
     const bachelorPrograms = englishPrograms.filter(p => p.level === "Bachelor")
 
     return (
-        <div className="min-h-screen bg-[#070A12] text-white">
+        <div className="min-h-screen bg-background text-white">
             {/* Breadcrumb */}
             <div className="border-b border-white/5 py-4 px-6 lg:px-12">
                 <div className="max-w-7xl mx-auto flex items-center gap-2 text-sm text-gray-500 flex-wrap">
@@ -218,7 +218,7 @@ export default async function UniversityPage({ params }: { params: Promise<{ cou
                 {/* Right Sidebar */}
                 <div className="space-y-6">
                     {/* Required Documents Checklist */}
-                    <Card className="bg-[#0B1020] border-white/10">
+                    <Card className="bg-card border-white/10">
                         <CardHeader className="border-b border-white/5">
                             <CardTitle className="text-white flex items-center gap-2 text-base">
                                 <FileText size={16} className="text-orange-400" /> Required Documents

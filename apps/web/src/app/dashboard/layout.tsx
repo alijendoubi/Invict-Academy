@@ -78,7 +78,7 @@ function NotificationBell() {
             </button>
 
             {open && (
-                <div className="absolute right-0 top-full mt-2 w-80 bg-[#0B1020] border border-white/10 rounded-2xl shadow-2xl shadow-black/50 overflow-hidden z-50">
+                <div className="absolute right-0 top-full mt-2 w-80 bg-card border border-white/10 rounded-2xl shadow-2xl shadow-black/50 overflow-hidden z-50">
                     <div className="flex items-center justify-between px-4 py-3 border-b border-white/10">
                         <p className="text-white font-bold text-sm">Notifications</p>
                         {unreadCount > 0 && (
@@ -129,9 +129,9 @@ function NotificationBell() {
 
 const navigation = [
     { name: "Overview", href: "/dashboard", icon: LayoutDashboard, roles: ["all"] },
-    { name: "Leads", href: "/dashboard/leads", icon: UserCircle, roles: ["ADMIN", "SUPER_ADMIN"] },
-    { name: "Students", href: "/dashboard/students", icon: GraduationCap, roles: ["ADMIN", "SUPER_ADMIN"] },
-    { name: "Student Management", href: "/dashboard/admin/students", icon: MessageSquare, roles: ["ADMIN", "SUPER_ADMIN"] },
+    { name: "Leads", href: "/dashboard/leads", icon: UserCircle, roles: ["ADMIN", "SUPER_ADMIN", "STAFF"] },
+    { name: "Students", href: "/dashboard/students", icon: GraduationCap, roles: ["ADMIN", "SUPER_ADMIN", "STAFF"] },
+    { name: "Student Management", href: "/dashboard/admin/students", icon: MessageSquare, roles: ["ADMIN", "SUPER_ADMIN", "STAFF"] },
     { name: "Applications", href: "/dashboard/applications", icon: FileText, roles: ["all"] },
     { name: "Associates", href: "/dashboard/associates", icon: Briefcase, roles: ["ADMIN", "SUPER_ADMIN"] },
     { name: "Payments", href: "/dashboard/payments", icon: DollarSign, roles: ["all"] },
@@ -170,12 +170,13 @@ export default function DashboardLayout({
     const filteredNavigation = navigation.filter(item => {
         if (!user) return false
         if (item.roles.includes("all")) return true
-        if (user.role === 'ADMIN' || user.role === 'SUPER_ADMIN') return true
+        if (user.role === 'SUPER_ADMIN' || user.role === 'ADMIN') return true
+        if (user.role === 'STAFF' && item.roles.includes('STAFF')) return true
         return false
     })
 
     return (
-        <div className="min-h-screen bg-[#070A12]">
+        <div className="min-h-screen bg-background">
             {/* Mobile sidebar backdrop */}
             {sidebarOpen && (
                 <div
@@ -186,7 +187,7 @@ export default function DashboardLayout({
 
             {/* Sidebar */}
             <aside className={cn(
-                "fixed top-0 left-0 z-50 h-screen w-64 bg-[#0B1020] border-r border-white/10 transition-transform lg:translate-x-0",
+                "fixed top-0 left-0 z-50 h-screen w-64 bg-card border-r border-white/10 transition-transform lg:translate-x-0",
                 sidebarOpen ? "translate-x-0" : "-translate-x-full"
             )}>
                 <div className="flex flex-col h-full">
@@ -275,7 +276,7 @@ export default function DashboardLayout({
             {/* Main content */}
             <div className="lg:pl-64">
                 {/* Top bar */}
-                <header className="sticky top-0 z-30 bg-[#0B1020]/80 backdrop-blur-md border-b border-white/10">
+                <header className="sticky top-0 z-30 bg-card/80 backdrop-blur-md border-b border-white/10">
                     <div className="flex items-center justify-between px-4 py-4">
                         <button
                             onClick={() => setSidebarOpen(true)}

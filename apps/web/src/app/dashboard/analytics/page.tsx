@@ -54,7 +54,7 @@ export default function AnalyticsPage() {
 
             {/* KPI Cards */}
             <div className="grid gap-4 md:grid-cols-4">
-                <Card className="bg-[#0B1020] border-white/10">
+                <Card className="bg-card border-white/10">
                     <CardContent className="p-6">
                         <div className="flex items-center justify-between">
                             <div>
@@ -68,7 +68,7 @@ export default function AnalyticsPage() {
                     </CardContent>
                 </Card>
 
-                <Card className="bg-[#0B1020] border-white/10">
+                <Card className="bg-card border-white/10">
                     <CardContent className="p-6">
                         <div className="flex items-center justify-between">
                             <div>
@@ -82,7 +82,7 @@ export default function AnalyticsPage() {
                     </CardContent>
                 </Card>
 
-                <Card className="bg-[#0B1020] border-white/10">
+                <Card className="bg-card border-white/10">
                     <CardContent className="p-6">
                         <div className="flex items-center justify-between">
                             <div>
@@ -96,7 +96,7 @@ export default function AnalyticsPage() {
                     </CardContent>
                 </Card>
 
-                <Card className="bg-[#0B1020] border-white/10">
+                <Card className="bg-card border-white/10">
                     <CardContent className="p-6">
                         <div className="flex items-center justify-between">
                             <div>
@@ -114,7 +114,7 @@ export default function AnalyticsPage() {
 
             {/* Charts */}
             <Tabs defaultValue="revenue" className="space-y-4">
-                <TabsList className="bg-[#0B1020] border border-white/10">
+                <TabsList className="bg-card border border-white/10">
                     <TabsTrigger value="revenue">Revenue</TabsTrigger>
                     <TabsTrigger value="conversion">Conversion</TabsTrigger>
                     <TabsTrigger value="applications">Applications</TabsTrigger>
@@ -122,7 +122,7 @@ export default function AnalyticsPage() {
                 </TabsList>
 
                 <TabsContent value="revenue" className="space-y-4">
-                    <Card className="bg-[#0B1020] border-white/10">
+                    <Card className="bg-card border-white/10">
                         <CardHeader>
                             <CardTitle className="text-white">Revenue Trend</CardTitle>
                         </CardHeader>
@@ -146,7 +146,7 @@ export default function AnalyticsPage() {
                 </TabsContent>
 
                 <TabsContent value="conversion" className="space-y-4">
-                    <Card className="bg-[#0B1020] border-white/10">
+                    <Card className="bg-card border-white/10">
                         <CardHeader>
                             <CardTitle className="text-white">Lead Conversion Funnel</CardTitle>
                         </CardHeader>
@@ -169,7 +169,7 @@ export default function AnalyticsPage() {
 
                 <TabsContent value="applications" className="space-y-4">
                     <div className="grid gap-4 md:grid-cols-2">
-                        <Card className="bg-[#0B1020] border-white/10">
+                        <Card className="bg-card border-white/10">
                             <CardHeader>
                                 <CardTitle className="text-white">Application Status Distribution</CardTitle>
                             </CardHeader>
@@ -198,7 +198,7 @@ export default function AnalyticsPage() {
                             </CardContent>
                         </Card>
 
-                        <Card className="bg-[#0B1020] border-white/10">
+                        <Card className="bg-card border-white/10">
                             <CardHeader>
                                 <CardTitle className="text-white">Students by Country</CardTitle>
                             </CardHeader>
@@ -220,7 +220,7 @@ export default function AnalyticsPage() {
                 </TabsContent>
 
                 <TabsContent value="overview" className="space-y-4">
-                    <Card className="bg-[#0B1020] border-white/10">
+                    <Card className="bg-card border-white/10">
                         <CardHeader>
                             <CardTitle className="text-white">Monthly Overview</CardTitle>
                         </CardHeader>

@@ -33,7 +33,7 @@ export async function GET(request: NextRequest) {
         // Only staff members are restricted to assigned students
         // Admins and Super Admins see everyone
         if (role === 'STAFF') {
-            where.assignedToId = session.userId;
+            where.assignedToId = session.user.id;
         }
 
         if (search) {
@@ -105,7 +105,7 @@ export async function POST(request: NextRequest) {
                         universityInterest,
                         degreeLevel,
                         status: status || 'ACTIVE',
-                        assignedToId: session.user.role === 'STAFF' ? session.userId : null
+                        assignedToId: session.user.role === 'STAFF' ? session.user.id : null
                     }
                 }
             } as any,

@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
 
         // Find the student profile for the current user
         const studentProfile = await prisma.studentProfile.findUnique({
-            where: { userId: session.userId },
+            where: { userId: session.user.id },
             select: { id: true },
         });
 
