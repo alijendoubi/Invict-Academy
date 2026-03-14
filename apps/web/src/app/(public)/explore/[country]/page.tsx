@@ -1,5 +1,6 @@
 "use client"
 
+import { use } from "react"
 import { notFound } from "next/navigation"
 import Link from "next/link"
 import { motion } from "framer-motion"
@@ -9,8 +10,8 @@ import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { getCountry } from "@/lib/destinations"
 
-export default async function CountryPage({ params }: { params: Promise<{ country: string }> }) {
-    const p = await params
+export default function CountryPage({ params }: { params: Promise<{ country: string }> }) {
+    const p = use(params)
     const country = getCountry(p.country)
     if (!country) notFound()
 

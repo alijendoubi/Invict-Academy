@@ -1,5 +1,6 @@
 "use client"
 
+import { use } from "react"
 import { notFound } from "next/navigation"
 import Link from "next/link"
 import { motion } from "framer-motion"
@@ -20,8 +21,8 @@ const REQUIRED_DOCS = [
     "Passport-size Photo",
 ]
 
-export default async function UniversityPage({ params }: { params: Promise<{ country: string; city: string; university: string }> }) {
-    const p = await params
+export default function UniversityPage({ params }: { params: Promise<{ country: string; city: string; university: string }> }) {
+    const p = use(params)
     const uni = getUniversity(p.country, p.city, p.university)
     if (!uni) notFound()
 
