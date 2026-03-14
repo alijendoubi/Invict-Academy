@@ -16,7 +16,7 @@ async function decrypt(input: string): Promise<any> {
     return payload;
 }
 
-export async function proxy(request: NextRequest) {
+export async function middleware(request: NextRequest) {
     const { pathname, host } = request.nextUrl;
 
     // Force non-www on production
