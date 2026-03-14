@@ -133,7 +133,7 @@ export default function DashboardPage() {
             {/* Stats Grid */}
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
                 {stats.map((stat) => (
-                    <Card key={stat.name} className="bg-[#0B1020] border-white/10">
+                    <Card key={stat.name} className="bg-card border-white/10">
                         <CardContent className="p-6">
                             <div className="flex items-center justify-between">
                                 <div>
@@ -151,7 +151,7 @@ export default function DashboardPage() {
             </div>
 
             {data?.role === 'STUDENT' && (
-                <Card className="bg-[#0B1020] border-white/10 overflow-hidden">
+                <Card className="bg-card border-white/10 overflow-hidden">
                     <CardHeader className="bg-white/[0.02] border-b border-white/5">
                         <CardTitle className="text-white">Your Pathway to Italy</CardTitle>
                     </CardHeader>
@@ -172,7 +172,7 @@ export default function DashboardPage() {
                                     return (
                                         <div key={step.id} className="flex flex-col items-center">
                                             <div className={cn(
-                                                "w-10 h-10 rounded-full flex items-center justify-center border-2 z-10 transition-colors bg-[#0B1020]",
+                                                "w-10 h-10 rounded-full flex items-center justify-center border-2 z-10 transition-colors bg-card",
                                                 isCompleted ? "border-cyan-500 bg-cyan-500 text-white" :
                                                     isCurrent ? "border-cyan-500 text-cyan-400 shadow-[0_0_15px_rgba(6,182,212,0.5)]" :
                                                         "border-white/10 text-gray-500"
@@ -197,7 +197,7 @@ export default function DashboardPage() {
 
             <div className="grid gap-6 lg:grid-cols-2">
                 {/* Recent Activity / Next Steps */}
-                <Card className="bg-[#0B1020] border-white/10">
+                <Card className="bg-card border-white/10">
                     <CardHeader>
                         <CardTitle className="text-white">
                             {data?.role === 'STUDENT' ? 'Next Steps' : 'Recent Activity'}
@@ -237,7 +237,7 @@ export default function DashboardPage() {
 
                                 {/* Upload Dialog */}
                                 <Dialog open={uploadDialogOpen} onOpenChange={(open) => { setUploadDialogOpen(open); if (!open) { setUploadError(null); setUploadSuccess(false) } }}>
-                                    <DialogContent className="bg-[#0B1020] border-white/10 text-white max-w-md">
+                                    <DialogContent className="bg-card border-white/10 text-white max-w-md">
                                         <DialogHeader>
                                             <DialogTitle className="flex items-center gap-2">
                                                 <Upload size={18} className="text-cyan-400" />
@@ -328,7 +328,7 @@ export default function DashboardPage() {
                 </Card>
 
                 {/* Quick Actions */}
-                <Card className="bg-[#0B1020] border-white/10">
+                <Card className="bg-card border-white/10">
                     <CardHeader>
                         <CardTitle className="text-white">Quick Actions</CardTitle>
                     </CardHeader>

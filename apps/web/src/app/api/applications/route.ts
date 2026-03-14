@@ -21,10 +21,10 @@ export async function GET(request: NextRequest) {
 
         if (isStaff) {
             // Staff only sees assigned students' applications
-            where.student = { assignedToId: session.userId };
+            where.student = { assignedToId: session.user.id };
         } else if (!isManagement) {
             // Student only sees their own
-            const userId = session.userId || session.user?.id;
+            const userId = session.user.id || session.user?.id;
             if (!userId) {
                 return NextResponse.json([]);
             }
@@ -83,7 +83,7 @@ export async function POST(request: NextRequest) {
 
         // If user is a student, securely infer their ID and ignore frontend payloads
         if (session.user.role === 'STUDENT') {
-            const userId = session.userId || session.user?.id;
+            const userId = session.user.id || session.user?.id;
             if (!userId) {
                 return NextResponse.json({ error: 'User ID missing' }, { status: 401 });
             }

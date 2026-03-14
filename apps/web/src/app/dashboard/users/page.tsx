@@ -66,7 +66,7 @@ export default function UsersPage() {
                             <UserPlus size={16} /> Create User Account
                         </Button>
                     </DialogTrigger>
-                    <DialogContent className="bg-[#0B1020] border-white/10 text-white">
+                    <DialogContent className="bg-card border-white/10 text-white">
                         <DialogHeader>
                             <DialogTitle>Create New User Account</DialogTitle>
                             <DialogDescription>
@@ -131,7 +131,7 @@ export default function UsersPage() {
                                     <SelectTrigger className="bg-white/5 border-white/10 text-white">
                                         <SelectValue placeholder="Select role..." />
                                     </SelectTrigger>
-                                    <SelectContent className="bg-[#0B1020] border-white/10 text-white">
+                                    <SelectContent className="bg-card border-white/10 text-white">
                                         <SelectItem value="ADMIN">Admin</SelectItem>
                                         <SelectItem value="STAFF">Staff</SelectItem>
                                         <SelectItem value="ASSOCIATE">Associate</SelectItem>
@@ -164,7 +164,7 @@ export default function UsersPage() {
                     { label: "Associates", value: users.filter(u => u.role === "ASSOCIATE").length, color: "text-blue-400" },
                     { label: "Students", value: users.filter(u => u.role === "STUDENT").length, color: "text-green-400" },
                 ].map(s => (
-                    <Card key={s.label} className="bg-[#0B1020] border-white/10">
+                    <Card key={s.label} className="bg-card border-white/10">
                         <CardContent className="p-4">
                             <p className="text-gray-400 text-sm">{s.label}</p>
                             <p className={`text-2xl font-black ${s.color}`}>{s.value}</p>
@@ -184,7 +184,7 @@ export default function UsersPage() {
                 />
             </div>
 
-            <Card className="bg-[#0B1020] border-white/10 overflow-hidden">
+            <Card className="bg-card border-white/10 overflow-hidden">
                 <CardHeader className="border-b border-white/5">
                     <CardTitle className="text-white text-base">All Users ({filtered.length})</CardTitle>
                 </CardHeader>

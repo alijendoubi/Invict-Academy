@@ -4,7 +4,7 @@ import { Users, Target, Shield, Award } from "lucide-react"
 
 export default function AboutPage() {
     return (
-        <div className="min-h-screen bg-[#070A12] text-white">
+        <div className="min-h-screen bg-background text-white">
             <div className="container mx-auto px-6 py-20">
                 <div className="text-center max-w-3xl mx-auto mb-20">
                     <h1 className="text-4xl md:text-5xl font-bold mb-6">Bridging Ambition and Opportunity</h1>
@@ -31,7 +31,7 @@ export default function AboutPage() {
                         { icon: Shield, title: "Transparency", desc: "No hidden fees. Honest eligibility assessments." },
                         { icon: Award, title: "Excellence", desc: "We aim for top-tier universities, not just any offer." },
                     ].map((item, i) => (
-                        <div key={i} className="p-6 bg-[#0B1020] rounded-xl border border-white/10 text-center">
+                        <div key={i} className="p-6 bg-card rounded-xl border border-white/10 text-center">
                             <item.icon className="mx-auto h-10 w-10 text-cyan-400 mb-4" />
                             <h3 className="text-lg font-bold mb-2">{item.title}</h3>
                             <p className="text-sm text-gray-400">{item.desc}</p>

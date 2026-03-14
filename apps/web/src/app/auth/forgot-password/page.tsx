@@ -8,8 +8,8 @@ import { Button } from "@/components/ui/button"
 
 export default function ForgotPasswordPage() {
     return (
-        <div className="min-h-screen bg-[#070A12] flex items-center justify-center p-4">
-            <Card className="w-full max-w-md bg-[#0B1020] border-white/10">
+        <div className="min-h-screen bg-background flex items-center justify-center p-4">
+            <Card className="w-full max-w-md bg-card border-white/10">
                 <CardHeader>
                     <CardTitle className="text-white">Reset your password</CardTitle>
                     <CardDescription className="text-gray-400">

@@ -1,5 +1,6 @@
 "use client"
 
+import { use } from "react"
 import { notFound } from "next/navigation"
 import Link from "next/link"
 import { motion } from "framer-motion"
@@ -20,8 +21,9 @@ const REQUIRED_DOCS = [
     "Passport-size Photo",
 ]
 
-export default function UniversityPage({ params }: { params: { country: string; city: string; university: string } }) {
-    const uni = getUniversity(params.country, params.city, params.university)
+export default function UniversityPage({ params }: { params: Promise<{ country: string; city: string; university: string }> }) {
+    const p = use(params)
+    const uni = getUniversity(p.country, p.city, p.university)
     if (!uni) notFound()
 
     const englishPrograms = uni.programs.filter(p => p.language === "English" || p.language === "Both")
@@ -29,15 +31,15 @@ export default function UniversityPage({ params }: { params: { country: string; 
     const bachelorPrograms = englishPrograms.filter(p => p.level === "Bachelor")
 
     return (
-        <div className="min-h-screen bg-[#070A12] text-white">
+        <div className="min-h-screen bg-background text-white">
             {/* Breadcrumb */}
             <div className="border-b border-white/5 py-4 px-6 lg:px-12">
                 <div className="max-w-7xl mx-auto flex items-center gap-2 text-sm text-gray-500 flex-wrap">
                     <Link href="/explore" className="hover:text-cyan-400">Explore</Link>
                     <span>/</span>
-                    <Link href={`/explore/${params.country}`} className="hover:text-cyan-400 capitalize">{params.country}</Link>
+                    <Link href={`/explore/${p.country}`} className="hover:text-cyan-400 capitalize">{p.country}</Link>
                     <span>/</span>
-                    <Link href={`/explore/${params.country}/${params.city}`} className="hover:text-cyan-400 capitalize">{params.city}</Link>
+                    <Link href={`/explore/${p.country}/${p.city}`} className="hover:text-cyan-400 capitalize">{p.city}</Link>
                     <span>/</span>
                     <span className="text-white">{uni.shortName || uni.name}</span>
                 </div>
@@ -217,7 +219,7 @@ export default function UniversityPage({ params }: { params: { country: string; 
                 {/* Right Sidebar */}
                 <div className="space-y-6">
                     {/* Required Documents Checklist */}
-                    <Card className="bg-[#0B1020] border-white/10">
+                    <Card className="bg-card border-white/10">
                         <CardHeader className="border-b border-white/5">
                             <CardTitle className="text-white flex items-center gap-2 text-base">
                                 <FileText size={16} className="text-orange-400" /> Required Documents

@@ -10,10 +10,6 @@ const nextConfig = {
             },
         ],
     },
-    // Move these to a more standard Next.js 14 format
-    typescript: {
-        ignoreBuildErrors: true,
-    },
 };
 
 module.exports = nextConfig;

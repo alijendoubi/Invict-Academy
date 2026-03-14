@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
 
         // Get user email
         const user = await prisma.user.findUnique({
-            where: { id: session.userId },
+            where: { id: session.user.id },
             select: { email: true, firstName: true, lastName: true },
         });
 
@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
             cancelUrl: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/payments/cancel`,
             customerEmail: user.email,
             metadata: {
-                userId: session.userId,
+                userId: session.user.id,
                 serviceType: serviceType || 'general',
             },
         });

@@ -41,7 +41,7 @@ export function LanguageSwitcher() {
             </button>
 
             {open && (
-                <div className="absolute top-full mt-2 right-0 w-52 bg-[#0B1020] border border-white/10 rounded-2xl shadow-2xl overflow-hidden z-50 py-1">
+                <div className="absolute top-full mt-2 right-0 w-52 bg-card border border-white/10 rounded-2xl shadow-2xl overflow-hidden z-50 py-1">
                     {LANGUAGES.map(lang => (
                         <button
                             key={lang.code}

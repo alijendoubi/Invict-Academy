@@ -6,11 +6,11 @@
         "packages/*"
     ],
     "scripts": {
-        "postinstall": "npm run db:generate --workspace=@invict/db",
+        "postinstall": "npm run db:generate --workspace=@invict/db && npm run build --workspace=@invict/email",
         "db:migrate": "npm run db:migrate --workspace=@invict/db",
         "db:generate": "npm run db:generate --workspace=@invict/db",
         "db:seed": "npm run db:seed --workspace=@invict/db",
-        "dev": "concurrently \"npm run dev --workspace=api\" \"npm run dev --workspace=web\"",
+        "dev": "npm run dev --workspace=web",
         "build": "npm run build --workspaces"
     },
     "dependencies": {

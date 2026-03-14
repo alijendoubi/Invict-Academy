@@ -38,7 +38,7 @@ export default function ItalianUniversitiesPage() {
     }, [search, region, englishOnly, typeFilter])
 
     return (
-        <div className="min-h-screen bg-[#070A12] text-white pb-24">
+        <div className="min-h-screen bg-background text-white pb-24">
             {/* Hero */}
             <section className="relative pt-32 pb-20 px-6 lg:px-12 border-b border-white/5 overflow-hidden">
                 <div className="absolute top-0 right-0 w-[600px] h-[500px] bg-cyan-500/6 rounded-full blur-[120px] -translate-y-1/2 translate-x-1/4" />
@@ -70,7 +70,7 @@ export default function ItalianUniversitiesPage() {
             </section>
 
             {/* Filters */}
-            <section className="sticky top-20 z-20 bg-[#070A12]/95 backdrop-blur-md border-b border-white/5 py-5 px-6 lg:px-12">
+            <section className="sticky top-20 z-20 bg-background/95 backdrop-blur-md border-b border-white/5 py-5 px-6 lg:px-12">
                 <div className="max-w-7xl mx-auto flex flex-col md:flex-row gap-4 items-start md:items-center">
                     {/* Search */}
                     <div className="relative flex-1 max-w-md">

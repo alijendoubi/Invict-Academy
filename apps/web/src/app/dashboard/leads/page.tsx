@@ -111,7 +111,7 @@ export default function LeadsPage() {
                             Add Lead
                         </Button>
                     </DialogTrigger>
-                    <DialogContent className="bg-[#0B1020] border-white/10 text-white">
+                    <DialogContent className="bg-card border-white/10 text-white">
                         <DialogHeader>
                             <DialogTitle>Add New Lead</DialogTitle>
                             <DialogDescription className="text-gray-400">
@@ -143,7 +143,7 @@ export default function LeadsPage() {
                                     <SelectTrigger className="bg-white/5 border-white/10">
                                         <SelectValue placeholder="Select source" />
                                     </SelectTrigger>
-                                    <SelectContent className="bg-[#0B1020] border-white/10 text-white">
+                                    <SelectContent className="bg-card border-white/10 text-white">
                                         <SelectItem value="Website">Website</SelectItem>
                                         <SelectItem value="Instagram">Instagram</SelectItem>
                                         <SelectItem value="Facebook">Facebook</SelectItem>
@@ -169,7 +169,7 @@ export default function LeadsPage() {
                     { label: "Qualified", value: leads.filter(l => l.status === "QUALIFIED").length, color: "text-cyan-400" },
                     { label: "Lost", value: leads.filter(l => l.status === "LOST").length, color: "text-red-400" },
                 ].map((stat) => (
-                    <Card key={stat.label} className="bg-[#0B1020] border-white/10">
+                    <Card key={stat.label} className="bg-card border-white/10">
                         <CardContent className="p-4">
                             <p className="text-sm text-gray-400">{stat.label}</p>
                             <p className={`text-2xl font-bold ${stat.color}`}>{stat.value}</p>
@@ -179,7 +179,7 @@ export default function LeadsPage() {
             </div>
 
             {/* Filters */}
-            <Card className="bg-[#0B1020] border-white/10">
+            <Card className="bg-card border-white/10">
                 <CardContent className="p-4">
                     <div className="flex flex-col md:flex-row gap-4">
                         <form onSubmit={handleSearch} className="relative flex-1">
@@ -196,7 +196,7 @@ export default function LeadsPage() {
                                 <SelectTrigger className="w-[180px] bg-white/5 border-white/10 text-white">
                                     <SelectValue placeholder="Status" />
                                 </SelectTrigger>
-                                <SelectContent className="bg-[#0B1020] border-white/10 text-white">
+                                <SelectContent className="bg-card border-white/10 text-white">
                                     <SelectItem value="all">All Statuses</SelectItem>
                                     <SelectItem value="NEW">New</SelectItem>
                                     <SelectItem value="CONTACTED">Contacted</SelectItem>
@@ -215,7 +215,7 @@ export default function LeadsPage() {
             </Card>
 
             {/* Leads Table */}
-            <Card className="bg-[#0B1020] border-white/10 overflow-hidden">
+            <Card className="bg-card border-white/10 overflow-hidden">
                 <CardHeader className="border-b border-white/5">
                     <CardTitle className="text-white">Recent Leads ({leads.length})</CardTitle>
                 </CardHeader>

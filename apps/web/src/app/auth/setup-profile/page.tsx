@@ -58,8 +58,8 @@ export default function SetupProfilePage() {
     }
 
     return (
-        <div className="min-h-screen bg-[#070A12] flex items-center justify-center p-4">
-            <Card className="w-full max-w-lg bg-[#0B1020] border-cyan-500/30">
+        <div className="min-h-screen bg-background flex items-center justify-center p-4">
+            <Card className="w-full max-w-lg bg-card border-cyan-500/30">
                 <CardHeader className="space-y-1">
                     <div className="flex justify-center mb-4">
                         <div className="h-12 w-12 rounded-full bg-cyan-500/20 flex items-center justify-center">

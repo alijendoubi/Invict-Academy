@@ -6,16 +6,23 @@ export const dynamic = 'force-dynamic';
 
 export async function GET(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const { id } = await params;
         const session = await getSession();
         if (!session) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
+        const { verifyStudentAccess } = await import('@/lib/auth');
+        const hasAccess = await verifyStudentAccess(id);
+        if (!hasAccess) {
+            return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+        }
+
         const consultations = await prisma.consultation.findMany({
-            where: { studentId: params.id },
+            where: { studentId: id },
             orderBy: { scheduledAt: 'asc' },
         });
 

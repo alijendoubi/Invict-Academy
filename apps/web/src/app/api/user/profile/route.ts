@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        const userId: string = session.userId || session.user?.id || '';
+        const userId: string = session.user.id || session.user?.id || '';
         const email: string = session.user?.email || '';
 
         // Real DB lookup
@@ -66,7 +66,7 @@ export async function PATCH(request: NextRequest) {
         // If updating email, check if it's already taken
         if (email) {
             const existingUser = await prisma.user.findUnique({ where: { email } });
-            if (existingUser && existingUser.id !== session.userId) {
+            if (existingUser && existingUser.id !== session.user.id) {
                 return NextResponse.json({ error: 'Email already in use' }, { status: 400 });
             }
         }
@@ -82,7 +82,7 @@ export async function PATCH(request: NextRequest) {
             }
 
             const user = await prisma.user.findUnique({
-                where: { id: session.userId },
+                where: { id: session.user.id },
                 select: { password: true },
             });
 
@@ -110,7 +110,7 @@ export async function PATCH(request: NextRequest) {
         }
 
         const updatedUser = await prisma.user.update({
-            where: { id: session.userId },
+            where: { id: session.user.id },
             data: updateData,
             select: {
                 id: true,

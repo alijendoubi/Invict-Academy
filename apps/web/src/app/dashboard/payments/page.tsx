@@ -111,7 +111,7 @@ export default function PaymentsPage() {
                     },
                 ].map((card, i) => (
                     <motion.div key={i} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.07 }}>
-                        <Card className={`bg-[#0B1020] border ${card.border}`}>
+                        <Card className={`bg-card border ${card.border}`}>
                             <CardContent className="p-5">
                                 <div className="flex items-start justify-between mb-3">
                                     <p className="text-gray-400 text-sm">{card.label}</p>
@@ -128,7 +128,7 @@ export default function PaymentsPage() {
             </div>
 
             {/* Overall Progress */}
-            <Card className="bg-[#0B1020] border-white/10">
+            <Card className="bg-card border-white/10">
                 <CardContent className="p-6">
                     <div className="flex items-center justify-between mb-3">
                         <div>
@@ -159,7 +159,7 @@ export default function PaymentsPage() {
 
                         return (
                             <motion.div key={inv.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
-                                <Card className={`bg-[#0B1020] border transition-all ${isPaid ? "border-white/5" : inv.status === "PENDING" ? "border-yellow-500/30" : "border-white/5"}`}>
+                                <Card className={`bg-card border transition-all ${isPaid ? "border-white/5" : inv.status === "PENDING" ? "border-yellow-500/30" : "border-white/5"}`}>
                                     <CardContent className="p-5">
                                         {/* Main row */}
                                         <div className="flex items-center justify-between gap-4">
@@ -249,7 +249,7 @@ export default function PaymentsPage() {
             </div>
 
             {/* Payment Methods Info */}
-            <Card className="bg-[#0B1020] border-white/10">
+            <Card className="bg-card border-white/10">
                 <CardContent className="p-6">
                     <h3 className="text-white font-semibold mb-4 flex items-center gap-2"><CreditCard size={16} className="text-cyan-400" /> How to Pay</h3>
                     <div className="grid md:grid-cols-3 gap-4">

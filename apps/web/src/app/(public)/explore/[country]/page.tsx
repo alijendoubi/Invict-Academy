@@ -1,5 +1,6 @@
 "use client"
 
+import { use } from "react"
 import { notFound } from "next/navigation"
 import Link from "next/link"
 import { motion } from "framer-motion"
@@ -9,12 +10,13 @@ import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { getCountry } from "@/lib/destinations"
 
-export default function CountryPage({ params }: { params: { country: string } }) {
-    const country = getCountry(params.country)
+export default function CountryPage({ params }: { params: Promise<{ country: string }> }) {
+    const p = use(params)
+    const country = getCountry(p.country)
     if (!country) notFound()
 
     return (
-        <div className="min-h-screen bg-[#070A12] text-white">
+        <div className="min-h-screen bg-background text-white">
             {/* Breadcrumb */}
             <div className="border-b border-white/5 py-4 px-6 lg:px-12">
                 <div className="max-w-7xl mx-auto flex items-center gap-2 text-sm text-gray-500">

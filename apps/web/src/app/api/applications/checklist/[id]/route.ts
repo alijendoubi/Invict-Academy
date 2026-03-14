@@ -6,15 +6,14 @@ export const dynamic = 'force-dynamic';
 
 export async function PATCH(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const { id } = await params;
         const session = await getSession();
         if (!session) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
-
-        const { id } = params;
         const { isCompleted } = await request.json();
 
         // Check permission: Checklist items belong to applications which belong to students.
@@ -36,7 +35,7 @@ export async function PATCH(
 
         if (isStudent) {
             const profile = await prisma.studentProfile.findUnique({
-                where: { userId: session.userId },
+                where: { userId: session.user.id },
                 select: { id: true }
             });
             if (!profile || profile.id !== item.application.studentId) {

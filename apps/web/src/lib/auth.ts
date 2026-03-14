@@ -2,7 +2,10 @@ import { SignJWT, jwtVerify } from 'jose';
 import { cookies } from 'next/headers';
 import { NextRequest } from 'next/server';
 
-const SECRET_KEY = process.env.JWT_SECRET || 'super-secret-key-change-me';
+if (!process.env.JWT_SECRET) {
+    throw new Error('JWT_SECRET environment variable is not set. Please configure it.');
+}
+const SECRET_KEY = process.env.JWT_SECRET;
 const key = new TextEncoder().encode(SECRET_KEY);
 
 export async function encrypt(payload: any, expiresIn = '15m') {
@@ -21,12 +24,12 @@ export async function decrypt(input: string): Promise<any> {
 }
 
 export async function getSession() {
-    const session = cookies().get('session')?.value;
+    const cookieStore = await cookies();
+    const session = cookieStore.get('session')?.value;
     if (!session) return null;
     try {
         const payload = await decrypt(session);
-        const userId = payload?.user?.id;
-        return { ...payload, userId };
+        return payload;
     } catch (error) {
         return null;
     }
@@ -47,7 +50,7 @@ export async function getStudentProfileId() {
 
     const { prisma } = await import('@/lib/db');
     const profile = await prisma.studentProfile.findUnique({
-        where: { userId: session.userId },
+        where: { userId: session.user.id },
         select: { id: true }
     });
     return profile?.id || null;
@@ -79,7 +82,7 @@ export async function verifyStudentAccess(studentId: string) {
         });
 
         // Staff has access if the student is assigned to them
-        return profile?.assignedToId === session.userId;
+        return profile?.assignedToId === session.user.id;
     }
 
     return false;
@@ -90,8 +93,9 @@ export async function login(formData: FormData) {
 }
 
 export async function logout() {
-    cookies().delete('session');
-    cookies().delete('refresh_token');
+    const cookieStore = await cookies();
+    cookieStore.delete('session');
+    cookieStore.delete('refresh_token');
 }
 
 export async function updateSession(request: NextRequest) {
@@ -110,7 +114,7 @@ export async function logAudit(action: string, entity: string, entityId: string,
     try {
         await prisma.auditLog.create({
             data: {
-                userId: session?.userId || null,
+                userId: session?.user?.id || null,
                 action,
                 entity,
                 entityId,

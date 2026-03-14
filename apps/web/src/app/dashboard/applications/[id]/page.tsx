@@ -47,8 +47,8 @@ function StepTracker({ currentStep }: { currentStep: string }) {
                     return (
                         <div key={step.key} className="flex flex-col items-center gap-2 z-10 relative px-2">
                             <div className={`h-10 w-10 rounded-full border-2 flex items-center justify-center transition-all duration-300 ${isCompleted ? "bg-cyan-500 border-cyan-500 text-black shadow-[0_0_15px_rgba(6,182,212,0.4)]" :
-                                isCurrent ? "bg-[#0B1020] border-cyan-400 text-cyan-400 shadow-[0_0_20px_rgba(34,211,238,0.3)]" :
-                                    "bg-[#0B1020] border-white/10 text-gray-600"
+                                isCurrent ? "bg-card border-cyan-400 text-cyan-400 shadow-[0_0_20px_rgba(34,211,238,0.3)]" :
+                                    "bg-card border-white/10 text-gray-600"
                                 }`}>
                                 {isCompleted ? <CheckCircle size={16} /> : <Icon size={16} />}
                             </div>
@@ -177,13 +177,13 @@ export default function ApplicationDetailsPage() {
                 </Button>
 
                 {isAdmin && (
-                    <div className="flex items-center gap-2 bg-[#0B1020] border border-white/10 p-1 rounded-xl">
+                    <div className="flex items-center gap-2 bg-card border border-white/10 p-1 rounded-xl">
                         <span className="text-xs text-gray-500 px-3 font-semibold uppercase tracking-wider">Status Override</span>
                         <Select value={application.status} onValueChange={updateStatus} disabled={saving}>
                             <SelectTrigger className="w-[180px] bg-white/5 border-none h-9 text-cyan-400 font-bold">
                                 <SelectValue placeholder="Status" />
                             </SelectTrigger>
-                            <SelectContent className="bg-[#0B1020] border-white/10 text-white">
+                            <SelectContent className="bg-card border-white/10 text-white">
                                 {["DRAFT", "DOCUMENTS_PENDING", "SUBMITTED", "UNDER_REVIEW", "APPROVED", "REJECTED"].map(s => (
                                     <SelectItem key={s} value={s}>{s.replace(/_/g, ' ')}</SelectItem>
                                 ))}
@@ -195,7 +195,7 @@ export default function ApplicationDetailsPage() {
 
             <div className="grid gap-6 lg:grid-cols-3">
                 {/* Header & Main Info */}
-                <Card className="lg:col-span-2 bg-[#0B1020] border-white/10 overflow-hidden relative group">
+                <Card className="lg:col-span-2 bg-card border-white/10 overflow-hidden relative group">
                     <div className="absolute top-0 right-0 w-64 h-64 bg-cyan-500/5 rounded-full blur-[80px] -mr-32 -mt-32 transition-colors group-hover:bg-cyan-500/10" />
                     <CardHeader className="relative z-10">
                         <div className="flex items-start justify-between">
@@ -242,7 +242,7 @@ export default function ApplicationDetailsPage() {
                 </Card>
 
                 {/* Sidebar: Student Info */}
-                <Card className="bg-[#0B1020] border-white/10 h-fit">
+                <Card className="bg-card border-white/10 h-fit">
                     <CardHeader className="border-b border-white/5">
                         <CardTitle className="text-base text-white flex items-center gap-2">
                             <User size={18} className="text-cyan-500" /> Student Info
@@ -276,14 +276,14 @@ export default function ApplicationDetailsPage() {
             </div>
 
             <Tabs defaultValue={defaultTab} className="space-y-4">
-                <TabsList className="bg-[#0B1020] border border-white/10 p-1">
+                <TabsList className="bg-card border border-white/10 p-1">
                     <TabsTrigger value="overview" className="data-[state=active]:bg-white/5 data-[state=active]:text-cyan-400">Steps & Guidance</TabsTrigger>
                     <TabsTrigger value="tasks" className="data-[state=active]:bg-white/5 data-[state=active]:text-cyan-400">Tasks</TabsTrigger>
                     <TabsTrigger value="documents" className="data-[state=active]:bg-white/5 data-[state=active]:text-cyan-400">Documents</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="overview" className="space-y-4">
-                    <Card className="bg-[#0B1020] border-white/10">
+                    <Card className="bg-card border-white/10">
                         <CardHeader className="border-b border-white/5">
                             <CardTitle className="text-lg text-white">Application Checklist</CardTitle>
                             <CardDescription className="text-gray-500 text-xs">Complete these steps to advance the application</CardDescription>
@@ -319,7 +319,7 @@ export default function ApplicationDetailsPage() {
 
                 <TabsContent value="tasks" className="space-y-4">
                     <div className="grid gap-6 md:grid-cols-2">
-                        <Card className="bg-[#0B1020] border-white/10 h-fit">
+                        <Card className="bg-card border-white/10 h-fit">
                             <CardHeader>
                                 <CardTitle className="text-lg text-white">Active Tasks</CardTitle>
                                 <CardDescription className="text-gray-500 text-xs">Specific tasks for this application</CardDescription>
@@ -360,7 +360,7 @@ export default function ApplicationDetailsPage() {
                             </CardContent>
                         </Card>
 
-                        <Card className="bg-[#0B1020] border-white/10">
+                        <Card className="bg-card border-white/10">
                             <CardHeader>
                                 <CardTitle className="text-lg text-white">Log & History</CardTitle>
                             </CardHeader>
@@ -371,7 +371,7 @@ export default function ApplicationDetailsPage() {
                                     ) : (
                                         application.stepLogs.map((log: any, idx: number) => (
                                             <div key={log.id} className="relative pl-8">
-                                                <div className="absolute left-0 top-1 w-5 h-5 rounded-full bg-[#0B1020] border-4 border-white/10 flex items-center justify-center ring-4 ring-[#0B1020]">
+                                                <div className="absolute left-0 top-1 w-5 h-5 rounded-full bg-card border-4 border-white/10 flex items-center justify-center ring-4 ring-card">
                                                     <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.5)]" />
                                                 </div>
                                                 <p className="text-sm text-white font-medium">{log.description}</p>
@@ -380,7 +380,7 @@ export default function ApplicationDetailsPage() {
                                         ))
                                     )}
                                     <div className="relative pl-8">
-                                        <div className="absolute left-0 top-1 w-5 h-5 rounded-full bg-[#0B1020] border-4 border-white/10 flex items-center justify-center ring-4 ring-[#0B1020]">
+                                        <div className="absolute left-0 top-1 w-5 h-5 rounded-full bg-card border-4 border-white/10 flex items-center justify-center ring-4 ring-card">
                                             <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
                                         </div>
                                         <p className="text-sm text-gray-400 font-medium">Application Created</p>
@@ -393,7 +393,7 @@ export default function ApplicationDetailsPage() {
                 </TabsContent>
 
                 <TabsContent value="documents">
-                    <Card className="bg-[#0B1020] border-white/10">
+                    <Card className="bg-card border-white/10">
                         <CardHeader>
                             <CardTitle className="text-lg text-white">Student Documents</CardTitle>
                             <CardDescription className="text-gray-500 text-xs">Manage and view documents uploaded by the student</CardDescription>

@@ -1,5 +1,6 @@
 "use client"
 
+import { use } from "react"
 import { notFound } from "next/navigation"
 import Link from "next/link"
 import { motion } from "framer-motion"
@@ -9,8 +10,9 @@ import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { getCity } from "@/lib/destinations"
 
-export default function CityPage({ params }: { params: { country: string; city: string } }) {
-    const city = getCity(params.country, params.city)
+export default function CityPage({ params }: { params: Promise<{ country: string; city: string }> }) {
+    const p = use(params)
+    const city = getCity(p.country, p.city)
     if (!city) notFound()
 
     const tabs = [
@@ -22,13 +24,13 @@ export default function CityPage({ params }: { params: { country: string; city: 
     ]
 
     return (
-        <div className="min-h-screen bg-[#070A12] text-white">
+        <div className="min-h-screen bg-background text-white">
             {/* Breadcrumb */}
             <div className="border-b border-white/5 py-4 px-6 lg:px-12">
                 <div className="max-w-7xl mx-auto flex items-center gap-2 text-sm text-gray-500 flex-wrap">
                     <Link href="/explore" className="hover:text-cyan-400">Explore</Link>
                     <span>/</span>
-                    <Link href={`/explore/${params.country}`} className="hover:text-cyan-400 capitalize">{params.country}</Link>
+                    <Link href={`/explore/${p.country}`} className="hover:text-cyan-400 capitalize">{p.country}</Link>
                     <span>/</span>
                     <span className="text-white">{city.name}</span>
                 </div>
@@ -99,7 +101,7 @@ export default function CityPage({ params }: { params: { country: string; city: 
                     <div className="grid md:grid-cols-2 gap-6">
                         {city.universities.map((uni, i) => (
                             <motion.div key={uni.slug} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }} whileHover={{ y: -5 }}>
-                                <Link href={`/explore/${params.country}/${params.city}/${uni.slug}`}
+                                <Link href={`/explore/${p.country}/${p.city}/${uni.slug}`}
                                     className="block p-6 rounded-3xl bg-white/[0.03] border border-white/10 hover:border-cyan-500/30 transition-all group"
                                 >
                                     <div className="flex items-start justify-between gap-4 mb-4">

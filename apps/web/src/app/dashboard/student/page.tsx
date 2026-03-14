@@ -45,8 +45,8 @@ function StepTracker({ currentStep }: { currentStep: string }) {
                     return (
                         <div key={step.key} className="flex flex-col items-center gap-2 z-10 relative">
                             <div className={`h-10 w-10 rounded-full border-2 flex items-center justify-center transition-all duration-300 ${isCompleted ? "bg-cyan-500 border-cyan-500 text-black" :
-                                isCurrent ? "bg-[#0B1020] border-cyan-400 text-cyan-400 shadow-[0_0_20px_rgba(34,211,238,0.3)]" :
-                                    "bg-[#0B1020] border-white/10 text-gray-600"
+                                isCurrent ? "bg-card border-cyan-400 text-cyan-400 shadow-[0_0_20px_rgba(34,211,238,0.3)]" :
+                                    "bg-card border-white/10 text-gray-600"
                                 }`}>
                                 {isCompleted ? <CheckCircle size={16} /> : <Icon size={16} className={isPending ? "" : ""} />}
                             </div>
@@ -133,7 +133,7 @@ export default function StudentDashboardPage() {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-[#070A12] flex items-center justify-center">
+            <div className="min-h-screen bg-background flex items-center justify-center">
                 <div className="flex flex-col items-center gap-4">
                     <Loader2 className="h-10 w-10 text-cyan-400 animate-spin" />
                     <p className="text-gray-400">Loading your portal...</p>
@@ -143,7 +143,7 @@ export default function StudentDashboardPage() {
     }
 
     return (
-        <div className="min-h-screen bg-[#070A12]">
+        <div className="min-h-screen bg-background">
             {/* Hero Header */}
             <div className="relative bg-gradient-to-r from-cyan-900/20 via-blue-900/20 to-indigo-900/20 border-b border-white/10 p-8 overflow-hidden">
                 <div className="absolute top-0 right-0 w-[600px] h-[200px] bg-cyan-500/5 rounded-full blur-[80px]" />
@@ -182,7 +182,7 @@ export default function StudentDashboardPage() {
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.4 }}
                     >
-                        <Card className="bg-[#0B1020] border-white/10 overflow-hidden">
+                        <Card className="bg-card border-white/10 overflow-hidden">
                             <CardHeader className="border-b border-white/5 pb-4">
                                 <div className="flex items-center justify-between flex-wrap gap-2">
                                     <div>
@@ -219,7 +219,7 @@ export default function StudentDashboardPage() {
                 <div className="grid gap-6 lg:grid-cols-3">
                     {/* Messages Inbox */}
                     <div className="lg:col-span-2 space-y-6">
-                        <Card className="bg-[#0B1020] border-white/10">
+                        <Card className="bg-card border-white/10">
                             <CardHeader className="border-b border-white/5">
                                 <div className="flex items-center justify-between">
                                     <CardTitle className="text-white flex items-center gap-2">
@@ -325,7 +325,7 @@ export default function StudentDashboardPage() {
                         </Card>
 
                         {/* Required Documents — Live List */}
-                        <Card className="bg-[#0B1020] border-white/10">
+                        <Card className="bg-card border-white/10">
                             <CardHeader className="border-b border-white/5">
                                 <CardTitle className="text-white flex items-center gap-2">
                                     <FileText size={18} className="text-purple-400" />
@@ -377,7 +377,7 @@ export default function StudentDashboardPage() {
                                             <Upload size={14} className="mr-2" /> Upload Documents
                                         </Button>
                                     </DialogTrigger>
-                                    <DialogContent className="sm:max-w-[425px] bg-[#070A12] border-white/10 text-white">
+                                    <DialogContent className="sm:max-w-[425px] bg-background border-white/10 text-white">
                                         <DialogHeader>
                                             <DialogTitle>Upload Document</DialogTitle>
                                             <DialogDescription className="text-gray-400">
@@ -419,7 +419,7 @@ export default function StudentDashboardPage() {
                                                 {uploadSuccess && <p className="text-sm font-medium text-green-500">Document uploaded successfully!</p>}
                                                 <div className="grid gap-2">
                                                     <Label htmlFor="type" className="text-gray-300">Document Type</Label>
-                                                    <select id="type" name="type" className="flex h-10 w-full rounded-md border border-white/10 bg-[#0B1020] px-3 py-2 text-sm text-white ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2" required>
+                                                    <select id="type" name="type" className="flex h-10 w-full rounded-md border border-white/10 bg-card px-3 py-2 text-sm text-white ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2" required>
                                                         <option value="GENERAL">General Document</option>
                                                         <option value="PASSPORT">Passport</option>
                                                         <option value="DIPLOMA">High School Diploma</option>
@@ -431,7 +431,7 @@ export default function StudentDashboardPage() {
                                                 </div>
                                                 <div className="grid gap-2">
                                                     <Label htmlFor="file" className="text-gray-300">File</Label>
-                                                    <Input id="file" name="file" type="file" required className="bg-[#0B1020] border-white/10 text-white file:text-cyan-400 file:bg-cyan-500/10 file:border-0 file:rounded-md file:px-2 file:py-1 file:mr-2" accept=".pdf,.jpg,.jpeg,.png" />
+                                                    <Input id="file" name="file" type="file" required className="bg-card border-white/10 text-white file:text-cyan-400 file:bg-cyan-500/10 file:border-0 file:rounded-md file:px-2 file:py-1 file:mr-2" accept=".pdf,.jpg,.jpeg,.png" />
                                                 </div>
                                             </div>
                                             <DialogFooter>
@@ -455,7 +455,7 @@ export default function StudentDashboardPage() {
                     {/* Right Sidebar */}
                     <div className="space-y-6">
                         {/* Consultation Card */}
-                        <Card className="bg-[#0B1020] border-white/10">
+                        <Card className="bg-card border-white/10">
                             <CardHeader className="border-b border-white/5">
                                 <CardTitle className="text-white flex items-center gap-2">
                                     <Calendar size={18} className="text-blue-400" />
@@ -501,7 +501,7 @@ export default function StudentDashboardPage() {
                         </Card>
 
                         {/* Important Notes */}
-                        <Card className="bg-[#0B1020] border-white/10">
+                        <Card className="bg-card border-white/10">
                             <CardHeader className="border-b border-white/5">
                                 <CardTitle className="text-white flex items-center gap-2">
                                     <Bell size={18} className="text-yellow-400" />
@@ -520,7 +520,7 @@ export default function StudentDashboardPage() {
                         </Card>
 
                         {/* Quick Actions */}
-                        <Card className="bg-[#0B1020] border-white/10">
+                        <Card className="bg-card border-white/10">
                             <CardHeader className="border-b border-white/5">
                                 <CardTitle className="text-white text-sm">Quick Actions</CardTitle>
                             </CardHeader>

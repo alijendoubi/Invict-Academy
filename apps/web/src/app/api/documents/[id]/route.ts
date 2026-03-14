@@ -8,15 +8,10 @@ export const dynamic = 'force-dynamic';
 
 export async function GET(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
-        const session = await getSession();
-        if (!session) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-        }
-
-        const { id } = params;
+        const { id } = await params;
 
         const document = await prisma.document.findUnique({
             where: { id },

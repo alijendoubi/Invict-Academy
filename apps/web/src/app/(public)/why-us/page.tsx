@@ -65,7 +65,7 @@ export default function WhyUsPage() {
     ]
 
     return (
-        <div className="min-h-screen bg-[#070A12] text-white">
+        <div className="min-h-screen bg-background text-white">
             {/* Hero */}
             <section className="relative pt-28 pb-24 px-6 lg:px-12 border-b border-white/5 overflow-hidden">
                 <div className="absolute top-0 right-0 w-[800px] h-[500px] bg-cyan-500/5 rounded-full blur-[120px]" />

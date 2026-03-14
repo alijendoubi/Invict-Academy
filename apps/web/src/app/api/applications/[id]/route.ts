@@ -6,15 +6,14 @@ export const dynamic = 'force-dynamic';
 
 export async function GET(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const { id } = await params;
         const session = await getSession();
         if (!session) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
-
-        const { id } = params;
 
         const application = await prisma.application.findUnique({
             where: { id },
@@ -61,15 +60,15 @@ export async function GET(
 
 export async function PATCH(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const { id } = await params;
         const session = await getSession();
         if (!session) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        const { id } = params;
         const body = await request.json();
         const { status, intakeTerm, deadline, university, program, country } = body;
 
@@ -89,9 +88,6 @@ export async function PATCH(
         }
 
         const isAdmin = ['SUPER_ADMIN', 'ADMIN', 'STAFF'].includes(session.user.role);
-
-        // Only admins can change status? Or maybe students can change intake/etc?
-        // Let's allow updates for now with proper checks.
 
         const updateData: any = {};
         if (status && isAdmin) updateData.status = status;

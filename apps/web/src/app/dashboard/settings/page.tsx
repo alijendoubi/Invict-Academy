@@ -150,7 +150,7 @@ export default function SettingsPage() {
             </div>
 
             <Tabs defaultValue="profile" className="space-y-4">
-                <TabsList className="bg-[#0B1020] border border-white/10 p-1">
+                <TabsList className="bg-card border border-white/10 p-1">
                     <TabsTrigger value="profile" className="data-[state=active]:bg-white/5 data-[state=active]:text-cyan-400">
                         <User className="h-4 w-4 mr-2" />
                         Profile
@@ -167,7 +167,7 @@ export default function SettingsPage() {
 
                 <TabsContent value="profile">
                     <form onSubmit={handleProfileUpdate}>
-                        <Card className="bg-[#0B1020] border-white/10 overflow-hidden">
+                        <Card className="bg-card border-white/10 overflow-hidden">
                             <CardHeader className="border-b border-white/5 bg-white/[0.02]">
                                 <CardTitle className="text-white">Profile Information</CardTitle>
                                 <CardDescription className="text-gray-500">
@@ -256,7 +256,7 @@ export default function SettingsPage() {
 
                 <TabsContent value="security">
                     <form onSubmit={handlePasswordUpdate}>
-                        <Card className="bg-[#0B1020] border-white/10">
+                        <Card className="bg-card border-white/10">
                             <CardHeader className="bg-white/[0.02] border-b border-white/5">
                                 <CardTitle className="text-white text-lg">Change Password</CardTitle>
                                 <CardDescription className="text-gray-500">
@@ -299,7 +299,7 @@ export default function SettingsPage() {
                 </TabsContent>
 
                 <TabsContent value="notifications">
-                    <Card className="bg-[#0B1020] border-white/10">
+                    <Card className="bg-card border-white/10">
                         <CardHeader className="bg-white/[0.02] border-b border-white/5">
                             <CardTitle className="text-white text-lg">Notification Preferences</CardTitle>
                             <CardDescription className="text-gray-500">

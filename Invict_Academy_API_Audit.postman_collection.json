@@ -1,0 +1,345 @@
+{
+    "info": {
+        "name": "Invict Academy API",
+        "description": "Comprehensive collection of all analyzed API endpoints to double check RBAC, data isolation, and general functionality.",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "variable": [
+        {
+            "key": "baseUrl",
+            "value": "http://localhost:3000",
+            "type": "string"
+        },
+        {
+            "key": "studentId",
+            "value": "REPLACE_WITH_STUDENT_ID",
+            "type": "string"
+        },
+        {
+            "key": "applicationId",
+            "value": "REPLACE_WITH_APP_ID",
+            "type": "string"
+        },
+        {
+            "key": "documentId",
+            "value": "REPLACE_WITH_DOC_ID",
+            "type": "string"
+        }
+    ],
+    "item": [
+        {
+            "name": "1. Authentication",
+            "item": [
+                {
+                    "name": "Login",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"email\": \"admin@invictacademy.com\",\n    \"password\": \"InvictAdmin2025!\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/auth/login",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "auth",
+                                "login"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Setup Profile",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"password\": \"newpassword123\",\n    \"phone\": \"+1234567890\",\n    \"nationality\": \"Italy\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/auth/setup-profile",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "auth",
+                                "setup-profile"
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "2. Applications",
+            "item": [
+                {
+                    "name": "Get All Applications",
+                    "request": {
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{baseUrl}}/api/applications",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "applications"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Get My Applications",
+                    "request": {
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{baseUrl}}/api/applications/my",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "applications",
+                                "my"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Create Application",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"studentId\": \"{{studentId}}\",\n    \"universityName\": \"Politecnico di Milano\",\n    \"courseName\": \"Computer Science\",\n    \"type\": \"UNIVERSITY\",\n    \"country\": \"Italy\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/applications",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "applications"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Get Application via ID",
+                    "request": {
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{baseUrl}}/api/applications/{{applicationId}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "applications",
+                                "{{applicationId}}"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Add Task to Application",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"title\": \"Upload transcript\",\n    \"description\": \"Scan and upload your high school transcript\",\n    \"priority\": \"HIGH\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/applications/{{applicationId}}/tasks",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "applications",
+                                "{{applicationId}}",
+                                "tasks"
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "3. Leads",
+            "item": [
+                {
+                    "name": "Get Leads",
+                    "request": {
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{baseUrl}}/api/leads",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "leads"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Create Lead",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"firstName\": \"Test\",\n    \"lastName\": \"Lead\",\n    \"email\": \"testlead@example.com\",\n    \"phone\": \"+123456\",\n    \"status\": \"NEW\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/leads",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "leads"
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "4. Students",
+            "item": [
+                {
+                    "name": "Get All Students",
+                    "request": {
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{baseUrl}}/api/students",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "students"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Get Student ID details",
+                    "request": {
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{baseUrl}}/api/students/{{studentId}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "students",
+                                "{{studentId}}"
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "5. Analytics",
+            "item": [
+                {
+                    "name": "Dashboard Stats",
+                    "request": {
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{baseUrl}}/api/dashboard/stats",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "dashboard",
+                                "stats"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Analytics Stats",
+                    "request": {
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{baseUrl}}/api/analytics/stats",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "analytics",
+                                "stats"
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "6. Wrap Up",
+            "item": [
+                {
+                    "name": "Logout",
+                    "request": {
+                        "method": "POST",
+                        "url": {
+                            "raw": "{{baseUrl}}/api/auth/logout",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "auth",
+                                "logout"
+                            ]
+                        }
+                    }
+                }
+            ]
+        }
+    ]
+}

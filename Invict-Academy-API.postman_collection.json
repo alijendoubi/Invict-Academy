@@ -1,0 +1,1114 @@
+{
+  "info": {
+    "name": "Invict Academy API",
+    "description": "Complete API collection for the Invict Academy backend. Authenticate first using the Login route, and Postman will automatically save the session cookie for all protected requests.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3000",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Auth & Profiles",
+      "item": [
+        {
+          "name": "Login (Starts Session)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "email",
+                  "value": "superadmin@invictacademy.com",
+                  "type": "text"
+                },
+                {
+                  "key": "password",
+                  "value": "password123",
+                  "type": "text"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/auth/logout",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "logout"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Setup Profile (Password Change)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/auth/setup-profile",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "setup-profile"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"password\": \"newpassword123\",\n  \"phone\": \"+1234567890\",\n  \"nationality\": \"Italy\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Get Profile",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/user/profile",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "user",
+                "profile"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Profile",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/user/profile",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "user",
+                "profile"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"Updated\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Dashboard & Analytics",
+      "item": [
+        {
+          "name": "Dashboard Stats",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/dashboard/stats",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "dashboard",
+                "stats"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Analytics Stats (Admins)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/analytics/stats",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "analytics",
+                "stats"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Students",
+      "item": [
+        {
+          "name": "List Students (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/students",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "students"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Student",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/students",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "students"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"Test\",\n  \"lastName\": \"Student\",\n  \"email\": \"student@test.com\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Get Student Details",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/students/123",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "students",
+                "123"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Delete Student",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/students/123",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "students",
+                "123"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Applications & Tasks",
+      "item": [
+        {
+          "name": "List All Applications",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/applications",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "applications"
+              ]
+            }
+          }
+        },
+        {
+          "name": "List My Applications (Student)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/applications/my",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "applications",
+                "my"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Application Details",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/applications/123",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "applications",
+                "123"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Application",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/applications/123",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "applications",
+                "123"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"APPROVED\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "List Application Tasks",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/applications/123/tasks",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "applications",
+                "123",
+                "tasks"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Task on App",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/applications/123/tasks",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "applications",
+                "123",
+                "tasks"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Submit Visa\",\n  \"priority\": \"HIGH\",\n  \"dueDate\": \"2026-12-01T00:00:00Z\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Update Checklist Item",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/applications/checklist/123",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "applications",
+                "checklist",
+                "123"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"isCompleted\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Get Specific Task",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/tasks/123",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "tasks",
+                "123"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Task Status",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/tasks/123",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "tasks",
+                "123"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"COMPLETED\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Delete Task",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/tasks/123",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "tasks",
+                "123"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Documents",
+      "item": [
+        {
+          "name": "List My Documents",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/documents/my",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "documents",
+                "my"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Upload Document (Use Form-Data file input)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/documents/upload",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "documents",
+                "upload"
+              ]
+            },
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "type",
+                  "value": "passport",
+                  "type": "text"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Document Info",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/documents/123",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "documents",
+                "123"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "6. Leads & Communication",
+      "item": [
+        {
+          "name": "List Leads (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/leads",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "leads"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Lead",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/leads",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "leads"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"John\",\n  \"lastName\": \"Doe\",\n  \"email\": \"john@doe.com\",\n  \"phone\": \"+123\",\n  \"interestedCountry\": \"Italy\",\n  \"interestedDegree\": \"BACHELOR\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "List My Messages (Student)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/messages",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "messages"
+              ]
+            }
+          }
+        },
+        {
+          "name": "List Student's Messages (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/messages?studentId=123",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "messages?studentId=123"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Send Message",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/messages",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "messages"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"studentId\": \"123\",\n  \"subject\": \"Review Update\",\n  \"content\": \"We need your visa.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Get Notifications",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/notifications",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "notifications"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Send WhatsApp (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/whatsapp/send",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "whatsapp",
+                "send"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"to\": \"+21655555555\",\n  \"message\": \"Hello from InvictAcademy\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "7. Payments",
+      "item": [
+        {
+          "name": "List All Invoices",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/payments",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "payments"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Checkout Session",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/payments/create-checkout",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "payments",
+                "create-checkout"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 50000,\n  \"serviceType\": \"premium\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Create Payment Intent",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/payments/create-intent",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "payments",
+                "create-intent"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 50000,\n  \"description\": \"Consultation\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Webhook Trigger (No Auth)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/payments/webhook",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "payments",
+                "webhook"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "8. Consultations & QR",
+      "item": [
+        {
+          "name": "QR Scanned Webhook",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/qr-analytics/scan?source=flyer1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "qr-analytics",
+                "scan?source=flyer1"
+              ]
+            }
+          }
+        },
+        {
+          "name": "QR Analytics Summary",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/qr-analytics/stats",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "qr-analytics",
+                "stats"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Consultation",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/consultations",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "consultations"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"studentId\": \"123\",\n  \"scheduledAt\": \"2026-06-01T10:00:00Z\",\n  \"notes\": \"Initial talk\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Get Student Consultations",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/consultations/student/123",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "consultations",
+                "student",
+                "123"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "9. Users & Roles",
+      "item": [
+        {
+          "name": "List Users (Super Admin)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/users",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "users"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Staff Invite",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/users/create",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "create"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"Staff\",\n  \"lastName\": \"Member\",\n  \"email\": \"staff@test.com\",\n  \"role\": \"STAFF\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "List Associates",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/associates",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "associates"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Register New Associate",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/associates",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "associates"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Partner Org\",\n  \"email\": \"partner@org.com\",\n  \"country\": \"Egypt\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "10. Public / Misc",
+      "item": [
+        {
+          "name": "AI Chatbot Ask",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/chat",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "chat"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"messages\": [\n    {\n      \"role\": \"user\",\n      \"content\": \"What services do you offer?\"\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Debug DB Test",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/debug/db",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "debug",
+                "db"
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

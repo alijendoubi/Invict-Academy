@@ -182,7 +182,7 @@ export default function StudentsPage() {
                             Add Student
                         </Button>
                     </DialogTrigger>
-                    <DialogContent className="bg-[#0B1020] border-white/10 text-white">
+                    <DialogContent className="bg-card border-white/10 text-white">
                         <DialogHeader>
                             <DialogTitle>Add New Student</DialogTitle>
                             <DialogDescription>
@@ -249,7 +249,7 @@ export default function StudentsPage() {
                                         <SelectTrigger className="bg-white/5 border-white/10 text-white">
                                             <SelectValue placeholder="Select..." />
                                         </SelectTrigger>
-                                        <SelectContent className="bg-[#0B1020] border-white/10 text-white">
+                                        <SelectContent className="bg-card border-white/10 text-white">
                                             <SelectItem value="Bachelor's">Bachelor&apos;s</SelectItem>
                                             <SelectItem value="Master's">Master&apos;s</SelectItem>
                                         </SelectContent>
@@ -276,7 +276,7 @@ export default function StudentsPage() {
 
             {/* ─── Credentials Dialog ────────────────────────────── */}
             <Dialog open={!!credentialData} onOpenChange={(open) => !open && setCredentialData(null)}>
-                <DialogContent className="bg-[#0B1020] border-white/10 text-white max-w-md">
+                <DialogContent className="bg-card border-white/10 text-white max-w-md">
                     <DialogHeader>
                         <div className="flex items-center gap-3 mb-1">
                             <div className="h-10 w-10 rounded-xl bg-cyan-500/10 flex items-center justify-center">
@@ -340,7 +340,7 @@ export default function StudentsPage() {
 
             {/* Student Profile Dialog */}
             <Dialog open={profileDialogOpen} onOpenChange={setProfileDialogOpen}>
-                <DialogContent className="bg-[#0B1020] border-white/10 text-white max-w-4xl max-h-[90vh] overflow-y-auto p-0">
+                <DialogContent className="bg-card border-white/10 text-white max-w-4xl max-h-[90vh] overflow-y-auto p-0">
                     {studentProfile ? (
                         <div className="space-y-0">
                             <div className="p-6 border-b border-white/5 bg-white/[0.02]">
@@ -471,7 +471,7 @@ export default function StudentsPage() {
 
             {/* Delete Confirmation Dialog */}
             <Dialog open={!!studentToDelete} onOpenChange={(open) => !open && setStudentToDelete(null)}>
-                <DialogContent className="bg-[#0B1020] border-white/10 text-white">
+                <DialogContent className="bg-card border-white/10 text-white">
                     <DialogHeader>
                         <DialogTitle className="text-red-500">Delete Student Account</DialogTitle>
                         <DialogDescription className="text-gray-400">
@@ -503,7 +503,7 @@ export default function StudentsPage() {
                     { label: "Applying", value: students.filter(s => s.status === "APPLYING").length, color: "text-blue-400" },
                     { label: "Departed/Arrived", value: students.filter(s => ["DEPARTED", "ARRIVED"].includes(s.status)).length, color: "text-purple-400" },
                 ].map((stat) => (
-                    <Card key={stat.label} className="bg-[#0B1020] border-white/10">
+                    <Card key={stat.label} className="bg-card border-white/10">
                         <CardContent className="p-4">
                             <p className="text-sm text-gray-400">{stat.label}</p>
                             <p className={`text-2xl font-bold ${stat.color}`}>{stat.value}</p>
@@ -513,7 +513,7 @@ export default function StudentsPage() {
             </div>
 
             {/* Filters */}
-            <Card className="bg-[#0B1020] border-white/10">
+            <Card className="bg-card border-white/10">
                 <CardContent className="p-4">
                     <div className="flex flex-col md:flex-row gap-4">
                         <form onSubmit={handleSearch} className="relative flex-1">
@@ -530,7 +530,7 @@ export default function StudentsPage() {
                                 <SelectTrigger className="w-[180px] bg-white/5 border-white/10 text-white">
                                     <SelectValue placeholder="Status" />
                                 </SelectTrigger>
-                                <SelectContent className="bg-[#0B1020] border-white/10 text-white">
+                                <SelectContent className="bg-card border-white/10 text-white">
                                     <SelectItem value="all">All Statuses</SelectItem>
                                     <SelectItem value="ACTIVE">Active</SelectItem>
                                     <SelectItem value="APPLYING">Applying</SelectItem>
@@ -560,7 +560,7 @@ export default function StudentsPage() {
             ) : (
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                     {students.map((student) => (
-                        <Card key={student.id} className="bg-[#0B1020] border-white/10 hover:border-cyan-500/30 transition-colors group">
+                        <Card key={student.id} className="bg-card border-white/10 hover:border-cyan-500/30 transition-colors group">
                             <CardContent className="p-6">
                                 <div className="flex items-start justify-between mb-4">
                                     <div className="h-12 w-12 rounded-full bg-gradient-to-br from-cyan-400 to-blue-600 flex items-center justify-center text-white font-semibold text-lg">

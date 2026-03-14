@@ -24,16 +24,34 @@ export async function POST(request: NextRequest) {
             case 'payment_intent.succeeded':
                 const paymentIntent = event.data.object;
                 console.log('Payment succeeded:', paymentIntent.id);
-
-                // TODO: Update database with payment status
-                // await prisma.payment.create({
-                //   data: {
-                //     userId: paymentIntent.metadata.userId,
-                //     amount: paymentIntent.amount,
-                //     status: 'COMPLETED',
-                //     stripePaymentIntentId: paymentIntent.id,
-                //   },
-                // });
+                try {
+                    // The invoiceId should be stored in Stripe metadata when the intent is created
+                    const invoiceId = paymentIntent.metadata?.invoiceId;
+                    if (invoiceId) {
+                        await prisma.payment.create({
+                            data: {
+                                invoiceId,
+                                amount: paymentIntent.amount / 100, // Stripe amounts are in cents
+                                method: 'STRIPE',
+                                status: 'SUCCESS',
+                                reference: paymentIntent.id,
+                            },
+                        });
+                        // Update the invoice paidAmount
+                        await prisma.invoice.update({
+                            where: { id: invoiceId },
+                            data: {
+                                status: 'PAID',
+                                paidAmount: paymentIntent.amount / 100,
+                            },
+                        });
+                        console.log(`Invoice ${invoiceId} marked as PAID`);
+                    } else {
+                        console.warn('Stripe webhook: payment_intent.succeeded has no invoiceId in metadata. Skipping DB update.');
+                    }
+                } catch (dbErr) {
+                    console.error('Webhook DB update error (payment_intent.succeeded):', dbErr);
+                }
                 break;
 
             case 'payment_intent.payment_failed':
@@ -42,10 +60,9 @@ export async function POST(request: NextRequest) {
                 break;
 
             case 'checkout.session.completed':
-                const session = event.data.object;
-                console.log('Checkout completed:', session.id);
-
-                // TODO: Fulfill the order, send confirmation email
+                const checkoutSession = event.data.object;
+                console.log('Checkout completed:', checkoutSession.id);
+                // The payment_intent.succeeded event handles the actual DB update
                 break;
 
             default:

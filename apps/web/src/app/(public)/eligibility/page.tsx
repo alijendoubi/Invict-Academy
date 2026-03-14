@@ -87,7 +87,7 @@ export default function AIEligibilityWizard() {
     }
 
     return (
-        <div className="min-h-screen bg-[#070A12] text-white pt-24 pb-20 px-4 relative overflow-hidden">
+        <div className="min-h-screen bg-background text-white pt-24 pb-20 px-4 relative overflow-hidden">
             {/* Background effects */}
             <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-cyan-600/10 rounded-full blur-[120px] pointer-events-none" />
             <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-blue-600/10 rounded-full blur-[120px] pointer-events-none" />
@@ -105,7 +105,7 @@ export default function AIEligibilityWizard() {
                 </div>
 
                 {/* Main Card */}
-                <div className="bg-[#0B1020]/80 backdrop-blur-xl border border-white/10 rounded-2xl p-6 md:p-10 shadow-2xl relative overflow-hidden">
+                <div className="bg-card/80 backdrop-blur-xl border border-white/10 rounded-2xl p-6 md:p-10 shadow-2xl relative overflow-hidden">
 
                     {/* Top Progress Bar */}
                     {step < 5 && (
@@ -221,7 +221,7 @@ export default function AIEligibilityWizard() {
                                             <SelectTrigger className="bg-white/5 border-white/10 text-white h-12">
                                                 <SelectValue placeholder={t.eligibility.step4.intakePlaceholder} />
                                             </SelectTrigger>
-                                            <SelectContent className="bg-[#0B1020] border-white/10 text-white">
+                                            <SelectContent className="bg-card border-white/10 text-white">
                                                 <SelectItem value="2025">September 2025</SelectItem>
                                                 <SelectItem value="2026">February / September 2026</SelectItem>
                                             </SelectContent>
@@ -233,7 +233,7 @@ export default function AIEligibilityWizard() {
                                             <SelectTrigger className="bg-white/5 border-white/10 text-white h-12">
                                                 <SelectValue placeholder={t.eligibility.step4.budgetPlaceholder} />
                                             </SelectTrigger>
-                                            <SelectContent className="bg-[#0B1020] border-white/10 text-white">
+                                            <SelectContent className="bg-card border-white/10 text-white">
                                                 <SelectItem value="low">{t.eligibility.step4.budgetLow}</SelectItem>
                                                 <SelectItem value="mid">{t.eligibility.step4.budgetMid}</SelectItem>
                                                 <SelectItem value="high">{t.eligibility.step4.budgetHigh}</SelectItem>

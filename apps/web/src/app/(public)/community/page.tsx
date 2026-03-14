@@ -93,7 +93,7 @@ export default function CommunityPage() {
                                 whileInView={{ opacity: 1, y: 0 }}
                                 viewport={{ once: true }}
                                 transition={{ delay: idx * 0.1 }}
-                                className="p-8 rounded-3xl bg-[#070A12] border border-white/5 hover:border-cyan-500/20 transition-colors group"
+                                className="p-8 rounded-3xl bg-background border border-white/5 hover:border-cyan-500/20 transition-colors group"
                             >
                                 <Quote size={40} className="text-cyan-500/20 mb-6 group-hover:text-cyan-500/40 transition-colors" />
                                 <p className="text-gray-300 leading-relaxed mb-6 flex-1 italic relative z-10">&quot;{testimonial.text}&quot;</p>
@@ -116,7 +116,7 @@ export default function CommunityPage() {
             </section>
 
             {/* Ambassadors Section */}
-            <section className="py-24 bg-[#070A12] border-t border-b border-white/5">
+            <section className="py-24 bg-background border-t border-b border-white/5">
                 <div className="container mx-auto px-4">
                     <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-6">
                         <div className="max-w-xl">
@@ -133,11 +133,11 @@ export default function CommunityPage() {
                                 whileInView={{ opacity: 1, scale: 1 }}
                                 viewport={{ once: true }}
                                 transition={{ delay: idx * 0.1 }}
-                                className="rounded-3xl bg-[#0B1020] border border-white/5 overflow-hidden group hover:border-white/10 transition-colors"
+                                className="rounded-3xl bg-card border border-white/5 overflow-hidden group hover:border-white/10 transition-colors"
                             >
                                 <div className={`h-24 w-full bg-gradient-to-br ${ambassador.color} opacity-20 group-hover:opacity-30 transition-opacity`} />
                                 <div className="p-6 pt-0 relative">
-                                    <div className={`h-20 w-20 rounded-2xl bg-gradient-to-br ${ambassador.color} text-white text-3xl font-bold flex items-center justify-center -mt-10 mb-4 shadow-xl border-4 border-[#0B1020]`}>
+                                    <div className={`h-20 w-20 rounded-2xl bg-gradient-to-br ${ambassador.color} text-white text-3xl font-bold flex items-center justify-center -mt-10 mb-4 shadow-xl border-4 border-card`}>
                                         {ambassador.img}
                                     </div>
                                     <h3 className="text-xl font-bold text-white mb-1">{ambassador.name}</h3>
@@ -160,7 +160,7 @@ export default function CommunityPage() {
 
             {/* CTA Section */}
             <section className="py-24 relative overflow-hidden">
-                <div className="absolute inset-0 bg-[url('/pattern.svg')] opacity-5" />
+                <div className="absolute inset-0 bg-[url('/grid-pattern.svg')] opacity-5" />
                 <div className="container mx-auto px-4 text-center relative z-10 max-w-3xl">
                     <h2 className="text-4xl md:text-5xl font-black text-white mb-6 tracking-tight">
                         {t.community.joinTitle}

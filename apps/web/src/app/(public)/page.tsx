@@ -28,7 +28,7 @@ export default function Home() {
 
 
     return (
-        <div className="flex flex-col min-h-screen bg-[#070A12] text-white overflow-hidden font-sans">
+        <div className="flex flex-col min-h-screen bg-background text-white overflow-hidden font-sans">
             {/* Premium Hero Section */}
             <section className="relative min-h-[90vh] flex items-center pt-24 pb-20 px-6 lg:px-12 border-b border-white/5 overflow-hidden">
                 {/* Dynamic Background Elements */}
@@ -89,7 +89,7 @@ export default function Home() {
                             </Button>
                             <div className="flex -space-x-3 items-center group cursor-pointer">
                                 {[1, 2, 3, 4].map(i => (
-                                    <div key={i} className="h-12 w-12 rounded-full border-2 border-[#070A12] bg-gray-800 flex items-center justify-center text-[10px] text-gray-400 group-hover:translate-x-1 transition-transform">S{i}</div>
+                                    <div key={i} className="h-12 w-12 rounded-full border-2 border-background bg-gray-800 flex items-center justify-center text-[10px] text-gray-400 group-hover:translate-x-1 transition-transform">S{i}</div>
                                 ))}
                                 <div className="ml-6">
                                     <p className="text-sm font-bold text-white">{t.hero.joinCommunity || "Join 2,400+ Students"}</p>
@@ -152,7 +152,7 @@ export default function Home() {
                         </div>
 
                         {/* Floating Badges */}
-                        <div className="absolute -top-10 -right-10 p-5 bg-[#0B1020] border border-white/10 rounded-3xl shadow-2xl animate-bounce backdrop-blur-xl">
+                        <div className="absolute -top-10 -right-10 p-5 bg-card border border-white/10 rounded-3xl shadow-2xl animate-bounce backdrop-blur-xl">
                             <div className="flex items-center gap-3">
                                 <div className="h-10 w-10 rounded-full bg-yellow-500/20 flex items-center justify-center text-yellow-500">
                                     <Coins size={20} />
@@ -164,7 +164,7 @@ export default function Home() {
                             </div>
                         </div>
 
-                        <div className="absolute -bottom-10 -left-10 p-5 bg-[#0B1020] border border-white/10 rounded-3xl shadow-2xl backdrop-blur-xl animate-pulse">
+                        <div className="absolute -bottom-10 -left-10 p-5 bg-card border border-white/10 rounded-3xl shadow-2xl backdrop-blur-xl animate-pulse">
                             <div className="flex items-center gap-3">
                                 <div className="h-10 w-10 rounded-full bg-cyan-500/20 flex items-center justify-center text-cyan-400">
                                     <Users size={20} />
@@ -193,8 +193,8 @@ export default function Home() {
             </div>
 
             {/* Live Community Wins Ticker */}
-            <div className="bg-[#0B1020] border-b border-white/5 py-6 overflow-hidden relative flex items-center">
-                <div className="absolute left-6 z-20 flex items-center gap-2 bg-[#0B1020] pr-6 border-r border-white/10 py-2">
+            <div className="bg-card border-b border-white/5 py-6 overflow-hidden relative flex items-center">
+                <div className="absolute left-6 z-20 flex items-center gap-2 bg-card pr-6 border-r border-white/10 py-2">
                     <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
                     <span className="text-sm font-bold text-white uppercase tracking-widest">{t.community.wallTitle || "Live Community Wins 🎉"}</span>
                 </div>
@@ -226,7 +226,7 @@ export default function Home() {
                         </span>
                     ))}
                 </div>
-                <div className="absolute inset-y-0 right-0 w-32 bg-gradient-to-l from-[#0B1020] to-transparent z-10" />
+                <div className="absolute inset-y-0 right-0 w-32 bg-gradient-to-l from-card to-transparent z-10" />
             </div>
 
             {/* ─── WHY CHOOSE US TEASER ─── */}
@@ -271,7 +271,7 @@ export default function Home() {
             </section>
 
             {/* ─── COMMUNITY SECTION ─── */}
-            <section className="py-28 px-6 lg:px-12 bg-[#070A12] border-t border-white/5">
+            <section className="py-28 px-6 lg:px-12 bg-background border-t border-white/5">
                 <div className="max-w-7xl mx-auto">
                     <div className="text-center mb-16 space-y-4">
                         <Badge className="bg-green-500/10 text-green-400 border-green-500/20 px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest">{t.homepage?.communityBadge || "Our Community"}</Badge>
@@ -324,7 +324,7 @@ export default function Home() {
             </section>
 
             {/* ─── OUR SERVICES TEASER ─── */}
-            <section className="py-32 px-6 lg:px-12 bg-[#070A12] border-t border-white/5">
+            <section className="py-32 px-6 lg:px-12 bg-background border-t border-white/5">
                 <div className="max-w-7xl mx-auto">
                     <div className="text-center mb-20 space-y-4">
                         <Badge className="bg-blue-500/10 text-blue-400 border-blue-500/20 px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest">{t.homepage?.servicesBadge || "Our Services"}</Badge>
@@ -385,7 +385,7 @@ export default function Home() {
             </section>
 
             {/* A to Z Process Section */}
-            <section className="py-32 px-6 lg:px-12 bg-[#070A12]">
+            <section className="py-32 px-6 lg:px-12 bg-background">
                 <div className="max-w-7xl mx-auto">
                     <div className="text-center mb-24 space-y-4">
                         <Badge className="bg-blue-500/10 text-blue-400 border-blue-500/20 px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest">{t.homepage?.processBadge || "The Student Journey"}</Badge>
@@ -474,7 +474,7 @@ export default function Home() {
             </section>
 
             {/* Testimonials (Success Stories Preview) */}
-            <section className="py-24 px-6 lg:px-12 bg-[#070A12]">
+            <section className="py-24 px-6 lg:px-12 bg-background">
                 <div className="container mx-auto max-w-7xl">
                     <div className="flex justify-between items-end mb-16">
                         <div className="space-y-4">
@@ -489,7 +489,7 @@ export default function Home() {
                             { name: "Sarah M.", school: "University of Bologna", text: "I didn't think I could study abroad with my budget. Invict found me a full-ride scholarship and a top law program.", tag: "Law Student" },
                             { name: "Kevin L.", school: "University of Rome", text: "The visa process was so scary, but Invict organized my file so perfectly that the interview was a breeze.", tag: "MBA Candidate" }
                         ].map((t, i) => (
-                            <Card key={i} className="bg-[#0B1020] border-white/10 p-8 rounded-[2rem]">
+                            <Card key={i} className="bg-card border-white/10 p-8 rounded-[2rem]">
                                 <div className="flex gap-1 mb-6">
                                     {[1, 2, 3, 4, 5].map(s => <Star key={s} size={14} className="text-yellow-500 fill-yellow-500" />)}
                                 </div>
@@ -511,7 +511,7 @@ export default function Home() {
             </section>
 
             {/* Redesigned Interactive Pathways (Refined Tabs) */}
-            <section className="py-32 px-6 lg:px-12 bg-gradient-to-b from-[#0B1020] to-[#070A12] border-y border-white/5">
+            <section className="py-32 px-6 lg:px-12 bg-gradient-to-b from-card to-background border-y border-white/5">
                 <div className="container mx-auto">
                     <div className="text-center mb-16 space-y-4">
                         <h2 className="text-4xl font-extrabold tracking-tight">{t.homepage?.supportPillarsTitle || "Our Support Pillars"}</h2>
@@ -639,7 +639,7 @@ export default function Home() {
             </section>
 
             {/* FAQ Section */}
-            <section className="py-32 px-6 lg:px-12 bg-[#070A12]">
+            <section className="py-32 px-6 lg:px-12 bg-background">
                 <div className="max-w-4xl mx-auto">
                     <div className="text-center mb-16 space-y-4">
                         <h2 className="text-4xl font-extrabold tracking-tight">{t.homepage?.faqTitle || "Common Questions"}</h2>
@@ -667,7 +667,7 @@ export default function Home() {
 
             {/* Massive CTA */}
             <section className="py-40 px-6 lg:px-12 bg-white relative overflow-hidden">
-                <div className="absolute inset-0 bg-[#070A12] z-0" />
+                <div className="absolute inset-0 bg-background z-0" />
                 <div className="max-w-7xl mx-auto text-center relative z-10 space-y-12">
                     <motion.div
                         initial={{ opacity: 0, scale: 0.9 }}

@@ -26,7 +26,7 @@ export function Navbar() {
     ]
 
     return (
-        <header className="fixed top-0 left-0 right-0 z-50 border-b border-white/5 bg-[#070A12]/80 backdrop-blur-md">
+        <header className="fixed top-0 left-0 right-0 z-50 border-b border-white/5 bg-background/80 backdrop-blur-md">
             <div className="container mx-auto px-4 h-[80px] flex items-center justify-between">
                 {/* Logo */}
                 <Link href="/" className="flex items-center space-x-2">
@@ -87,7 +87,7 @@ export function Navbar() {
 
             {/* Mobile Menu */}
             {isMenuOpen && (
-                <div className="lg:hidden border-t border-white/5 bg-[#070A12] px-4 py-6 space-y-2">
+                <div className="lg:hidden border-t border-white/5 bg-background px-4 py-6 space-y-2">
                     {navItems.map((item) => (
                         <Link
                             key={item.href}
