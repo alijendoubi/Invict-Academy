@@ -1,7 +1,12 @@
 import Stripe from 'stripe';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_placeholder', {
-    apiVersion: '2026-01-28.clover',
+const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+if (process.env.NODE_ENV === 'production' && !stripeSecretKey) {
+    throw new Error('STRIPE_SECRET_KEY is required in production');
+}
+
+const stripe = new Stripe(stripeSecretKey || 'sk_test_placeholder', {
+    apiVersion: '2024-06-20',
 });
 
 export interface CreatePaymentIntentParams {
@@ -124,11 +129,16 @@ export const paymentService = {
      * Verify webhook signature
      */
     verifyWebhookSignature(payload: string | Buffer, signature: string) {
+        const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+        if (!webhookSecret) {
+            console.error('STRIPE_WEBHOOK_SECRET is not set — webhook verification will fail');
+            return { success: false, error: 'Webhook secret not configured' };
+        }
         try {
             const event = stripe.webhooks.constructEvent(
                 payload,
                 signature,
-                process.env.STRIPE_WEBHOOK_SECRET || 'whsec_placeholder'
+                webhookSecret
             );
             return { success: true, event };
         } catch (error: any) {

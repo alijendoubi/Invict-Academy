@@ -35,7 +35,7 @@ export async function GET(request: NextRequest) {
                 stats: [
                     {
                         name: "Application Status",
-                        value: student.status.replace(/_/g, ' '),
+                        value: (student.status ?? 'Unknown').replace(/_/g, ' '),
                         change: "Live Tracking",
                         status: "up"
                     },

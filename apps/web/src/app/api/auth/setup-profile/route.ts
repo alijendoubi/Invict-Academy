@@ -36,9 +36,15 @@ export async function POST(request: NextRequest) {
                 password: hashedPassword,
                 requiresPasswordChange: false,
                 studentProfile: {
-                    update: {
-                        phone: phone || undefined,
-                        nationality: nationality || undefined,
+                    upsert: {
+                        create: {
+                            phone: phone || undefined,
+                            nationality: nationality || undefined,
+                        },
+                        update: {
+                            phone: phone || undefined,
+                            nationality: nationality || undefined,
+                        }
                     }
                 }
             }

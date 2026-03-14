@@ -87,7 +87,7 @@ export default function DashboardPage() {
         // Fetch the student profile id for uploads
         fetch('/api/user/profile')
             .then(r => r.json())
-            .then(d => { if (d?.studentProfile?.id || d?.id?.startsWith('demo-')) setStudentId(d.studentProfile?.id || "demo-123") })
+            .then(d => { if (d?.studentProfile?.id) setStudentId(d.studentProfile.id) })
             .catch(() => { })
     }, [])
 

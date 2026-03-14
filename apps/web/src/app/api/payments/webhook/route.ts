@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { paymentService } from '@/lib/stripe';
 import { prisma } from '@/lib/db';
 
+export const dynamic = 'force-dynamic';
+
 export async function POST(request: NextRequest) {
     try {
         const body = await request.text();
@@ -28,6 +30,13 @@ export async function POST(request: NextRequest) {
                     // The invoiceId should be stored in Stripe metadata when the intent is created
                     const invoiceId = paymentIntent.metadata?.invoiceId;
                     if (invoiceId) {
+                        const existingPayment = await prisma.payment.findFirst({
+                            where: { reference: paymentIntent.id },
+                        });
+                        if (existingPayment) {
+                            console.log(`Webhook duplicate: payment ${paymentIntent.id} already processed. Skipping.`);
+                            break;
+                        }
                         await prisma.payment.create({
                             data: {
                                 invoiceId,

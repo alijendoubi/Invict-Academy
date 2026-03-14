@@ -1,7 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod';
 import { prisma } from '@/lib/db';
 import { getSession } from '@/lib/auth';
 import { queueService } from '@/lib/queue';
+import { rateLimit, getClientIp } from '@/lib/rate-limit';
+
+const leadPostSchema = z.object({
+    firstName: z.string().min(1).max(100),
+    lastName: z.string().min(1).max(100),
+    email: z.string().email().max(254),
+    phone: z.string().max(30).optional(),
+    source: z.string().max(100).optional(),
+    interestedDegree: z.string().max(100).optional(),
+    interestedCountry: z.string().max(100).optional(),
+    destinationInterests: z.array(z.string().max(100)).optional(),
+    budgetRange: z.string().max(100).optional(),
+    timeline: z.string().max(100).optional(),
+});
 
 export const dynamic = 'force-dynamic';
 
@@ -21,14 +36,18 @@ export async function GET(request: NextRequest) {
         const status = searchParams.get('status');
         const search = searchParams.get('search');
 
+        const validStatuses = ['NEW', 'CONTACTED', 'QUALIFIED', 'CONSULT_BOOKED', 'WON', 'LOST'];
+        const safeStatus = status && status !== 'all' && validStatuses.includes(status) ? status : null;
+        const safeSearch = search ? search.slice(0, 100) : null;
+
         const leads = await prisma.lead.findMany({
             where: {
-                ...(status && status !== 'all' ? { status: status as any } : {}),
-                ...(search ? {
+                ...(safeStatus ? { status: safeStatus as any } : {}),
+                ...(safeSearch ? {
                     OR: [
-                        { firstName: { contains: search, mode: 'insensitive' } },
-                        { lastName: { contains: search, mode: 'insensitive' } },
-                        { email: { contains: search, mode: 'insensitive' } },
+                        { firstName: { contains: safeSearch, mode: 'insensitive' } },
+                        { lastName: { contains: safeSearch, mode: 'insensitive' } },
+                        { email: { contains: safeSearch, mode: 'insensitive' } },
                     ]
                 } : {}),
             },
@@ -48,22 +67,36 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+    const ip = getClientIp(request);
+    const rl = rateLimit(`leads:${ip}`, { limit: 5, windowSecs: 60 });
+    if (!rl.allowed) {
+        return NextResponse.json(
+            { error: 'Too many submissions. Please wait before trying again.' },
+            { status: 429, headers: { 'Retry-After': String(Math.ceil((rl.resetAt - Date.now()) / 1000)) } }
+        );
+    }
+
     try {
         const session = await getSession();
         const body = await request.json();
+
+        const parsed = leadPostSchema.safeParse(body);
+        if (!parsed.success) {
+            return NextResponse.json({ error: 'Validation failed', details: parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
+
         const {
             firstName,
             lastName,
             email,
             phone,
             source,
-            status,
             interestedDegree,
             interestedCountry,
             destinationInterests,
             budgetRange,
             timeline,
-        } = body;
+        } = parsed.data;
 
         const lead = await prisma.lead.create({
             data: {
@@ -72,7 +105,7 @@ export async function POST(request: NextRequest) {
                 email,
                 phone,
                 source,
-                status: status || 'NEW',
+                status: 'NEW', // Always NEW for public submissions
                 degreeLevel: interestedDegree,
                 budgetRange,
                 timeline,
@@ -96,7 +129,7 @@ export async function POST(request: NextRequest) {
 
             await queueService.sendEmail({
                 type: 'staff_new_lead',
-                to: 'staff@invictacademy.com',
+                to: process.env.STAFF_NOTIFICATION_EMAIL || 'staff@invictacademy.com',
                 data: {
                     leadId: lead.id,
                     leadName: `${lead.firstName} ${lead.lastName}`,

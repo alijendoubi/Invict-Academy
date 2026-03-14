@@ -29,7 +29,11 @@ export async function PATCH(
         // Access Control: Tasks are typically linked to applications or leads.
         // For applications, we check the student access.
         if (task.applicationId) {
-            const hasAccess = await verifyStudentAccess(task.application?.studentId as string);
+            const studentId = task.application?.studentId;
+            if (!studentId) {
+                return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+            }
+            const hasAccess = await verifyStudentAccess(studentId);
             if (!hasAccess) {
                 return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
             }

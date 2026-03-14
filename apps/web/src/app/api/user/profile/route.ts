@@ -12,7 +12,10 @@ export async function GET(request: NextRequest) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        const userId: string = session.user.id || session.user?.id || '';
+        const userId: string = session.user.id;
+        if (!userId) {
+            return NextResponse.json({ error: 'Invalid session' }, { status: 401 });
+        }
         const email: string = session.user?.email || '';
 
         // Real DB lookup

@@ -73,13 +73,9 @@ if (!isBuildPhase) {
 
                     switch (type) {
                         case 'generate_pdf':
-                            // TODO: Implement PDF generation
-                            console.log(`Generating PDF for user ${userId}`);
-                            break;
+                            throw new Error('generate_pdf is not yet implemented');
                         case 'process_upload':
-                            // TODO: Implement file processing (virus scan, compression, etc.)
-                            console.log(`Processing upload for user ${userId}`);
-                            break;
+                            throw new Error('process_upload is not yet implemented');
                         default:
                             console.warn(`Unknown document type: ${type}`);
                     }
@@ -107,9 +103,7 @@ if (!isBuildPhase) {
                             // Already handled by email worker
                             break;
                         case 'sms':
-                            // TODO: Implement SMS via Twilio
-                            console.log(`Sending SMS to user ${userId}`);
-                            break;
+                            throw new Error('sms notifications are not yet implemented');
                         case 'whatsapp':
                             const { phone, studentName, scheduledAt, consultationId, messageType, message } = data;
                             let msgBody = message;
@@ -132,9 +126,7 @@ if (!isBuildPhase) {
                             }
                             break;
                         case 'push':
-                            // TODO: Implement push notifications
-                            console.log(`Sending push notification to user ${userId}`);
-                            break;
+                            throw new Error('push notifications are not yet implemented');
                         default:
                             console.warn(`Unknown notification type: ${type}`);
                     }

@@ -6,7 +6,10 @@ const protectedRoutes = ['/dashboard'];
 const locales = ['en', 'fr', 'ar', 'tr', 'az'];
 const defaultLocale = 'en';
 
-const SECRET_KEY = process.env.JWT_SECRET || 'super-secret-key-change-me';
+const SECRET_KEY = process.env.JWT_SECRET;
+if (!SECRET_KEY) {
+    throw new Error('JWT_SECRET environment variable is required');
+}
 const key = new TextEncoder().encode(SECRET_KEY);
 
 async function decrypt(input: string): Promise<any> {
@@ -32,8 +35,21 @@ export async function middleware(request: NextRequest) {
         return NextResponse.next();
     }
 
+    // Strip locale prefix to normalize the pathname for protected-route checks
+    let normalizedPathname = pathname;
+    for (const locale of locales) {
+        if (pathname.startsWith(`/${locale}/`)) {
+            normalizedPathname = pathname.slice(locale.length + 1);
+            break;
+        }
+        if (pathname === `/${locale}`) {
+            normalizedPathname = '/';
+            break;
+        }
+    }
+
     // 1. Handle protected routes (Dashboards)
-    const isProtectedRoute = protectedRoutes.some((route) => pathname.startsWith(route));
+    const isProtectedRoute = protectedRoutes.some((route) => normalizedPathname.startsWith(route));
     if (isProtectedRoute) {
         const cookie = request.cookies.get('session')?.value;
         if (!cookie) {
@@ -43,7 +59,7 @@ export async function middleware(request: NextRequest) {
             const payload = await decrypt(cookie);
             const userRole = payload?.user?.role;
 
-            // Define management-only routes
+            // Define management-only routes (check against normalized pathname)
             const managementRoutes = [
                 '/dashboard/leads',
                 '/dashboard/students',
@@ -52,7 +68,7 @@ export async function middleware(request: NextRequest) {
                 '/dashboard/admin'
             ];
 
-            const isManagementRoute = managementRoutes.some(route => pathname.startsWith(route));
+            const isManagementRoute = managementRoutes.some(route => normalizedPathname.startsWith(route));
 
             if (isManagementRoute && !['SUPER_ADMIN', 'ADMIN', 'STAFF'].includes(userRole)) {
                 // Redirect students to their own dashboard or root dashboard

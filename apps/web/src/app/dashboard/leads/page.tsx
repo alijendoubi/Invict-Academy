@@ -6,8 +6,14 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import {
+    DropdownMenu, DropdownMenuContent, DropdownMenuItem,
+    DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,
+    DropdownMenuSub, DropdownMenuSubTrigger, DropdownMenuSubContent,
+} from "@/components/ui/dropdown-menu"
+import {
     Search, Filter, Plus, Mail, Phone, Calendar,
-    MoreHorizontal, Loader2, X
+    MoreHorizontal, Loader2, Pencil, Trash2, UserCheck,
+    CheckCircle2, PhoneCall, Award, Trophy, XCircle, BookOpen
 } from "lucide-react"
 import {
     Dialog, DialogContent, DialogDescription,
@@ -20,6 +26,15 @@ import {
 import { Label } from "@/components/ui/label"
 import { cn } from "@/lib/utils"
 
+const STATUSES = [
+    { value: 'NEW', label: 'New', icon: BookOpen },
+    { value: 'CONTACTED', label: 'Contacted', icon: PhoneCall },
+    { value: 'QUALIFIED', label: 'Qualified', icon: Award },
+    { value: 'CONSULT_BOOKED', label: 'Consult Booked', icon: UserCheck },
+    { value: 'WON', label: 'Won', icon: Trophy },
+    { value: 'LOST', label: 'Lost', icon: XCircle },
+] as const
+
 export default function LeadsPage() {
     const [leads, setLeads] = useState<any[]>([])
     const [loading, setLoading] = useState(true)
@@ -27,6 +42,7 @@ export default function LeadsPage() {
     const [statusFilter, setStatusFilter] = useState("all")
     const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
     const [submitting, setSubmitting] = useState(false)
+    const [actionLoading, setActionLoading] = useState<string | null>(null)
 
     const fetchLeads = useCallback(async (search = searchTerm) => {
         setLoading(true)
@@ -82,6 +98,39 @@ export default function LeadsPage() {
             console.error("Failed to add lead:", error)
         } finally {
             setSubmitting(false)
+        }
+    }
+
+    const handleStatusChange = async (leadId: string, newStatus: string) => {
+        setActionLoading(leadId)
+        try {
+            const res = await fetch(`/api/leads/${leadId}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status: newStatus }),
+            })
+            if (res.ok) {
+                setLeads(prev => prev.map(l => l.id === leadId ? { ...l, status: newStatus } : l))
+            }
+        } catch (err) {
+            console.error('Failed to update lead status:', err)
+        } finally {
+            setActionLoading(null)
+        }
+    }
+
+    const handleDelete = async (leadId: string) => {
+        if (!confirm('Delete this lead? This cannot be undone.')) return
+        setActionLoading(leadId)
+        try {
+            const res = await fetch(`/api/leads/${leadId}`, { method: 'DELETE' })
+            if (res.ok) {
+                setLeads(prev => prev.filter(l => l.id !== leadId))
+            }
+        } catch (err) {
+            console.error('Failed to delete lead:', err)
+        } finally {
+            setActionLoading(null)
         }
     }
 
@@ -267,10 +316,49 @@ export default function LeadsPage() {
                                             </div>
                                         </div>
                                     </div>
-                                    <div className="flex items-center gap-2 ml-4">
-                                        <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-gray-400 hover:text-white hover:bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity">
-                                            <MoreHorizontal className="h-4 w-4" />
-                                        </Button>
+                                    <div className="flex items-center gap-2 ml-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        {actionLoading === lead.id ? (
+                                            <Loader2 className="h-4 w-4 animate-spin text-gray-400" />
+                                        ) : (
+                                            <DropdownMenu>
+                                                <DropdownMenuTrigger asChild>
+                                                    <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-gray-400 hover:text-white hover:bg-white/10">
+                                                        <MoreHorizontal className="h-4 w-4" />
+                                                    </Button>
+                                                </DropdownMenuTrigger>
+                                                <DropdownMenuContent align="end" className="w-48">
+                                                    <DropdownMenuLabel>Lead Actions</DropdownMenuLabel>
+                                                    <DropdownMenuSeparator />
+                                                    <DropdownMenuSub>
+                                                        <DropdownMenuSubTrigger className="gap-2">
+                                                            <Pencil className="h-3.5 w-3.5 text-gray-400" />
+                                                            Change Status
+                                                        </DropdownMenuSubTrigger>
+                                                        <DropdownMenuSubContent>
+                                                            {STATUSES.map(s => (
+                                                                <DropdownMenuItem
+                                                                    key={s.value}
+                                                                    className={cn("gap-2", lead.status === s.value && "text-cyan-400")}
+                                                                    onClick={() => handleStatusChange(lead.id, s.value)}
+                                                                >
+                                                                    <s.icon className="h-3.5 w-3.5" />
+                                                                    {s.label}
+                                                                    {lead.status === s.value && <CheckCircle2 className="h-3.5 w-3.5 ml-auto" />}
+                                                                </DropdownMenuItem>
+                                                            ))}
+                                                        </DropdownMenuSubContent>
+                                                    </DropdownMenuSub>
+                                                    <DropdownMenuSeparator />
+                                                    <DropdownMenuItem
+                                                        className="gap-2 text-red-400 focus:text-red-400 focus:bg-red-500/10"
+                                                        onClick={() => handleDelete(lead.id)}
+                                                    >
+                                                        <Trash2 className="h-3.5 w-3.5" />
+                                                        Delete Lead
+                                                    </DropdownMenuItem>
+                                                </DropdownMenuContent>
+                                            </DropdownMenu>
+                                        )}
                                     </div>
                                 </div>
                             ))}

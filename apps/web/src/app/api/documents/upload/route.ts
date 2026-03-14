@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
         // resolve studentId from session if missing (for students)
         if ((!studentId || studentId === "null" || studentId === "undefined") && session.user?.role === 'STUDENT') {
             const profile = await prisma.studentProfile.findUnique({
-                where: { userId: session.user.id || session.user?.id }
+                where: { userId: session.user.id }
             });
             if (profile) studentId = profile.id;
         }
@@ -47,6 +47,23 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'No file uploaded' }, { status: 400 });
         }
 
+        const allowedMimeTypes = [
+            'application/pdf',
+            'image/jpeg',
+            'image/png',
+            'image/webp',
+            'application/msword',
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        ];
+        if (!allowedMimeTypes.includes(file.type)) {
+            return NextResponse.json({ error: 'File type not allowed. Only PDF, JPG, PNG, WEBP, and Word documents are accepted.' }, { status: 400 });
+        }
+
+        const maxSizeBytes = 10 * 1024 * 1024; // 10 MB
+        if (file.size > maxSizeBytes) {
+            return NextResponse.json({ error: 'File size exceeds 10 MB limit.' }, { status: 400 });
+        }
+
         const bytes = await file.arrayBuffer();
         const buffer = Buffer.from(bytes);
 
@@ -62,13 +79,20 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'S3 configuration missing' }, { status: 500 });
         }
 
+        const s3AccessKey = process.env.S3_ACCESS_KEY;
+        const s3SecretKey = process.env.S3_SECRET_KEY;
+        if (!s3AccessKey || !s3SecretKey) {
+            console.error('S3 credentials missing from environment variables');
+            return NextResponse.json({ error: 'Storage configuration error' }, { status: 500 });
+        }
+
         try {
             const s3 = new S3Client({
                 region: process.env.S3_REGION || 'eu-north-1',
                 endpoint: process.env.S3_ENDPOINT,
                 credentials: {
-                    accessKeyId: process.env.S3_ACCESS_KEY || '',
-                    secretAccessKey: process.env.S3_SECRET_KEY || '',
+                    accessKeyId: s3AccessKey,
+                    secretAccessKey: s3SecretKey,
                 },
                 forcePathStyle: true,
             });
@@ -83,7 +107,7 @@ export async function POST(request: NextRequest) {
             );
         } catch (s3Error) {
             console.error("S3 Upload Error:", s3Error);
-            return NextResponse.json({ error: 'Failed to upload to S3', details: String(s3Error) }, { status: 500 });
+            return NextResponse.json({ error: 'File upload failed. Please try again.' }, { status: 500 });
         }
 
 
@@ -110,7 +134,7 @@ export async function POST(request: NextRequest) {
 
     } catch (error: any) {
         console.error('Document upload error:', error);
-        return NextResponse.json({ error: error?.message || String(error), isInternalError: true }, { status: 500 });
+        return NextResponse.json({ error: 'An unexpected error occurred. Please try again.' }, { status: 500 });
     }
 }
 
@@ -126,6 +150,10 @@ export async function GET(request: NextRequest) {
         let studentId = searchParams.get('studentId');
 
         const isAdmin = ['SUPER_ADMIN', 'ADMIN', 'STAFF'].includes(session.user.role);
+
+        if (studentId && !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(studentId)) {
+            return NextResponse.json({ error: 'Invalid student ID format' }, { status: 400 });
+        }
 
         if (!isAdmin) {
             // If student, ignore studentId param and use their own profile ID

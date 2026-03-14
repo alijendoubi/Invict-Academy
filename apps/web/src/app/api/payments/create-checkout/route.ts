@@ -25,11 +25,12 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'User not found' }, { status: 404 });
         }
 
+        const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://www.invictacademy.com';
         const result = await paymentService.createCheckoutSession({
             amount,
             currency: 'eur',
-            successUrl: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/payments/success?session_id={CHECKOUT_SESSION_ID}`,
-            cancelUrl: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/payments/cancel`,
+            successUrl: `${appUrl}/dashboard/payments/success?session_id={CHECKOUT_SESSION_ID}`,
+            cancelUrl: `${appUrl}/dashboard/payments/cancel`,
             customerEmail: user.email,
             metadata: {
                 userId: session.user.id,

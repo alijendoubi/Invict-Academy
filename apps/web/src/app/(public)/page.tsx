@@ -444,7 +444,7 @@ export default function Home() {
                                     </div>
                                 ))}
                             </div>
-                            <Button size="lg" className="rounded-full px-10 h-14 bg-white/5 hover:bg-white/10 text-white border border-white/10">{t.homepage?.exploreUnisBtn || "Explore Universities"}</Button>
+                            <Button asChild size="lg" className="rounded-full px-10 h-14 bg-white/5 hover:bg-white/10 text-white border border-white/10"><Link href="/explore">{t.homepage?.exploreUnisBtn || "Explore Universities"}</Link></Button>
                         </div>
                         <div className="grid grid-cols-2 gap-6">
                             <div className="space-y-6 pt-12">
@@ -481,7 +481,7 @@ export default function Home() {
                             <h2 className="text-3xl font-bold">{t.homepage?.successStoriesTitle || "Student Success"}</h2>
                             <p className="text-gray-400">{t.homepage?.successStoriesDesc || "Join our alumni at Italy's most prestigious institutions."}</p>
                         </div>
-                        <Button variant="outline" className="rounded-full border-white/10 hover:bg-white/5">{t.homepage?.viewAllStoriesBtn || "View All Stories"}</Button>
+                        <Button asChild variant="outline" className="rounded-full border-white/10 hover:bg-white/5"><Link href="/contact">{t.homepage?.viewAllStoriesBtn || "View All Stories"}</Link></Button>
                     </div>
                     <div className="grid md:grid-cols-3 gap-8">
                         {[
@@ -551,7 +551,7 @@ export default function Home() {
                                             <p className="font-black text-5xl opacity-20 uppercase tracking-tighter">{tab.id}</p>
                                             <p className="text-2xl font-bold leading-tight">{t.homepage?.expertStrategyText || "Expert-level strategy for your Italian dreams."}</p>
                                         </div>
-                                        <Button size="lg" className="w-fit rounded-full bg-black text-white hover:bg-gray-900 border-none px-8 font-bold">{t.homepage?.discussAdvisorBtn || "Discuss with Advisor"}</Button>
+                                        <Button asChild size="lg" className="w-fit rounded-full bg-black text-white hover:bg-gray-900 border-none px-8 font-bold"><Link href="/contact">{t.homepage?.discussAdvisorBtn || "Discuss with Advisor"}</Link></Button>
                                     </div>
                                 </div>
                             </TabsContent>

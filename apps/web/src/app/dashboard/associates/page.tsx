@@ -152,7 +152,7 @@ export default function AssociatesPage() {
                                 <p className="text-gray-400 text-sm">{s.label}</p>
                                 <s.icon size={14} className={s.color} />
                             </div>
-                            <p className={`text - 2xl font - black ${s.color} `}>{s.value}</p>
+                            <p className={`text-2xl font-black ${s.color}`}>{s.value}</p>
                         </CardContent>
                     </Card>
                 ))}
@@ -176,7 +176,7 @@ export default function AssociatesPage() {
                                 <div className="h-10 w-10 rounded-full bg-gradient-to-br from-purple-500/30 to-blue-600/30 flex items-center justify-center text-white font-bold">
                                     {a.name?.charAt(0)}
                                 </div>
-                                <Badge className={`text - [10px] px - 1.5 py - 0 border ${a.status === "ACTIVE" ? "bg-green-500/10 text-green-400 border-green-500/20" : "bg-yellow-500/10 text-yellow-400 border-yellow-500/20"} `}>
+                                <Badge className={`text-[10px] px-1.5 py-0 border ${a.status === "ACTIVE" ? "bg-green-500/10 text-green-400 border-green-500/20" : "bg-yellow-500/10 text-yellow-400 border-yellow-500/20"}`}>
                                     {a.status}
                                 </Badge>
                             </div>

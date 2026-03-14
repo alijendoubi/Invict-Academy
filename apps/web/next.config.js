@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
     trailingSlash: false,
-    transpilePackages: ["@invict/db"],
+    transpilePackages: ["@invict/db", "@invict/email"],
     images: {
         remotePatterns: [
             {

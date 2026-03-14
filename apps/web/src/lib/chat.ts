@@ -1,7 +1,12 @@
 import OpenAI from 'openai';
 
+const openaiApiKey = process.env.OPENAI_API_KEY;
+if (process.env.NODE_ENV === 'production' && !openaiApiKey) {
+    console.warn('OPENAI_API_KEY not set - chat will use fallback responses only');
+}
+
 const openai = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY || 'sk-placeholder',
+    apiKey: openaiApiKey || 'sk-placeholder',
 });
 
 export interface ChatMessage {
@@ -28,14 +33,21 @@ Key facts:
 - Work rights included with study permit
 - We offer services: Admissions, Scholarships, Visa Support, Housing`;
 
+const MAX_MESSAGES = 20;
+const MAX_MESSAGE_LENGTH = 2000;
+
 export const chatService = {
     async generateResponse(messages: ChatMessage[]) {
+        const truncatedMessages = messages
+            .slice(-MAX_MESSAGES)
+            .map((m) => ({ ...m, content: m.content.slice(0, MAX_MESSAGE_LENGTH) }));
+
         try {
             const completion = await openai.chat.completions.create({
                 model: 'gpt-4o-mini',
                 messages: [
                     { role: 'system', content: SYSTEM_PROMPT },
-                    ...messages,
+                    ...truncatedMessages,
                 ],
                 temperature: 0.7,
                 max_tokens: 500,
@@ -51,7 +63,7 @@ export const chatService = {
             // Fallback to predefined responses if API fails
             return {
                 success: false,
-                message: chatService.getFallbackResponse(messages[messages.length - 1]?.content || ''),
+                message: chatService.getFallbackResponse(truncatedMessages[truncatedMessages.length - 1]?.content || ''),
             };
         }
     },

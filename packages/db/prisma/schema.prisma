@@ -256,17 +256,17 @@ model Task {
   dueDate     DateTime?
   
   creatorId   String?
-  creator     User?        @relation("TaskCreator", fields: [creatorId], references: [id])
-  
+  creator     User?        @relation("TaskCreator", fields: [creatorId], references: [id], onDelete: SetNull)
+
   assignedToId String?
-  assignedTo   User?       @relation("TaskAssignee", fields: [assignedToId], references: [id])
-  
+  assignedTo   User?       @relation("TaskAssignee", fields: [assignedToId], references: [id], onDelete: SetNull)
+
   // Relations to other entities
   leadId        String?
-  lead          Lead?        @relation(fields: [leadId], references: [id])
-  
+  lead          Lead?        @relation(fields: [leadId], references: [id], onDelete: SetNull)
+
   applicationId String?
-  application   Application? @relation(fields: [applicationId], references: [id])
+  application   Application? @relation(fields: [applicationId], references: [id], onDelete: SetNull)
   
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -291,7 +291,7 @@ model AssociateProfile {
 model CommissionLedger {
   id          String           @id @default(uuid())
   associateId String
-  associate   AssociateProfile @relation(fields: [associateId], references: [id])
+  associate   AssociateProfile @relation(fields: [associateId], references: [id], onDelete: Cascade)
   amount      Float
   description String
   status      String           // PENDING, PAID
@@ -301,7 +301,7 @@ model CommissionLedger {
 model Payout {
   id          String           @id @default(uuid())
   associateId String
-  associate   AssociateProfile @relation(fields: [associateId], references: [id])
+  associate   AssociateProfile @relation(fields: [associateId], references: [id], onDelete: Cascade)
   amount      Float
   status      String           // REQUESTED, PROCESSED
   createdAt   DateTime         @default(now())
@@ -319,7 +319,7 @@ model Package {
 model Invoice {
   id          String         @id @default(uuid())
   studentId   String
-  student     StudentProfile @relation(fields: [studentId], references: [id])
+  student     StudentProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
   packageId   String?
   package     Package?       @relation(fields: [packageId], references: [id])
   amount      Float
@@ -336,7 +336,7 @@ model Invoice {
 model Payment {
   id        String   @id @default(uuid())
   invoiceId String
-  invoice   Invoice  @relation(fields: [invoiceId], references: [id])
+  invoice   Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
   amount    Float
   method    String   // STRIPE, BANK_TRANSFER, MANUAL
   status    String   // SUCCESS, FAILED
@@ -347,7 +347,7 @@ model Payment {
 model AuditLog {
   id        String   @id @default(uuid())
   userId    String?
-  user      User?    @relation(fields: [userId], references: [id])
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
   action    String
   entity    String
   entityId  String
@@ -358,7 +358,7 @@ model AuditLog {
 model NotificationLog {
   id        String   @id @default(uuid())
   userId    String
-  user      User     @relation(fields: [userId], references: [id])
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   channel   String   // EMAIL, WHATSAPP, SYSTEM
   type      String   // WELCOME, REMINDER, etc.
   content   String?

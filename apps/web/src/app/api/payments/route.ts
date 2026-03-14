@@ -82,13 +82,14 @@ export async function GET(request: NextRequest) {
 
         const pendingInvoice = invoices.find(i => i.status !== 'PAID');
 
+        const firstUnpaidIdx = invoices.findIndex(i => i.status !== 'PAID');
         return NextResponse.json({
             invoices: invoices.map((inv, idx) => ({
                 id: inv.id,
                 description: inv.package?.name || `Service Invoice #${idx + 1}`,
                 amount: inv.amount,
                 // Map DB status to frontend display status
-                status: inv.status === 'PAID' ? 'PAID' : idx === invoices.findIndex(i => i.status !== 'PAID') ? 'PENDING' : 'UPCOMING',
+                status: inv.status === 'PAID' ? 'PAID' : idx === firstUnpaidIdx ? 'PENDING' : 'UPCOMING',
                 dueDate: inv.dueDate?.toISOString() ?? null,
                 paidDate: inv.payments.find(p => p.status === 'SUCCESS')?.createdAt?.toISOString() ?? null,
                 receiptUrl: inv.status === 'PAID' ? `/api/payments/${inv.id}/receipt` : null,

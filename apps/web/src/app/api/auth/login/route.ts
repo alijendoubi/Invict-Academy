@@ -1,9 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { encrypt } from '@/lib/auth';
+import { rateLimit, getClientIp } from '@/lib/rate-limit';
 
 export const dynamic = 'force-dynamic';
 
 export async function POST(request: NextRequest) {
+    const ip = getClientIp(request);
+    const rl = rateLimit(`login:${ip}`, { limit: 10, windowSecs: 60 });
+    if (!rl.allowed) {
+        return NextResponse.json(
+            { error: 'Too many login attempts. Please wait a minute and try again.' },
+            { status: 429, headers: { 'Retry-After': String(Math.ceil((rl.resetAt - Date.now()) / 1000)) } }
+        );
+    }
+
     try {
         const body = await request.json();
         const { email, password } = body;
@@ -37,8 +47,8 @@ export async function POST(request: NextRequest) {
                         expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
                     },
                 });
-            } catch {
-                // Session storage optional
+            } catch (sessionError) {
+                console.error('Session DB insert failed (non-fatal):', sessionError);
             }
 
             const response = NextResponse.json({ success: true, user: { id: user.id, role: user.role, email: user.email, requiresPasswordChange: user.requiresPasswordChange } });
@@ -58,7 +68,7 @@ export async function POST(request: NextRequest) {
             console.error('DATABASE_URL set:', !!process.env.DATABASE_URL);
             console.error('DIRECT_URL set:', !!process.env.DIRECT_URL);
             return NextResponse.json(
-                { error: `DB error: ${dbError?.message || 'unknown'}` },
+                { error: 'Service temporarily unavailable. Please try again.' },
                 { status: 503 }
             );
         }

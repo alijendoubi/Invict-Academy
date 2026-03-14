@@ -2,10 +2,20 @@ import { NextRequest, NextResponse } from 'next/server';
 import { chatService } from '@/lib/chat';
 import { prisma } from '@/lib/db';
 import { getSession } from '@/lib/auth';
+import { rateLimit, getClientIp } from '@/lib/rate-limit';
 
 export const dynamic = 'force-dynamic';
 
 export async function POST(request: NextRequest) {
+    const ip = getClientIp(request);
+    const rl = rateLimit(`chat:${ip}`, { limit: 30, windowSecs: 60 });
+    if (!rl.allowed) {
+        return NextResponse.json(
+            { error: 'Too many messages. Please slow down.' },
+            { status: 429, headers: { 'Retry-After': String(Math.ceil((rl.resetAt - Date.now()) / 1000)) } }
+        );
+    }
+
     try {
         const body = await request.json();
         const { messages, conversationId } = body;

@@ -91,7 +91,6 @@ export default function StudentsPage() {
 
             const res = await fetch(`/api/students?${params.toString()}`)
             const data = await res.json()
-            console.log('[DEBUG] Students API response (main):', data)
             let fetchedStudents = []
             if (Array.isArray(data)) {
                 fetchedStudents = data
@@ -347,7 +346,7 @@ export default function StudentsPage() {
                                 <div className="flex items-center gap-4">
                                     <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-cyan-500/20 to-blue-600/20 flex items-center justify-center border border-white/5 ring-1 ring-cyan-500/10 shadow-lg">
                                         <span className="text-2xl font-bold text-white">
-                                            {studentProfile.user.firstName[0]}{studentProfile.user.lastName[0]}
+                                            {studentProfile.user.firstName?.[0] ?? ''}{studentProfile.user.lastName?.[0] ?? ''}
                                         </span>
                                     </div>
                                     <div>
@@ -564,7 +563,7 @@ export default function StudentsPage() {
                             <CardContent className="p-6">
                                 <div className="flex items-start justify-between mb-4">
                                     <div className="h-12 w-12 rounded-full bg-gradient-to-br from-cyan-400 to-blue-600 flex items-center justify-center text-white font-semibold text-lg">
-                                        {student.user.firstName[0]}{student.user.lastName[0]}
+                                        {student.user.firstName?.[0] ?? ''}{student.user.lastName?.[0] ?? ''}
                                     </div>
                                     <Badge className={cn("text-[10px] py-0 px-1.5", getStatusColor(student.status))}>
                                         {student.status.replace(/_/g, ' ')}

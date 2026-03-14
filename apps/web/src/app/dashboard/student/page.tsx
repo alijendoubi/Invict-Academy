@@ -254,7 +254,7 @@ export default function StudentDashboardPage() {
                                                 </p>
                                                 <p className="text-gray-300 leading-relaxed">{msg.content}</p>
                                                 <p className="text-gray-700 text-[10px] mt-1.5">
-                                                    {new Date(msg.createdAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
+                                                    {new Date(msg.createdAt).toLocaleString("en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
                                                 </p>
                                             </div>
                                         </motion.div>

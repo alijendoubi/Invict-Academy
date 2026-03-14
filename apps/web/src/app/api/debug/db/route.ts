@@ -5,6 +5,10 @@ import { getSession } from '@/lib/auth';
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
+    if (process.env.NODE_ENV === 'production') {
+        return NextResponse.json({ error: 'Not Found' }, { status: 404 });
+    }
+
     try {
         const session = await getSession();
         if (!session || session.user.role !== 'SUPER_ADMIN') {
@@ -31,6 +35,7 @@ export async function GET() {
             dbUrlExists: !!process.env.DATABASE_URL,
         });
     } catch (error: any) {
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        console.error('Debug DB error:', error);
+        return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
     }
 }

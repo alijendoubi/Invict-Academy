@@ -218,12 +218,14 @@ export default function PaymentsPage() {
                                                 </div>
                                                 <div className="flex gap-2 flex-wrap">
                                                     {isPaid && (
-                                                        <Button size="sm" className="bg-white/5 hover:bg-white/10 text-white border border-white/10 rounded-xl gap-1.5 h-8 text-xs">
-                                                            <Download size={12} /> Download Receipt
-                                                        </Button>
+                                                        <a href={`/api/payments/${inv.id}/receipt`} target="_blank" rel="noopener noreferrer">
+                                                            <Button size="sm" className="bg-white/5 hover:bg-white/10 text-white border border-white/10 rounded-xl gap-1.5 h-8 text-xs">
+                                                                <Download size={12} /> Download Receipt
+                                                            </Button>
+                                                        </a>
                                                     )}
                                                     {inv.status === "PENDING" && (
-                                                        <a href="https://wa.me/393477590963?text=Hi, I'd like to pay invoice {inv.id}" target="_blank" rel="noopener noreferrer">
+                                                        <a href={`https://wa.me/393477590963?text=Hi, I'd like to pay invoice ${inv.id}`} target="_blank" rel="noopener noreferrer">
                                                             <Button size="sm" className="bg-green-600 hover:bg-green-500 text-white rounded-xl gap-1.5 h-8 text-xs">
                                                                 <MessageCircle size={12} /> Pay via WhatsApp
                                                             </Button>
@@ -234,9 +236,11 @@ export default function PaymentsPage() {
                                                             <Lock size={12} /> Not yet due
                                                         </Button>
                                                     )}
-                                                    <Button size="sm" variant="outline" className="border-white/10 text-gray-400 hover:text-white rounded-xl gap-1.5 h-8 text-xs">
-                                                        <FileText size={12} /> View Invoice
-                                                    </Button>
+                                                    <a href={`/api/payments/${inv.id}/invoice`} target="_blank" rel="noopener noreferrer">
+                                                        <Button size="sm" variant="outline" className="border-white/10 text-gray-400 hover:text-white rounded-xl gap-1.5 h-8 text-xs">
+                                                            <FileText size={12} /> View Invoice
+                                                        </Button>
+                                                    </a>
                                                 </div>
                                             </motion.div>
                                         )}

@@ -2,7 +2,7 @@ import { Metadata } from 'next'
 import { getCountry } from '@/lib/destinations'
 import Schema from '@/components/Schema'
 
-const DOMAIN = process.env.NEXT_PUBLIC_APP_URL || process.env.APP_URL || 'https://www.invictacademy.com'
+const DOMAIN = process.env.NEXT_PUBLIC_APP_URL || 'https://www.invictacademy.com'
 
 interface Props {
     params: Promise<{ country: string }>;

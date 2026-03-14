@@ -3,7 +3,7 @@ import { getUniversity } from '@/lib/destinations'
 import { notFound } from 'next/navigation'
 import Schema from '@/components/Schema'
 
-const DOMAIN = process.env.NEXT_PUBLIC_APP_URL || process.env.APP_URL || 'https://www.invictacademy.com'
+const DOMAIN = process.env.NEXT_PUBLIC_APP_URL || 'https://www.invictacademy.com'
 
 interface Props {
     params: Promise<{ country: string; city: string; university: string }>;

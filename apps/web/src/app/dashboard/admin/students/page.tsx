@@ -74,7 +74,6 @@ export default function AdminStudentsPage() {
         fetch("/api/students")
             .then(r => r.json())
             .then(data => {
-                console.log('[DEBUG] Students API response:', data)
                 const list = Array.isArray(data) ? data : Array.isArray(data?.data) ? data.data : []
                 if (!Array.isArray(data) && data?.error) {
                     console.error('[ERROR] Students API error:', data.error);
@@ -124,13 +123,15 @@ export default function AdminStudentsPage() {
         if (!whatsappMsg.trim() || !selectedStudent) return
         setSending(true)
         try {
-            await fetch("/api/whatsapp/send", {
+            const res = await fetch("/api/whatsapp/send", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ to: selectedStudent.phone, message: whatsappMsg }),
             })
-        } catch { }
-        await new Promise(r => setTimeout(r, 1200))
+            if (!res.ok) console.error('WhatsApp send failed:', await res.text())
+        } catch (err) {
+            console.error('WhatsApp send error:', err)
+        }
         setMessageSent(true)
         setWhatsappMsg("")
         setSending(false)
