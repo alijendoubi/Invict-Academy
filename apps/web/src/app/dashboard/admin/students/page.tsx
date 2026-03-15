@@ -13,16 +13,16 @@ import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
 // ─── Types ────────────────────────────────────────────────────
-type ApplicationStatus = "DRAFT" | "SUBMITTED" | "UNDER_REVIEW" | "ACCEPTED" | "REJECTED" | "VISA_PROCESSING" | "COMPLETED"
+type StudentStatusType = "ACTIVE" | "APPLYING" | "ACCEPTED" | "VISA_IN_PROGRESS" | "DEPARTED" | "ARRIVED" | "COMPLETED"
 
-const STATUS_CONFIG: Record<ApplicationStatus, { label: string; color: string; bg: string; icon: typeof CheckCircle2 }> = {
-    DRAFT: { label: "Draft", color: "text-gray-400", bg: "bg-gray-500/10", icon: Clock },
-    SUBMITTED: { label: "Submitted", color: "text-blue-400", bg: "bg-blue-500/10", icon: CheckCircle2 },
-    UNDER_REVIEW: { label: "Under Review", color: "text-yellow-400", bg: "bg-yellow-500/10", icon: AlertCircle },
+const STATUS_CONFIG: Record<StudentStatusType, { label: string; color: string; bg: string; icon: typeof CheckCircle2 }> = {
+    ACTIVE: { label: "Active", color: "text-gray-400", bg: "bg-gray-500/10", icon: Clock },
+    APPLYING: { label: "Applying", color: "text-blue-400", bg: "bg-blue-500/10", icon: CheckCircle2 },
     ACCEPTED: { label: "Accepted", color: "text-green-400", bg: "bg-green-500/10", icon: CheckCircle2 },
-    REJECTED: { label: "Rejected", color: "text-red-400", bg: "bg-red-500/10", icon: XCircle },
-    VISA_PROCESSING: { label: "Visa Processing", color: "text-purple-400", bg: "bg-purple-500/10", icon: Globe },
-    COMPLETED: { label: "Completed", color: "text-cyan-400", bg: "bg-cyan-500/10", icon: Sparkles },
+    VISA_IN_PROGRESS: { label: "Visa Processing", color: "text-purple-400", bg: "bg-purple-500/10", icon: Globe },
+    DEPARTED: { label: "Departed", color: "text-orange-400", bg: "bg-orange-500/10", icon: Sparkles },
+    ARRIVED: { label: "Arrived", color: "text-cyan-400", bg: "bg-cyan-500/10", icon: CheckCircle2 },
+    COMPLETED: { label: "Completed", color: "text-emerald-400", bg: "bg-emerald-500/10", icon: Sparkles },
 }
 
 const APPLICATION_STEPS = [
@@ -35,18 +35,9 @@ const APPLICATION_STEPS = [
     "Pre-Departure",
 ]
 
-// Map DB StudentStatus → CRM ApplicationStatus for display purposes
-function mapStatus(s: string): ApplicationStatus {
-    const map: Record<string, ApplicationStatus> = {
-        ACTIVE: "DRAFT",
-        APPLYING: "SUBMITTED",
-        ACCEPTED: "ACCEPTED",
-        VISA_IN_PROGRESS: "VISA_PROCESSING",
-        DEPARTED: "COMPLETED",
-        ARRIVED: "COMPLETED",
-        COMPLETED: "COMPLETED",
-    }
-    return map[s] ?? "DRAFT"
+function toStudentStatus(s: string): StudentStatusType {
+    if (s in STATUS_CONFIG) return s as StudentStatusType
+    return "ACTIVE"
 }
 
 export default function AdminStudentsPage() {
@@ -56,8 +47,9 @@ export default function AdminStudentsPage() {
     const [search, setSearch] = useState("")
     const [whatsappMsg, setWhatsappMsg] = useState("")
     const [sending, setSending] = useState(false)
-    const [selectedStatus, setSelectedStatus] = useState<ApplicationStatus | "">("")
+    const [selectedStatus, setSelectedStatus] = useState<StudentStatusType | "">("")
     const [messageSent, setMessageSent] = useState(false)
+    const [messageFailed, setMessageFailed] = useState(false)
 
     const [meetingDate, setMeetingDate] = useState("")
     const [meetingType, setMeetingType] = useState("Video Call")
@@ -65,7 +57,10 @@ export default function AdminStudentsPage() {
     const [scheduleSuccess, setScheduleSuccess] = useState(false)
     const [consultations, setConsultations] = useState<any[]>([])
     const [loadingConsults, setLoadingConsults] = useState(false)
-    const [displayStatus, setDisplayStatus] = useState<ApplicationStatus>("DRAFT")
+    const [displayStatus, setDisplayStatus] = useState<StudentStatusType>("ACTIVE")
+    const [verifyingDoc, setVerifyingDoc] = useState<string | null>(null)
+    const [rejectDocId, setRejectDocId] = useState<string | null>(null)
+    const [rejectReason, setRejectReason] = useState("")
 
     const searchParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
     const targetStudentId = searchParams?.get('studentId');
@@ -93,7 +88,7 @@ export default function AdminStudentsPage() {
 
     useEffect(() => {
         if (selectedStudent) {
-            setDisplayStatus(mapStatus(selectedStudent.status))
+            setDisplayStatus(toStudentStatus(selectedStudent.status))
             fetchConsultations(selectedStudent.id)
         }
     }, [selectedStudent])
@@ -122,20 +117,28 @@ export default function AdminStudentsPage() {
     async function handleWhatsAppSend() {
         if (!whatsappMsg.trim() || !selectedStudent) return
         setSending(true)
+        setMessageFailed(false)
         try {
             const res = await fetch("/api/whatsapp/send", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ to: selectedStudent.phone, message: whatsappMsg }),
             })
-            if (!res.ok) console.error('WhatsApp send failed:', await res.text())
+            if (res.ok) {
+                setMessageSent(true)
+                setWhatsappMsg("")
+                setTimeout(() => setMessageSent(false), 3000)
+            } else {
+                console.error('WhatsApp send failed:', await res.text())
+                setMessageFailed(true)
+                setTimeout(() => setMessageFailed(false), 4000)
+            }
         } catch (err) {
             console.error('WhatsApp send error:', err)
+            setMessageFailed(true)
+            setTimeout(() => setMessageFailed(false), 4000)
         }
-        setMessageSent(true)
-        setWhatsappMsg("")
         setSending(false)
-        setTimeout(() => setMessageSent(false), 3000)
     }
 
     async function handleScheduleMeeting() {
@@ -164,19 +167,58 @@ export default function AdminStudentsPage() {
         }
     }
 
-    async function handleStatusChange(newStatus: ApplicationStatus) {
-        setSelectedStatus(newStatus)
+    async function handleDocVerify(docId: string, status: "APPROVED" | "REJECTED", rejectionReason?: string) {
+        setVerifyingDoc(docId)
+        try {
+            const res = await fetch(`/api/documents/${docId}`, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ status, rejectionReason }),
+            })
+            if (res.ok) {
+                // Update local state
+                setSelectedStudent((prev: any) => prev ? {
+                    ...prev,
+                    documents: prev.documents?.map((d: any) =>
+                        d.id === docId ? { ...d, status, rejectionReason: rejectionReason || null } : d
+                    )
+                } : prev)
+                setRejectDocId(null)
+                setRejectReason("")
+            }
+        } catch (err) {
+            console.error("Document verify error:", err)
+        } finally {
+            setVerifyingDoc(null)
+        }
+    }
+
+    async function handleDocView(docId: string) {
+        try {
+            const res = await fetch(`/api/documents/${docId}`)
+            if (res.ok) {
+                const data = await res.json()
+                if (data.downloadUrl) window.open(data.downloadUrl, "_blank")
+            }
+        } catch (err) {
+            console.error("Document view error:", err)
+        }
+    }
+
+    async function handleStatusChange(newStatus: StudentStatusType) {
         if (!selectedStudent) return
         try {
-            // Find the first application for this student and update it
-            const appRes = await fetch(`/api/applications?studentId=${selectedStudent.id}`)
-            const apps = await appRes.json()
-            if (Array.isArray(apps) && apps.length > 0) {
-                await fetch(`/api/applications/${apps[0].id}`, {
-                    method: "PATCH",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ status: newStatus }),
-                })
+            const res = await fetch(`/api/students/${selectedStudent.id}`, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ status: newStatus }),
+            })
+            if (res.ok) {
+                setSelectedStatus(newStatus)
+                setDisplayStatus(newStatus)
+                // Update local state
+                setSelectedStudent((prev: any) => prev ? { ...prev, status: newStatus } : prev)
+                setStudents(prev => prev.map(s => s.id === selectedStudent.id ? { ...s, status: newStatus } : s))
             }
         } catch { }
     }
@@ -232,7 +274,7 @@ export default function AdminStudentsPage() {
                             />
                         </div>
                         {filtered.map(student => {
-                            const cfg = STATUS_CONFIG[mapStatus(student.status)]
+                            const cfg = STATUS_CONFIG[toStudentStatus(student.status)]
                             const name = `${student.user?.firstName ?? ""} ${student.user?.lastName ?? ""}`
                             return (
                                 <motion.button
@@ -308,7 +350,7 @@ export default function AdminStudentsPage() {
                                     <div>
                                         <p className="text-xs text-gray-500 uppercase tracking-widest font-semibold mb-3">Change Application Status</p>
                                         <div className="flex flex-wrap gap-2">
-                                            {(Object.entries(STATUS_CONFIG) as [ApplicationStatus, typeof STATUS_CONFIG[ApplicationStatus]][]).map(([key, cfg]) => (
+                                            {(Object.entries(STATUS_CONFIG) as [StudentStatusType, typeof STATUS_CONFIG[StudentStatusType]][]).map(([key, cfg]) => (
                                                 <button
                                                     key={key}
                                                     onClick={() => handleStatusChange(key)}
@@ -339,6 +381,91 @@ export default function AdminStudentsPage() {
                                             )
                                         })}
                                     </div>
+                                </div>
+
+                                {/* Document Locker */}
+                                <div className="p-6 rounded-3xl bg-white/[0.03] border border-white/10">
+                                    <div className="flex items-center justify-between mb-4">
+                                        <div className="flex items-center gap-2">
+                                            <FileText size={16} className="text-blue-400" />
+                                            <p className="text-sm font-semibold text-white">Document Locker</p>
+                                        </div>
+                                        <Badge variant="outline" className="text-blue-400 border-blue-500/20">
+                                            {student.documents?.length || 0}
+                                        </Badge>
+                                    </div>
+                                    {(!student.documents || student.documents.length === 0) ? (
+                                        <p className="text-sm text-gray-500 italic py-4 text-center">No documents uploaded yet</p>
+                                    ) : (
+                                        <div className="space-y-3">
+                                            {student.documents.map((doc: any) => (
+                                                <div key={doc.id} className="p-3 rounded-xl bg-white/[0.02] border border-white/5">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="h-10 w-10 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-400 shrink-0">
+                                                            <FileText size={18} />
+                                                        </div>
+                                                        <div className="flex-1 min-w-0">
+                                                            <p className="text-white font-medium text-xs truncate">{doc.filename}</p>
+                                                            <p className="text-gray-500 text-[10px]">{doc.type} · {new Date(doc.createdAt).toLocaleDateString()}</p>
+                                                        </div>
+                                                        <Badge className={`text-[10px] shrink-0 ${
+                                                            doc.status === 'APPROVED' ? 'bg-green-500/10 text-green-400 border-green-500/10' :
+                                                            doc.status === 'REJECTED' ? 'bg-red-500/10 text-red-400 border-red-500/10' :
+                                                            'bg-yellow-500/10 text-yellow-400 border-yellow-500/10'
+                                                        }`}>
+                                                            {doc.status}
+                                                        </Badge>
+                                                    </div>
+                                                    {doc.status === 'REJECTED' && doc.rejectionReason && (
+                                                        <p className="text-red-400/70 text-[10px] mt-2 ml-13 pl-[52px]">Reason: {doc.rejectionReason}</p>
+                                                    )}
+                                                    <div className="flex items-center gap-2 mt-2 pl-[52px]">
+                                                        <button
+                                                            onClick={() => handleDocView(doc.id)}
+                                                            className="text-[10px] px-2.5 py-1 rounded-lg bg-white/5 text-gray-400 hover:text-white hover:bg-white/10 transition-all"
+                                                        >
+                                                            View
+                                                        </button>
+                                                        {doc.status === 'PENDING' && (
+                                                            <>
+                                                                <button
+                                                                    onClick={() => handleDocVerify(doc.id, 'APPROVED')}
+                                                                    disabled={verifyingDoc === doc.id}
+                                                                    className="text-[10px] px-2.5 py-1 rounded-lg bg-green-500/10 text-green-400 hover:bg-green-500/20 transition-all disabled:opacity-50"
+                                                                >
+                                                                    {verifyingDoc === doc.id ? "..." : "Approve"}
+                                                                </button>
+                                                                <button
+                                                                    onClick={() => { setRejectDocId(rejectDocId === doc.id ? null : doc.id); setRejectReason("") }}
+                                                                    className="text-[10px] px-2.5 py-1 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-all"
+                                                                >
+                                                                    Reject
+                                                                </button>
+                                                            </>
+                                                        )}
+                                                    </div>
+                                                    {rejectDocId === doc.id && (
+                                                        <div className="mt-2 pl-[52px] flex gap-2">
+                                                            <input
+                                                                type="text"
+                                                                placeholder="Rejection reason..."
+                                                                value={rejectReason}
+                                                                onChange={e => setRejectReason(e.target.value)}
+                                                                className="flex-1 bg-white/5 border border-red-500/20 rounded-lg px-3 py-1.5 text-xs text-white placeholder:text-gray-600 focus:outline-none"
+                                                            />
+                                                            <button
+                                                                onClick={() => handleDocVerify(doc.id, 'REJECTED', rejectReason)}
+                                                                disabled={!rejectReason.trim() || verifyingDoc === doc.id}
+                                                                className="text-[10px] px-3 py-1.5 rounded-lg bg-red-500 text-white disabled:opacity-50"
+                                                            >
+                                                                Confirm
+                                                            </button>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
                                 </div>
 
                                 {/* WhatsApp Message Panel */}
@@ -376,7 +503,7 @@ export default function AdminStudentsPage() {
                                         className="w-full bg-white/[0.03] border border-white/10 rounded-xl p-4 text-sm text-white placeholder:text-gray-600 focus:outline-none focus:border-green-500/30 resize-none mb-3"
                                     />
                                     <div className="flex items-center gap-3">
-                                        <Button onClick={handleWhatsAppSend} disabled={sending || !whatsappMsg.trim()}
+                                        <Button onClick={handleWhatsAppSend} disabled={sending || !whatsappMsg.trim() || !selectedStudent?.phone}
                                             className="bg-green-600 hover:bg-green-500 text-white font-bold rounded-xl flex items-center gap-2">
                                             {sending ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
                                             {sending ? "Sending..." : "Send via WhatsApp"}
@@ -384,6 +511,11 @@ export default function AdminStudentsPage() {
                                         {messageSent && (
                                             <motion.span initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} className="text-green-400 text-sm flex items-center gap-1">
                                                 <CheckCircle2 size={14} /> Sent!
+                                            </motion.span>
+                                        )}
+                                        {messageFailed && (
+                                            <motion.span initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} className="text-red-400 text-sm flex items-center gap-1">
+                                                <XCircle size={14} /> Failed to send
                                             </motion.span>
                                         )}
                                     </div>
@@ -402,7 +534,7 @@ export default function AdminStudentsPage() {
                                                         </div>
                                                         <div>
                                                             <p className="text-sm font-medium text-white">
-                                                                {new Date(c.scheduledAt).toLocaleDateString(undefined, { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                                                                {c.scheduledAt ? new Date(c.scheduledAt).toLocaleDateString(undefined, { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : "TBD"}
                                                             </p>
                                                             <p className="text-xs text-gray-500">{c.notes?.replace('Type: ', '') || 'Consultation'}</p>
                                                         </div>
@@ -432,12 +564,12 @@ export default function AdminStudentsPage() {
                                         <select
                                             value={meetingType}
                                             onChange={e => setMeetingType(e.target.value)}
-                                            className="bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-gray-400 focus:outline-none focus:border-cyan-500/30"
+                                            className="bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-gray-400 focus:outline-none focus:border-cyan-500/30 [&>option]:bg-gray-900 [&>option]:text-white"
                                         >
-                                            <option>Video Call</option>
-                                            <option>WhatsApp Call</option>
-                                            <option>Phone Call</option>
-                                            <option>In Person</option>
+                                            <option className="bg-gray-900 text-white">Video Call</option>
+                                            <option className="bg-gray-900 text-white">WhatsApp Call</option>
+                                            <option className="bg-gray-900 text-white">Phone Call</option>
+                                            <option className="bg-gray-900 text-white">In Person</option>
                                         </select>
                                     </div>
                                     <Button

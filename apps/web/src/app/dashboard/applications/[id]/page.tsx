@@ -22,12 +22,11 @@ import { Label } from "@/components/ui/label"
 import { motion, AnimatePresence } from "framer-motion"
 
 const APPLICATION_STEPS = [
-    { key: "DOCUMENTS_RECEIVED", label: "Documents Received", icon: FileText, color: "text-blue-400" },
-    { key: "APPLICATION_SUBMITTED", label: "Application Submitted", icon: Clock, color: "text-cyan-400" },
+    { key: "DRAFT", label: "Draft", icon: FileText, color: "text-gray-400" },
+    { key: "DOCUMENTS_PENDING", label: "Documents Pending", icon: Clock, color: "text-blue-400" },
+    { key: "SUBMITTED", label: "Submitted", icon: CheckCircle, color: "text-cyan-400" },
     { key: "UNDER_REVIEW", label: "Under Review", icon: AlertCircle, color: "text-yellow-400" },
-    { key: "ADMISSION_LETTER", label: "Admission Letter", icon: GraduationCap, color: "text-purple-400" },
-    { key: "VISA_PROCESS", label: "Visa Process", icon: ExternalLink, color: "text-orange-400" },
-    { key: "COMPLETED", label: "Completed", icon: CheckCircle, color: "text-green-400" },
+    { key: "APPROVED", label: "Approved", icon: GraduationCap, color: "text-green-400" },
 ]
 
 function StepTracker({ currentStep }: { currentStep: string }) {
@@ -76,6 +75,7 @@ export default function ApplicationDetailsPage() {
     const [saving, setSaving] = useState(false)
     const [newTaskTitle, setNewTaskTitle] = useState("")
     const [fetchingTasks, setFetchingTasks] = useState(false)
+    const [taskError, setTaskError] = useState<string | null>(null)
 
     const fetchApplication = useCallback(async () => {
         try {
@@ -132,6 +132,7 @@ export default function ApplicationDetailsPage() {
         e.preventDefault()
         if (!newTaskTitle.trim()) return
         setFetchingTasks(true)
+        setTaskError(null)
         try {
             const res = await fetch(`/api/applications/${id}/tasks`, {
                 method: "POST",
@@ -141,7 +142,14 @@ export default function ApplicationDetailsPage() {
             if (res.ok) {
                 setNewTaskTitle("")
                 fetchApplication()
+            } else {
+                const data = await res.json().catch(() => ({}))
+                setTaskError(data?.error || "Failed to add task")
+                setTimeout(() => setTaskError(null), 4000)
             }
+        } catch {
+            setTaskError("Network error — could not add task")
+            setTimeout(() => setTaskError(null), 4000)
         } finally {
             setFetchingTasks(false)
         }
@@ -236,7 +244,7 @@ export default function ApplicationDetailsPage() {
 
                         <div className="pt-4 border-t border-white/5">
                             <p className="text-xs text-gray-500 uppercase tracking-widest mb-6 font-bold">Application Journey</p>
-                            <StepTracker currentStep={application.status === 'APPROVED' ? 'COMPLETED' : application.status} />
+                            <StepTracker currentStep={application.status} />
                         </div>
                     </CardContent>
                 </Card>
@@ -265,8 +273,8 @@ export default function ApplicationDetailsPage() {
                                     View Profile <ChevronRight size={14} className="group-hover:translate-x-1 transition-transform" />
                                 </Link>
                             </Button>
-                            <Button asChild variant="outline" className="w-full border-white/10 hover:bg-white/5 text-gray-300 h-10 group rounded-xl">
-                                <Link href={`/dashboard/admin/students?studentId=${application.studentId}`} className="flex items-center justify-between w-full">
+                            <Button asChild variant="outline" className="w-full border-white/10 hover:bg-green-500/5 text-gray-300 h-10 group rounded-xl">
+                                <Link href={`/dashboard/admin/students?studentId=${application.studentId}&section=whatsapp`} className="flex items-center justify-between w-full">
                                     Message Student <ChevronRight size={14} className="group-hover:translate-x-1 transition-transform" />
                                 </Link>
                             </Button>
@@ -339,6 +347,9 @@ export default function ApplicationDetailsPage() {
                                         </Button>
                                     </form>
                                 )}
+                                {taskError && (
+                                    <p className="text-xs text-red-400 bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2">{taskError}</p>
+                                )}
 
                                 <div className="space-y-3">
                                     {application.tasks?.length === 0 ? (
@@ -374,7 +385,8 @@ export default function ApplicationDetailsPage() {
                                                 <div className="absolute left-0 top-1 w-5 h-5 rounded-full bg-card border-4 border-white/10 flex items-center justify-center ring-4 ring-card">
                                                     <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.5)]" />
                                                 </div>
-                                                <p className="text-sm text-white font-medium">{log.description}</p>
+                                                <p className="text-sm text-white font-medium">{log.step?.replace(/_/g, ' ') || 'Step Update'}</p>
+                                                {log.note && <p className="text-xs text-gray-400 mt-0.5">{log.note}</p>}
                                                 <p className="text-[10px] text-gray-500 mt-1">{new Date(log.createdAt).toLocaleString()}</p>
                                             </div>
                                         ))

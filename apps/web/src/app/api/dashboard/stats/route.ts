@@ -30,6 +30,15 @@ export async function GET(request: NextRequest) {
                 return NextResponse.json({ stats: [], role: 'STUDENT' });
             }
 
+            // Compute readiness score dynamically
+            const totalDocs = student.documents.length;
+            const approvedDocs = student.documents.filter(d => d.status === 'APPROVED').length;
+            const hasApplication = student.applications.length > 0;
+            const docScore = totalDocs > 0 ? Math.round((approvedDocs / totalDocs) * 60) : 0;
+            const appScore = hasApplication ? 20 : 0;
+            const profileScore = 20; // base score for having a profile
+            const computedReadiness = Math.min(docScore + appScore + profileScore, 100);
+
             return NextResponse.json({
                 role: 'STUDENT',
                 stats: [
@@ -41,9 +50,9 @@ export async function GET(request: NextRequest) {
                     },
                     {
                         name: "Readiness Score",
-                        value: `${student.readinessScore}%`,
-                        change: "Based on docs",
-                        status: "up"
+                        value: `${computedReadiness}%`,
+                        change: totalDocs > 0 ? `${approvedDocs}/${totalDocs} docs approved` : "Upload documents",
+                        status: computedReadiness >= 80 ? "up" : "neutral"
                     },
                     {
                         name: "Applications",
@@ -60,7 +69,7 @@ export async function GET(request: NextRequest) {
                 ],
                 progress: {
                     status: student.status,
-                    score: student.readinessScore
+                    score: computedReadiness
                 }
             });
         }

@@ -102,6 +102,25 @@ export async function PATCH(
             data: updateData,
         });
 
+        // Auto-sync student profile status when application status changes
+        if (status && isAdmin) {
+            const statusMap: Record<string, 'ACTIVE' | 'APPLYING' | 'ACCEPTED' | 'VISA_IN_PROGRESS' | 'DEPARTED' | 'ARRIVED' | 'COMPLETED'> = {
+                DRAFT: 'ACTIVE',
+                DOCUMENTS_PENDING: 'ACTIVE',
+                SUBMITTED: 'APPLYING',
+                UNDER_REVIEW: 'APPLYING',
+                APPROVED: 'ACCEPTED',
+                REJECTED: 'ACTIVE',
+            };
+            const newStudentStatus = statusMap[status];
+            if (newStudentStatus) {
+                await prisma.studentProfile.update({
+                    where: { id: application.studentId },
+                    data: { status: newStudentStatus },
+                });
+            }
+        }
+
         await logAudit('UPDATE_APPLICATION', 'Application', id, `Updated application fields: ${Object.keys(updateData).join(', ')}`);
 
         return NextResponse.json(updatedApplication);

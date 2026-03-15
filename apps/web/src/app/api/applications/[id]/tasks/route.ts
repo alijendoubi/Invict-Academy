@@ -1,8 +1,45 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
-import { getSession } from '@/lib/auth';
+import { getSession, verifyStudentAccess } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
+
+export async function GET(
+    request: NextRequest,
+    { params }: { params: Promise<{ id: string }> }
+) {
+    try {
+        const { id: applicationId } = await params;
+        const session = await getSession();
+        if (!session) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
+
+        const application = await prisma.application.findUnique({
+            where: { id: applicationId },
+            select: { studentId: true }
+        });
+
+        if (!application) {
+            return NextResponse.json({ error: 'Application not found' }, { status: 404 });
+        }
+
+        const hasAccess = await verifyStudentAccess(application.studentId);
+        if (!hasAccess) {
+            return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+        }
+
+        const tasks = await prisma.task.findMany({
+            where: { applicationId },
+            orderBy: [{ status: 'asc' }, { dueDate: 'asc' }],
+        });
+
+        return NextResponse.json(tasks);
+    } catch (error) {
+        console.error('Tasks GET error:', error);
+        return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    }
+}
 
 export async function POST(
     request: NextRequest,

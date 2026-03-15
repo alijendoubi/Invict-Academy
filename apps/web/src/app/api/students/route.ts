@@ -53,6 +53,9 @@ export async function GET(request: NextRequest) {
                     select: { firstName: true, lastName: true, email: true }
                 },
                 applications: true,
+                documents: {
+                    orderBy: { createdAt: 'desc' },
+                },
             },
             orderBy: { updatedAt: 'desc' },
         });

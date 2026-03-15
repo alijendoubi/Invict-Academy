@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
-import { getSession } from '@/lib/auth';
+import { getSession, logAudit } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
 
@@ -57,6 +57,8 @@ export async function POST(request: NextRequest) {
                     },
                 });
 
+                await logAudit('CREATE_INVOICE', 'Invoice', invoice.id, `Created invoice for €${amount} (student: ${studentId})`);
+
                 return NextResponse.json({ success: true, invoice });
             }
 
@@ -76,28 +78,41 @@ export async function POST(request: NextRequest) {
                     return NextResponse.json({ error: 'Invoice not found' }, { status: 404 });
                 }
 
-                const payment = await prisma.payment.create({
-                    data: {
-                        invoiceId,
-                        amount: payAmount,
-                        method,
-                        status: 'SUCCESS',
-                        reference: reference || null,
-                    },
+                // Prevent overpayment
+                const remaining = invoice.amount - invoice.paidAmount;
+                if (payAmount > remaining) {
+                    return NextResponse.json({ error: `Payment of €${payAmount} exceeds remaining balance of €${remaining}` }, { status: 400 });
+                }
+
+                // Use transaction to ensure payment + invoice update are atomic
+                const result = await prisma.$transaction(async (tx) => {
+                    const payment = await tx.payment.create({
+                        data: {
+                            invoiceId,
+                            amount: payAmount,
+                            method,
+                            status: 'SUCCESS',
+                            reference: reference || null,
+                        },
+                    });
+
+                    const newPaidAmount = invoice.paidAmount + payAmount;
+                    const newStatus = newPaidAmount >= invoice.amount ? 'PAID' : 'PARTIAL';
+
+                    await tx.invoice.update({
+                        where: { id: invoiceId },
+                        data: {
+                            paidAmount: newPaidAmount,
+                            status: newStatus,
+                        },
+                    });
+
+                    return { payment, invoiceStatus: newStatus };
                 });
 
-                const newPaidAmount = invoice.paidAmount + payAmount;
-                const newStatus = newPaidAmount >= invoice.amount ? 'PAID' : 'PARTIAL';
+                await logAudit('RECORD_PAYMENT', 'Payment', result.payment.id, `Recorded €${payAmount} payment via ${method} (invoice: ${invoiceId}, new status: ${result.invoiceStatus})`);
 
-                await prisma.invoice.update({
-                    where: { id: invoiceId },
-                    data: {
-                        paidAmount: newPaidAmount,
-                        status: newStatus,
-                    },
-                });
-
-                return NextResponse.json({ success: true, payment, invoiceStatus: newStatus });
+                return NextResponse.json({ success: true, payment: result.payment, invoiceStatus: result.invoiceStatus });
             }
 
             case 'update_status': {
@@ -127,6 +142,8 @@ export async function POST(request: NextRequest) {
                     where: { id: invId },
                     data: updateData,
                 });
+
+                await logAudit('UPDATE_INVOICE_STATUS', 'Invoice', invId, `Updated invoice status from ${inv.status} to ${status}`);
 
                 return NextResponse.json({ success: true, invoice: updated });
             }

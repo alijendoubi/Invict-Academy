@@ -90,8 +90,9 @@ export async function GET(request: NextRequest) {
                 id: inv.id,
                 description: inv.package?.name || `Service Invoice #${idx + 1}`,
                 amount: inv.amount,
+                paidAmount: inv.paidAmount,
                 // Map DB status to frontend display status
-                status: inv.status === 'PAID' ? 'PAID' : idx === firstUnpaidIdx ? 'PENDING' : 'UPCOMING',
+                status: inv.status === 'PAID' ? 'PAID' : inv.status === 'PARTIAL' ? 'PENDING' : idx === firstUnpaidIdx ? 'PENDING' : 'UPCOMING',
                 dueDate: inv.dueDate?.toISOString() ?? null,
                 paidDate: inv.payments.find(p => p.status === 'SUCCESS')?.createdAt?.toISOString() ?? null,
                 receiptUrl: inv.status === 'PAID' ? `/api/payments/${inv.id}/receipt` : null,
@@ -105,6 +106,7 @@ export async function GET(request: NextRequest) {
                 packageName: invoices[0]?.package?.name ?? 'Service Package',
                 startDate: studentProfile.createdAt?.toISOString() ?? null,
             },
+            isAdmin,
         });
     } catch (error) {
         console.error('Payments GET error:', error);

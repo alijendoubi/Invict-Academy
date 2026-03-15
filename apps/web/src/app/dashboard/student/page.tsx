@@ -18,12 +18,11 @@ import {
 } from "lucide-react"
 
 const APPLICATION_STEPS = [
-    { key: "DOCUMENTS_RECEIVED", label: "Documents Received", icon: FileText, color: "text-blue-400" },
-    { key: "APPLICATION_SUBMITTED", label: "Application Submitted", icon: Upload, color: "text-cyan-400" },
+    { key: "DRAFT", label: "Draft", icon: FileText, color: "text-gray-400" },
+    { key: "DOCUMENTS_PENDING", label: "Documents Pending", icon: Upload, color: "text-blue-400" },
+    { key: "SUBMITTED", label: "Submitted", icon: CheckCircle, color: "text-cyan-400" },
     { key: "UNDER_REVIEW", label: "Under Review", icon: Loader2, color: "text-yellow-400" },
-    { key: "ADMISSION_LETTER", label: "Admission Letter", icon: GraduationCap, color: "text-purple-400" },
-    { key: "VISA_PROCESS", label: "Visa Process", icon: Plane, color: "text-orange-400" },
-    { key: "COMPLETED", label: "Completed", icon: CheckCircle2, color: "text-green-400" },
+    { key: "APPROVED", label: "Approved", icon: GraduationCap, color: "text-green-400" },
 ]
 
 function StepTracker({ currentStep }: { currentStep: string }) {
@@ -83,6 +82,8 @@ export default function StudentDashboardPage() {
     const [reply, setReply] = useState("")
     const [sendingReply, setSendingReply] = useState(false)
     const [replySent, setReplySent] = useState(false)
+    const [tasks, setTasks] = useState<any[]>([])
+    const [updatingTask, setUpdatingTask] = useState<string | null>(null)
 
     useEffect(() => {
         const load = async () => {
@@ -111,7 +112,20 @@ export default function StudentDashboardPage() {
                 }
                 if (appsRes.status === "fulfilled") {
                     const apps = await appsRes.value.json()
-                    setApplications(Array.isArray(apps) ? apps : [])
+                    const appList = Array.isArray(apps) ? apps : []
+                    setApplications(appList)
+                    // Fetch tasks for all applications
+                    const allTasks: any[] = []
+                    for (const app of appList) {
+                        try {
+                            const taskRes = await fetch(`/api/applications/${app.id}/tasks`)
+                            if (taskRes.ok) {
+                                const t = await taskRes.json()
+                                if (Array.isArray(t)) allTasks.push(...t.map((task: any) => ({ ...task, applicationName: app.university })))
+                            }
+                        } catch {}
+                    }
+                    setTasks(allTasks)
                 }
 
                 // Fetch real documents
@@ -129,7 +143,7 @@ export default function StudentDashboardPage() {
         load()
     }, [])
 
-    const unreadCount = messages.filter(m => !m.readAt).length
+    const unreadCount = messages.filter(m => m.fromAdmin && !m.readAt).length
 
     if (loading) {
         return (
@@ -175,6 +189,15 @@ export default function StudentDashboardPage() {
             <div className="max-w-7xl mx-auto p-6 space-y-6">
 
                 {/* Application Journey Tracker */}
+                {applications.length === 0 && (
+                    <Card className="bg-card border-white/10">
+                        <CardContent className="py-12 text-center">
+                            <FileText className="h-8 w-8 mx-auto mb-3 text-gray-600 opacity-40" />
+                            <p className="text-gray-400 text-sm font-medium">No applications yet</p>
+                            <p className="text-gray-600 text-xs mt-1">Your university applications will appear here once created.</p>
+                        </CardContent>
+                    </Card>
+                )}
                 {applications.map((app) => (
                     <motion.div
                         key={app.id}
@@ -190,12 +213,12 @@ export default function StudentDashboardPage() {
                                         <p className="text-sm text-gray-400">{app.program} · {app.country}</p>
                                     </div>
                                     <div className="flex items-center gap-3">
-                                        <Badge className={`${app.currentStep === "COMPLETED" ? "bg-green-500/10 text-green-400 border-green-500/20" :
-                                            app.currentStep === "ADMISSION_LETTER" ? "bg-purple-500/10 text-purple-400 border-purple-500/20" :
-                                                app.currentStep === "VISA_PROCESS" ? "bg-orange-500/10 text-orange-400 border-orange-500/20" :
+                                        <Badge className={`${app.status === "APPROVED" ? "bg-green-500/10 text-green-400 border-green-500/20" :
+                                            app.status === "REJECTED" ? "bg-red-500/10 text-red-400 border-red-500/20" :
+                                                app.status === "UNDER_REVIEW" ? "bg-yellow-500/10 text-yellow-400 border-yellow-500/20" :
                                                     "bg-cyan-500/10 text-cyan-400 border-cyan-500/20"
                                             } border`}>
-                                            {APPLICATION_STEPS.find(s => s.key === app.currentStep)?.label || app.currentStep}
+                                            {APPLICATION_STEPS.find(s => s.key === app.status)?.label || app.status}
                                         </Badge>
                                         <Button asChild size="sm" variant="ghost" className="h-8 text-cyan-400 hover:text-cyan-300 hover:bg-cyan-500/10 px-2 group">
                                             <Link href={`/dashboard/applications/${app.id}`} className="flex items-center gap-1.5 font-bold">
@@ -207,9 +230,9 @@ export default function StudentDashboardPage() {
                             </CardHeader>
                             <CardContent className="pt-6">
                                 <p className="text-xs text-gray-500 uppercase tracking-widest mb-5 font-semibold">Application Journey</p>
-                                <StepTracker currentStep={app.currentStep || "DOCUMENTS_RECEIVED"} />
+                                <StepTracker currentStep={app.status || "DRAFT"} />
                                 <p className="text-xs text-gray-600 mt-5 text-right">
-                                    Last updated: {new Date(app.updatedAt).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}
+                                    Last updated: {app.updatedAt ? new Date(app.updatedAt).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" }) : "—"}
                                 </p>
                             </CardContent>
                         </Card>
@@ -324,6 +347,66 @@ export default function StudentDashboardPage() {
                             </CardContent>
                         </Card>
 
+                        {/* My Tasks */}
+                        {tasks.length > 0 && (
+                            <Card className="bg-card border-white/10">
+                                <CardHeader className="border-b border-white/5">
+                                    <CardTitle className="text-white flex items-center gap-2">
+                                        <CheckCircle size={18} className="text-orange-400" />
+                                        My Tasks
+                                        <span className="ml-auto text-xs text-gray-500">
+                                            {tasks.filter(t => t.status === 'DONE').length}/{tasks.length} done
+                                        </span>
+                                    </CardTitle>
+                                </CardHeader>
+                                <CardContent className="pt-4 space-y-2">
+                                    {tasks.map(task => (
+                                        <div key={task.id} className={`flex items-center gap-3 p-3 rounded-xl border ${
+                                            task.status === 'DONE' ? 'bg-green-500/5 border-green-500/20' :
+                                            task.priority === 'HIGH' || task.priority === 'URGENT' ? 'bg-red-500/5 border-red-500/20' :
+                                            'bg-white/[0.02] border-white/5'
+                                        }`}>
+                                            <button
+                                                disabled={task.status === 'DONE' || updatingTask === task.id}
+                                                onClick={async () => {
+                                                    setUpdatingTask(task.id)
+                                                    try {
+                                                        const res = await fetch(`/api/tasks/${task.id}`, {
+                                                            method: "PATCH",
+                                                            headers: { "Content-Type": "application/json" },
+                                                            body: JSON.stringify({ status: "DONE" }),
+                                                        })
+                                                        if (res.ok) {
+                                                            setTasks(prev => prev.map(t => t.id === task.id ? { ...t, status: 'DONE' } : t))
+                                                        }
+                                                    } catch {}
+                                                    setUpdatingTask(null)
+                                                }}
+                                                className="shrink-0"
+                                            >
+                                                {task.status === 'DONE'
+                                                    ? <CheckCircle2 size={16} className="text-green-400" />
+                                                    : updatingTask === task.id
+                                                        ? <Loader2 size={16} className="animate-spin text-gray-400" />
+                                                        : <Circle size={16} className="text-gray-500 hover:text-cyan-400 transition-colors" />
+                                                }
+                                            </button>
+                                            <div className="flex-1 min-w-0">
+                                                <p className={`text-sm ${task.status === 'DONE' ? 'text-gray-500 line-through' : 'text-white'}`}>{task.title}</p>
+                                                <p className="text-xs text-gray-600">
+                                                    {task.applicationName}
+                                                    {task.dueDate && ` · Due ${new Date(task.dueDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}`}
+                                                </p>
+                                            </div>
+                                            {task.priority === 'HIGH' || task.priority === 'URGENT' ? (
+                                                <Badge className="bg-red-500/10 text-red-400 border-red-500/10 text-[10px]">{task.priority}</Badge>
+                                            ) : null}
+                                        </div>
+                                    ))}
+                                </CardContent>
+                            </Card>
+                        )}
+
                         {/* Required Documents — Live List */}
                         <Card className="bg-card border-white/10">
                             <CardHeader className="border-b border-white/5">
@@ -404,10 +487,16 @@ export default function StudentDashboardPage() {
                                                 }
 
                                                 setUploadSuccess(true)
+                                                // Refresh document list
+                                                try {
+                                                    const docsRes = await fetch('/api/documents/my')
+                                                    const docsData = await docsRes.json()
+                                                    if (Array.isArray(docsData)) setDocuments(docsData)
+                                                } catch {}
                                                 setTimeout(() => {
                                                     setIsUploadModalOpen(false)
                                                     setUploadSuccess(false)
-                                                }, 2000)
+                                                }, 1500)
                                             } catch (error: any) {
                                                 setUploadError(error.message || "Something went wrong")
                                             } finally {

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
-import { getSession, verifyStudentAccess } from '@/lib/auth';
+import { getSession, verifyStudentAccess, logAudit } from '@/lib/auth';
 
 export async function GET(
     request: NextRequest,
@@ -46,6 +46,50 @@ export async function GET(
         return NextResponse.json(studentProfile);
     } catch (error) {
         console.error('Student Profile GET error:', error);
+        return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    }
+}
+
+const VALID_STUDENT_STATUSES = ['ACTIVE', 'APPLYING', 'ACCEPTED', 'VISA_IN_PROGRESS', 'DEPARTED', 'ARRIVED', 'COMPLETED'];
+
+export async function PATCH(
+    request: NextRequest,
+    { params }: { params: Promise<{ id: string }> }
+) {
+    try {
+        const { id } = await params;
+        const session = await getSession();
+        if (!session) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
+
+        const isAdmin = ['SUPER_ADMIN', 'ADMIN', 'STAFF'].includes(session.user.role);
+        if (!isAdmin) {
+            return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+        }
+
+        const body = await request.json();
+        const { status } = body;
+
+        if (!status || !VALID_STUDENT_STATUSES.includes(status)) {
+            return NextResponse.json({ error: `Status must be one of: ${VALID_STUDENT_STATUSES.join(', ')}` }, { status: 400 });
+        }
+
+        const student = await prisma.studentProfile.findUnique({ where: { id } });
+        if (!student) {
+            return NextResponse.json({ error: 'Student not found' }, { status: 404 });
+        }
+
+        const updated = await prisma.studentProfile.update({
+            where: { id },
+            data: { status },
+        });
+
+        await logAudit('UPDATE_STUDENT_STATUS', 'StudentProfile', id, `Changed status from ${student.status} to ${status}`);
+
+        return NextResponse.json(updated);
+    } catch (error) {
+        console.error('Student PATCH error:', error);
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
     }
 }

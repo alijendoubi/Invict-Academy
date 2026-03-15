@@ -51,6 +51,7 @@ export default function PaymentsPage() {
     const [students, setStudents] = useState<any[]>([])
     const [newInvoice, setNewInvoice] = useState({ studentId: "", amount: "", dueDate: "" })
     const [createLoading, setCreateLoading] = useState(false)
+    const [actionError, setActionError] = useState<string | null>(null)
 
     const loadPayments = async () => {
         try {
@@ -89,6 +90,7 @@ export default function PaymentsPage() {
     const handleRecordPayment = async () => {
         if (!payForm) return
         setPayLoading(true)
+        setActionError(null)
         try {
             const res = await fetch("/api/payments/manage", {
                 method: "POST",
@@ -104,9 +106,14 @@ export default function PaymentsPage() {
             if (res.ok) {
                 setPayForm(null)
                 await loadPayments()
+            } else {
+                const data = await res.json().catch(() => ({}))
+                setActionError(data?.error || 'Failed to record payment')
+                setTimeout(() => setActionError(null), 5000)
             }
         } catch {
-            // silent
+            setActionError('Network error — could not record payment')
+            setTimeout(() => setActionError(null), 5000)
         } finally {
             setPayLoading(false)
         }
@@ -114,15 +121,23 @@ export default function PaymentsPage() {
 
     // ─── Admin: Update invoice status ───────────────────────
     const handleUpdateStatus = async (invoiceId: string, status: string) => {
+        setActionError(null)
         try {
             const res = await fetch("/api/payments/manage", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ action: "update_status", invoiceId, status }),
             })
-            if (res.ok) await loadPayments()
+            if (res.ok) {
+                await loadPayments()
+            } else {
+                const data = await res.json().catch(() => ({}))
+                setActionError(data?.error || 'Failed to update invoice status')
+                setTimeout(() => setActionError(null), 5000)
+            }
         } catch {
-            // silent
+            setActionError('Network error — could not update status')
+            setTimeout(() => setActionError(null), 5000)
         }
     }
 
@@ -144,9 +159,14 @@ export default function PaymentsPage() {
                 setShowCreateInvoice(false)
                 setNewInvoice({ studentId: "", amount: "", dueDate: "" })
                 await loadPayments()
+            } else {
+                const data = await res.json().catch(() => ({}))
+                setActionError(data?.error || 'Failed to create invoice')
+                setTimeout(() => setActionError(null), 5000)
             }
         } catch {
-            // silent
+            setActionError('Network error — could not create invoice')
+            setTimeout(() => setActionError(null), 5000)
         } finally {
             setCreateLoading(false)
         }
@@ -154,6 +174,13 @@ export default function PaymentsPage() {
 
     return (
         <div className="space-y-8 pb-10">
+            {/* Error banner */}
+            {actionError && (
+                <div className="bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3 flex items-center gap-2">
+                    <AlertCircle className="h-4 w-4 text-red-400 shrink-0" />
+                    <p className="text-sm text-red-400">{actionError}</p>
+                </div>
+            )}
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div>

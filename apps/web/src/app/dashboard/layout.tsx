@@ -152,16 +152,15 @@ export default function DashboardLayout({
         const fetchUser = async () => {
             try {
                 const res = await fetch("/api/user/profile")
+                if (!res.ok) {
+                    window.location.href = "/auth/login"
+                    return
+                }
                 const data = await res.json()
                 setUser(data)
             } catch (error) {
-                console.error("Failed to fetch user, using demo profile:", error)
-                setUser({
-                    firstName: "Demo",
-                    lastName: "Administrator",
-                    email: "admin@invict.academy",
-                    role: "ADMIN"
-                })
+                console.error("Failed to fetch user:", error)
+                window.location.href = "/auth/login"
             }
         }
         fetchUser()

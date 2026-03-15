@@ -13,7 +13,7 @@ import {
 import {
     Search, Filter, Plus, Mail, Phone, Calendar,
     MoreHorizontal, Loader2, Pencil, Trash2, UserCheck,
-    CheckCircle2, PhoneCall, Award, Trophy, XCircle, BookOpen
+    CheckCircle2, PhoneCall, Award, Trophy, XCircle, BookOpen, GraduationCap
 } from "lucide-react"
 import {
     Dialog, DialogContent, DialogDescription,
@@ -43,6 +43,28 @@ export default function LeadsPage() {
     const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
     const [submitting, setSubmitting] = useState(false)
     const [actionLoading, setActionLoading] = useState<string | null>(null)
+    const [convertResult, setConvertResult] = useState<{ leadId: string; password: string; studentName: string } | null>(null)
+
+    const handleConvert = async (leadId: string) => {
+        if (!confirm('Convert this lead to a student account? A temporary password will be generated.')) return
+        setActionLoading(leadId)
+        try {
+            const res = await fetch(`/api/leads/${leadId}/convert`, { method: 'POST' })
+            const data = await res.json()
+            if (res.ok && data.success) {
+                setConvertResult({ leadId, password: data.temporaryPassword, studentName: `${data.user.firstName} ${data.user.lastName}` })
+                // Remove from leads list since converted
+                setLeads(prev => prev.filter(l => l.id !== leadId))
+            } else {
+                alert(data.error || 'Failed to convert lead')
+            }
+        } catch (err) {
+            console.error('Failed to convert lead:', err)
+            alert('Failed to convert lead')
+        } finally {
+            setActionLoading(null)
+        }
+    }
 
     const fetchLeads = useCallback(async (search = searchTerm) => {
         setLoading(true)
@@ -139,6 +161,7 @@ export default function LeadsPage() {
             NEW: "bg-blue-500/10 text-blue-400 border-blue-500/20",
             CONTACTED: "bg-purple-500/10 text-purple-400 border-purple-500/20",
             QUALIFIED: "bg-cyan-500/10 text-cyan-400 border-cyan-500/20",
+            CONSULT_BOOKED: "bg-teal-500/10 text-teal-400 border-teal-500/20",
             WON: "bg-green-500/10 text-green-400 border-green-500/20",
             LOST: "bg-red-500/10 text-red-400 border-red-500/20",
         }
@@ -250,6 +273,7 @@ export default function LeadsPage() {
                                     <SelectItem value="NEW">New</SelectItem>
                                     <SelectItem value="CONTACTED">Contacted</SelectItem>
                                     <SelectItem value="QUALIFIED">Qualified</SelectItem>
+                                    <SelectItem value="CONSULT_BOOKED">Consult Booked</SelectItem>
                                     <SelectItem value="WON">Won</SelectItem>
                                     <SelectItem value="LOST">Lost</SelectItem>
                                 </SelectContent>
@@ -262,6 +286,28 @@ export default function LeadsPage() {
                     </div>
                 </CardContent>
             </Card>
+
+            {/* Conversion Success Banner */}
+            {convertResult && (
+                <Card className="bg-green-500/10 border-green-500/20">
+                    <CardContent className="p-4">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <p className="text-green-400 font-semibold text-sm">
+                                    {convertResult.studentName} has been converted to a student!
+                                </p>
+                                <p className="text-gray-400 text-xs mt-1">
+                                    Temporary password: <code className="bg-white/10 px-2 py-0.5 rounded text-green-300 font-mono">{convertResult.password}</code>
+                                    <span className="ml-2 text-gray-500">— copy this now, it won&apos;t be shown again</span>
+                                </p>
+                            </div>
+                            <Button size="sm" variant="ghost" className="text-gray-400 hover:text-white" onClick={() => setConvertResult(null)}>
+                                Dismiss
+                            </Button>
+                        </div>
+                    </CardContent>
+                </Card>
+            )}
 
             {/* Leads Table */}
             <Card className="bg-card border-white/10 overflow-hidden">
@@ -348,6 +394,18 @@ export default function LeadsPage() {
                                                             ))}
                                                         </DropdownMenuSubContent>
                                                     </DropdownMenuSub>
+                                                    {lead.status === 'WON' && !lead.notes?.includes('[CONVERTED]') && (
+                                                        <>
+                                                            <DropdownMenuSeparator />
+                                                            <DropdownMenuItem
+                                                                className="gap-2 text-green-400 focus:text-green-400 focus:bg-green-500/10"
+                                                                onClick={() => handleConvert(lead.id)}
+                                                            >
+                                                                <GraduationCap className="h-3.5 w-3.5" />
+                                                                Convert to Student
+                                                            </DropdownMenuItem>
+                                                        </>
+                                                    )}
                                                     <DropdownMenuSeparator />
                                                     <DropdownMenuItem
                                                         className="gap-2 text-red-400 focus:text-red-400 focus:bg-red-500/10"

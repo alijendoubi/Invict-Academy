@@ -434,10 +434,32 @@ export default function StudentsPage() {
                                                             <div className="h-10 w-10 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-400 shrink-0">
                                                                 <FileText size={18} />
                                                             </div>
-                                                            <div className="min-w-0">
+                                                            <div className="min-w-0 flex-1">
                                                                 <p className="text-white font-medium text-[11px] truncate">{doc.filename}</p>
                                                                 <p className="text-gray-500 text-[9px]">{doc.type}</p>
                                                             </div>
+                                                            <span className={`text-[9px] px-2 py-0.5 rounded-full shrink-0 ${
+                                                                doc.status === 'APPROVED' ? 'bg-green-500/10 text-green-400' :
+                                                                doc.status === 'REJECTED' ? 'bg-red-500/10 text-red-400' :
+                                                                'bg-yellow-500/10 text-yellow-400'
+                                                            }`}>
+                                                                {doc.status}
+                                                            </span>
+                                                            <button
+                                                                onClick={async (e) => {
+                                                                    e.stopPropagation();
+                                                                    try {
+                                                                        const res = await fetch(`/api/documents/${doc.id}`);
+                                                                        if (res.ok) {
+                                                                            const data = await res.json();
+                                                                            if (data.downloadUrl) window.open(data.downloadUrl, '_blank');
+                                                                        }
+                                                                    } catch {}
+                                                                }}
+                                                                className="text-[9px] px-2 py-0.5 rounded-lg bg-white/5 text-gray-400 hover:text-white shrink-0"
+                                                            >
+                                                                View
+                                                            </button>
                                                         </div>
                                                     ))
                                                 )}

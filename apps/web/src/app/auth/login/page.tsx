@@ -45,7 +45,7 @@ export default function LoginPage() {
             } else if (data.user.role === "STUDENT") {
                 router.push("/dashboard/student")
             } else if (data.user.role === "ASSOCIATE") {
-                router.push("/dashboard/associate")
+                router.push("/dashboard")
             } else {
                 router.push("/dashboard")
             }

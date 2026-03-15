@@ -15,7 +15,19 @@
       "Bash(node -e \"console.log\\(require\\(''./node_modules/bullmq/package.json''\\).version\\)\")",
       "Bash(find '/d/Invict Academy/Invict-Academy/apps/web/src/app/dashboard/payments' -type f -name *.tsx -o -name *.ts -o -name *.jsx -o -name *.js)",
       "Bash(find '/d/Invict Academy/Invict-Academy/apps/web/src/components' -type f \\\\\\(-name *.tsx -o -name *.ts \\\\\\))",
-      "Bash(xargs grep:*)"
+      "Bash(xargs grep:*)",
+      "Bash(npx tsc:*)",
+      "Bash(find \"d:/Invict Academy/Invict-Academy/apps/web/src/app/api\" -name \"route.ts\" -exec echo {})",
+      "Bash(grep -r \"fetch.*DELETE\\\\|method.*DELETE\" 'd:/Invict Academy/Invict-Academy/apps/web/src/app' --include=*.tsx)",
+      "Bash(grep -r \"DELETE\\\\|PATCH\" 'd:/Invict Academy/Invict-Academy/apps/web/src/app/dashboard' --include=*.tsx)",
+      "Bash(grep -r \"fetch.*consultations\\\\|fetch.*messages\" 'd:/Invict Academy/Invict-Academy/apps/web/src/app/dashboard' --include=*.tsx)",
+      "Bash(find 'd:/Invict Academy/Invict-Academy/apps/web/src/app/api' -type d -name [id] -o -name [*])",
+      "Bash(grep -r DELETE 'd:/Invict Academy/Invict-Academy/apps/web/src/app' --include=*.tsx)",
+      "Bash(find '/d/Invict Academy/Invict-Academy/apps/web/src/app/api/documents' -type f -name *.ts)",
+      "Bash(grep -n -A 5 \"doc.status === ''REJECTED''\" \"d:\\\\Invict Academy\\\\Invict-Academy\\\\apps\\\\web\\\\src\\\\app\\\\dashboard\\\\student\\\\page.tsx\")",
+      "Bash(grep -r verifyStudentAccess '/d/Invict Academy/Invict-Academy/apps/web/src/lib' --include=*.ts)",
+      "Bash(find \"d:\\\\Invict Academy\\\\Invict-Academy\\\\apps\\\\web\\\\src\\\\app\\\\api\" -name \"route.ts\" -exec grep -L \"getSession\\\\|prisma\" {})",
+      "Bash(find \"d:\\\\Invict Academy\\\\Invict-Academy\\\\apps\\\\web\\\\src\" -name \"*.tsx\" -exec grep -l \"window.location.href\" {})"
     ]
   }
 }
