@@ -2,7 +2,17 @@
   "permissions": {
     "allow": [
       "Bash(mkdir:*)",
-      "Bash(cd:*)"
+      "Bash(cd:*)",
+      "Bash(npm run:*)",
+      "Bash(npm ls:*)",
+      "Bash(npm view:*)",
+      "Bash(rm -rf node_modules apps/web/node_modules packages/*/node_modules package-lock.json)",
+      "Bash(npm install:*)",
+      "Bash(node -e \"const p = require\\(''./node_modules/eslint/package.json''\\); console.log\\(p.version\\)\")",
+      "Bash(find 'd:/Invict Academy/Invict-Academy/node_modules' -path */eslint/package.json -maxdepth 4)",
+      "Bash(grep '\"\"version\"\"' \"d:/Invict Academy/Invict-Academy/apps/web/node_modules/eslint/package.json\")",
+      "Bash(npm why:*)",
+      "Bash(node -e \"console.log\\(require\\(''./node_modules/bullmq/package.json''\\).version\\)\")"
     ]
   }
 }

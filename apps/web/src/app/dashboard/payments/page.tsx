@@ -2,13 +2,15 @@
 
 import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import {
     CreditCard, CheckCircle2, Clock, AlertCircle,
-    Download, MessageCircle, ArrowRight, Receipt,
-    TrendingUp, Wallet, Calendar, FileText, ChevronDown, ChevronUp, Lock
+    Download, MessageCircle, Calendar, FileText,
+    ChevronDown, ChevronUp, Lock, Wallet, Plus, DollarSign
 } from "lucide-react"
 
 // ─── Helpers ────────────────────────────────────────────────────────
@@ -33,36 +35,122 @@ function fmtDate(dateStr: string | null | undefined) {
 export default function PaymentsPage() {
     const [invoices, setInvoices] = useState<any[]>([])
     const [summary, setSummary] = useState<any>({
-        totalPaid: 0,
-        totalDue: 0,
-        nextPaymentDate: null,
-        nextPaymentAmount: 0,
-        currency: "EUR",
-        packageName: "",
-        startDate: null,
+        totalPaid: 0, totalDue: 0, nextPaymentDate: null,
+        nextPaymentAmount: 0, currency: "EUR", packageName: "", startDate: null,
     })
     const [expandedId, setExpandedId] = useState<string | null>(null)
     const [loading, setLoading] = useState(true)
+    const [isAdmin, setIsAdmin] = useState(false)
 
-    useEffect(() => {
-        const load = async () => {
-            try {
-                const res = await fetch("/api/payments")
-                const data = await res.json()
-                if (data?.invoices && Array.isArray(data.invoices)) setInvoices(data.invoices)
-                if (data?.summary) setSummary(data.summary)
-            } catch {
-                // Use demo data
-            } finally {
-                setLoading(false)
-            }
+    // Admin: record payment form state
+    const [payForm, setPayForm] = useState<{ invoiceId: string; amount: string; method: string; reference: string } | null>(null)
+    const [payLoading, setPayLoading] = useState(false)
+
+    // Admin: create invoice form state
+    const [showCreateInvoice, setShowCreateInvoice] = useState(false)
+    const [students, setStudents] = useState<any[]>([])
+    const [newInvoice, setNewInvoice] = useState({ studentId: "", amount: "", dueDate: "" })
+    const [createLoading, setCreateLoading] = useState(false)
+
+    const loadPayments = async () => {
+        try {
+            const res = await fetch("/api/payments")
+            const data = await res.json()
+            if (data?.invoices && Array.isArray(data.invoices)) setInvoices(data.invoices)
+            if (data?.summary) setSummary(data.summary)
+            if (data?.isAdmin) setIsAdmin(true)
+        } catch {
+            // silent
+        } finally {
+            setLoading(false)
         }
-        load()
-    }, [])
+    }
+
+    useEffect(() => { loadPayments() }, [])
+
+    // Load students list when admin opens create invoice form
+    useEffect(() => {
+        if (showCreateInvoice && students.length === 0) {
+            fetch("/api/students")
+                .then(r => r.json())
+                .then(data => {
+                    if (Array.isArray(data)) setStudents(data)
+                    else if (data?.students) setStudents(data.students)
+                })
+                .catch(() => {})
+        }
+    }, [showCreateInvoice, students.length])
 
     const paidTotal = invoices.filter(i => i.status === "PAID").reduce((s, i) => s + i.amount, 0)
     const pendingTotal = invoices.filter(i => i.status !== "PAID").reduce((s, i) => s + i.amount, 0)
-    const progressPct = Math.round((paidTotal / (paidTotal + pendingTotal)) * 100)
+    const progressPct = paidTotal + pendingTotal > 0 ? Math.round((paidTotal / (paidTotal + pendingTotal)) * 100) : 0
+
+    // ─── Admin: Record payment ──────────────────────────────
+    const handleRecordPayment = async () => {
+        if (!payForm) return
+        setPayLoading(true)
+        try {
+            const res = await fetch("/api/payments/manage", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    action: "record_payment",
+                    invoiceId: payForm.invoiceId,
+                    amount: parseFloat(payForm.amount),
+                    method: payForm.method || "BANK_TRANSFER",
+                    reference: payForm.reference || undefined,
+                }),
+            })
+            if (res.ok) {
+                setPayForm(null)
+                await loadPayments()
+            }
+        } catch {
+            // silent
+        } finally {
+            setPayLoading(false)
+        }
+    }
+
+    // ─── Admin: Update invoice status ───────────────────────
+    const handleUpdateStatus = async (invoiceId: string, status: string) => {
+        try {
+            const res = await fetch("/api/payments/manage", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ action: "update_status", invoiceId, status }),
+            })
+            if (res.ok) await loadPayments()
+        } catch {
+            // silent
+        }
+    }
+
+    // ─── Admin: Create invoice ──────────────────────────────
+    const handleCreateInvoice = async () => {
+        setCreateLoading(true)
+        try {
+            const res = await fetch("/api/payments/manage", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    action: "create_invoice",
+                    studentId: newInvoice.studentId,
+                    amount: parseFloat(newInvoice.amount),
+                    dueDate: newInvoice.dueDate || undefined,
+                }),
+            })
+            if (res.ok) {
+                setShowCreateInvoice(false)
+                setNewInvoice({ studentId: "", amount: "", dueDate: "" })
+                await loadPayments()
+            }
+        } catch {
+            // silent
+        } finally {
+            setCreateLoading(false)
+        }
+    }
 
     return (
         <div className="space-y-8 pb-10">
@@ -70,44 +158,107 @@ export default function PaymentsPage() {
             <div className="flex items-center justify-between">
                 <div>
                     <h1 className="text-3xl font-black text-white mb-1">Payments</h1>
-                    <p className="text-gray-400 text-sm">Invoices, receipts & payment schedule for <span className="text-white font-medium">{summary.packageName}</span></p>
+                    <p className="text-gray-400 text-sm">
+                        {isAdmin
+                            ? "Manage invoices and record payments for all students"
+                            : <>Invoices, receipts & payment schedule for <span className="text-white font-medium">{summary.packageName}</span></>
+                        }
+                    </p>
                 </div>
-                <a href="https://wa.me/393477590963?text=Hi, I have a question about my payment" target="_blank" rel="noopener noreferrer">
-                    <Button className="bg-green-600 hover:bg-green-500 text-white font-semibold rounded-xl gap-2">
-                        <MessageCircle size={16} /> WhatsApp Support
-                    </Button>
-                </a>
+                <div className="flex gap-2">
+                    {isAdmin && (
+                        <Button
+                            onClick={() => setShowCreateInvoice(!showCreateInvoice)}
+                            className="bg-cyan-600 hover:bg-cyan-500 text-white font-semibold rounded-xl gap-2"
+                        >
+                            <Plus size={16} /> New Invoice
+                        </Button>
+                    )}
+                    <a href="https://wa.me/393477590963?text=Hi, I have a question about my payment" target="_blank" rel="noopener noreferrer">
+                        <Button className="bg-green-600 hover:bg-green-500 text-white font-semibold rounded-xl gap-2">
+                            <MessageCircle size={16} /> WhatsApp Support
+                        </Button>
+                    </a>
+                </div>
             </div>
+
+            {/* Admin: Create Invoice Form */}
+            {isAdmin && showCreateInvoice && (
+                <Card className="bg-card border-cyan-500/20">
+                    <CardContent className="p-6 space-y-4">
+                        <h3 className="text-white font-semibold">Create Invoice</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <Label className="text-gray-400 text-xs">Student</Label>
+                                <select
+                                    value={newInvoice.studentId}
+                                    onChange={e => setNewInvoice(p => ({ ...p, studentId: e.target.value }))}
+                                    className="w-full mt-1 bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-sm"
+                                >
+                                    <option value="">Select student...</option>
+                                    {students.map((s: any) => (
+                                        <option key={s.id} value={s.id}>
+                                            {s.user?.firstName} {s.user?.lastName} — {s.user?.email}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div>
+                                <Label className="text-gray-400 text-xs">Amount (EUR)</Label>
+                                <Input
+                                    type="number" min="0" step="0.01"
+                                    value={newInvoice.amount}
+                                    onChange={e => setNewInvoice(p => ({ ...p, amount: e.target.value }))}
+                                    className="mt-1 bg-white/5 border-white/10 text-white"
+                                    placeholder="0.00"
+                                />
+                            </div>
+                            <div>
+                                <Label className="text-gray-400 text-xs">Due Date</Label>
+                                <Input
+                                    type="date"
+                                    value={newInvoice.dueDate}
+                                    onChange={e => setNewInvoice(p => ({ ...p, dueDate: e.target.value }))}
+                                    className="mt-1 bg-white/5 border-white/10 text-white"
+                                />
+                            </div>
+                        </div>
+                        <div className="flex gap-2">
+                            <Button
+                                onClick={handleCreateInvoice}
+                                disabled={createLoading || !newInvoice.studentId || !newInvoice.amount}
+                                className="bg-cyan-600 hover:bg-cyan-500 text-white rounded-xl"
+                            >
+                                {createLoading ? "Creating..." : "Create Invoice"}
+                            </Button>
+                            <Button variant="outline" onClick={() => setShowCreateInvoice(false)} className="border-white/10 text-gray-400 rounded-xl">
+                                Cancel
+                            </Button>
+                        </div>
+                    </CardContent>
+                </Card>
+            )}
 
             {/* Balance Cards */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {[
                     {
-                        label: "Total Paid",
-                        value: fmt(paidTotal),
+                        label: "Total Paid", value: fmt(paidTotal),
                         sub: `${invoices.filter(i => i.status === "PAID").length} invoices settled`,
-                        icon: CheckCircle2,
-                        color: "text-green-400",
-                        bg: "bg-green-500/10",
-                        border: "border-green-500/20",
+                        icon: CheckCircle2, color: "text-green-400", bg: "bg-green-500/10", border: "border-green-500/20",
                     },
                     {
-                        label: "Remaining Balance",
-                        value: fmt(pendingTotal),
+                        label: "Remaining Balance", value: fmt(pendingTotal),
                         sub: `${invoices.filter(i => i.status !== "PAID").length} invoices remaining`,
-                        icon: Wallet,
-                        color: "text-yellow-400",
-                        bg: "bg-yellow-500/10",
-                        border: "border-yellow-500/20",
+                        icon: Wallet, color: "text-yellow-400", bg: "bg-yellow-500/10", border: "border-yellow-500/20",
                     },
                     {
                         label: "Next Payment Due",
-                        value: fmtDate(summary.nextPaymentDate),
-                        sub: `${fmt(summary.nextPaymentAmount)} — ${invoices.find(i => i.status === "PENDING")?.description?.split("–")[0] || "Next invoice"}`,
-                        icon: Calendar,
-                        color: "text-cyan-400",
-                        bg: "bg-cyan-500/10",
-                        border: "border-cyan-500/20",
+                        value: isAdmin ? fmt(pendingTotal) : fmtDate(summary.nextPaymentDate),
+                        sub: isAdmin
+                            ? `${invoices.filter(i => i.status !== "PAID").length} invoices outstanding`
+                            : `${fmt(summary.nextPaymentAmount)} — ${invoices.find(i => i.status === "PENDING")?.description?.split("–")[0] || "Next invoice"}`,
+                        icon: Calendar, color: "text-cyan-400", bg: "bg-cyan-500/10", border: "border-cyan-500/20",
                     },
                 ].map((card, i) => (
                     <motion.div key={i} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.07 }}>
@@ -133,7 +284,9 @@ export default function PaymentsPage() {
                     <div className="flex items-center justify-between mb-3">
                         <div>
                             <h3 className="text-white font-semibold">Payment Progress</h3>
-                            <p className="text-gray-500 text-xs mt-0.5">Service started {fmtDate(summary.startDate)}</p>
+                            <p className="text-gray-500 text-xs mt-0.5">
+                                {isAdmin ? `${invoices.length} total invoices` : `Service started ${fmtDate(summary.startDate)}`}
+                            </p>
                         </div>
                         <span className="text-2xl font-black text-cyan-400">{progressPct}%</span>
                     </div>
@@ -150,7 +303,9 @@ export default function PaymentsPage() {
 
             {/* Invoice List */}
             <div>
-                <h2 className="text-white font-bold text-xl mb-4">Invoice History</h2>
+                <h2 className="text-white font-bold text-xl mb-4">
+                    {isAdmin ? "All Invoices" : "Invoice History"}
+                </h2>
                 <div className="space-y-3">
                     {invoices.map((inv, i) => {
                         const cfg = STATUS_CONFIG[inv.status as keyof typeof STATUS_CONFIG] || STATUS_CONFIG.UPCOMING
@@ -177,7 +332,10 @@ export default function PaymentsPage() {
                                                         <p className="text-white font-semibold text-sm">{inv.description}</p>
                                                         <Badge className={`${cfg.color} border text-[10px] px-1.5 py-0`}>{cfg.label}</Badge>
                                                     </div>
-                                                    <p className="text-gray-600 text-xs mt-0.5">{inv.id} · Due {fmtDate(inv.dueDate)}</p>
+                                                    <p className="text-gray-600 text-xs mt-0.5">
+                                                        {isAdmin && inv.studentName && <span className="text-gray-400">{inv.studentName} · </span>}
+                                                        {inv.id.slice(0, 8)} · Due {fmtDate(inv.dueDate)}
+                                                    </p>
                                                 </div>
                                             </div>
                                             <div className="flex items-center gap-3 shrink-0">
@@ -199,7 +357,7 @@ export default function PaymentsPage() {
                                                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
                                                     <div>
                                                         <p className="text-gray-600 text-xs mb-1">Invoice No.</p>
-                                                        <p className="text-white text-sm font-mono">{inv.id}</p>
+                                                        <p className="text-white text-sm font-mono">{inv.id.slice(0, 8)}</p>
                                                     </div>
                                                     <div>
                                                         <p className="text-gray-600 text-xs mb-1">Amount</p>
@@ -216,6 +374,16 @@ export default function PaymentsPage() {
                                                         </p>
                                                     </div>
                                                 </div>
+
+                                                {/* Paid amount info for partial payments */}
+                                                {isAdmin && inv.paidAmount > 0 && !isPaid && (
+                                                    <div className="mb-4 p-3 rounded-xl bg-yellow-500/5 border border-yellow-500/10">
+                                                        <p className="text-yellow-400 text-xs">
+                                                            Partially paid: {fmt(inv.paidAmount)} of {fmt(inv.amount)} ({Math.round((inv.paidAmount / inv.amount) * 100)}%)
+                                                        </p>
+                                                    </div>
+                                                )}
+
                                                 <div className="flex gap-2 flex-wrap">
                                                     {isPaid && (
                                                         <a href={`/api/payments/${inv.id}/receipt`} target="_blank" rel="noopener noreferrer">
@@ -224,14 +392,14 @@ export default function PaymentsPage() {
                                                             </Button>
                                                         </a>
                                                     )}
-                                                    {inv.status === "PENDING" && (
+                                                    {!isAdmin && inv.status === "PENDING" && (
                                                         <a href={`https://wa.me/393477590963?text=Hi, I'd like to pay invoice ${inv.id}`} target="_blank" rel="noopener noreferrer">
                                                             <Button size="sm" className="bg-green-600 hover:bg-green-500 text-white rounded-xl gap-1.5 h-8 text-xs">
                                                                 <MessageCircle size={12} /> Pay via WhatsApp
                                                             </Button>
                                                         </a>
                                                     )}
-                                                    {inv.status === "UPCOMING" && (
+                                                    {!isAdmin && inv.status === "UPCOMING" && (
                                                         <Button size="sm" disabled className="bg-white/5 text-gray-600 rounded-xl gap-1.5 h-8 text-xs cursor-not-allowed">
                                                             <Lock size={12} /> Not yet due
                                                         </Button>
@@ -241,7 +409,96 @@ export default function PaymentsPage() {
                                                             <FileText size={12} /> View Invoice
                                                         </Button>
                                                     </a>
+
+                                                    {/* Admin actions */}
+                                                    {isAdmin && !isPaid && (
+                                                        <>
+                                                            <Button
+                                                                size="sm"
+                                                                onClick={() => setPayForm({
+                                                                    invoiceId: inv.id,
+                                                                    amount: String(inv.amount - (inv.paidAmount || 0)),
+                                                                    method: "BANK_TRANSFER",
+                                                                    reference: "",
+                                                                })}
+                                                                className="bg-cyan-600 hover:bg-cyan-500 text-white rounded-xl gap-1.5 h-8 text-xs"
+                                                            >
+                                                                <DollarSign size={12} /> Record Payment
+                                                            </Button>
+                                                            <Button
+                                                                size="sm"
+                                                                onClick={() => handleUpdateStatus(inv.id, "PAID")}
+                                                                className="bg-green-600 hover:bg-green-500 text-white rounded-xl gap-1.5 h-8 text-xs"
+                                                            >
+                                                                <CheckCircle2 size={12} /> Mark Paid
+                                                            </Button>
+                                                        </>
+                                                    )}
+                                                    {isAdmin && isPaid && (
+                                                        <Button
+                                                            size="sm"
+                                                            onClick={() => handleUpdateStatus(inv.id, "UNPAID")}
+                                                            variant="outline"
+                                                            className="border-red-500/20 text-red-400 hover:text-red-300 rounded-xl gap-1.5 h-8 text-xs"
+                                                        >
+                                                            Revert to Unpaid
+                                                        </Button>
+                                                    )}
                                                 </div>
+
+                                                {/* Record Payment Form (inline) */}
+                                                {payForm !== null && payForm.invoiceId === inv.id && (
+                                                    <div className="mt-4 p-4 rounded-xl bg-white/[0.02] border border-white/10 space-y-3">
+                                                        <p className="text-white text-sm font-semibold">Record Payment</p>
+                                                        <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+                                                            <div>
+                                                                <Label className="text-gray-400 text-xs">Amount (EUR)</Label>
+                                                                <Input
+                                                                    type="number" min="0" step="0.01"
+                                                                    value={payForm.amount}
+                                                                    onChange={e => setPayForm(p => p ? { ...p, amount: e.target.value } : p)}
+                                                                    className="mt-1 bg-white/5 border-white/10 text-white text-sm"
+                                                                />
+                                                            </div>
+                                                            <div>
+                                                                <Label className="text-gray-400 text-xs">Method</Label>
+                                                                <select
+                                                                    value={payForm.method}
+                                                                    onChange={e => setPayForm(p => p ? { ...p, method: e.target.value } : p)}
+                                                                    className="w-full mt-1 bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-sm"
+                                                                >
+                                                                    <option value="BANK_TRANSFER">Bank Transfer</option>
+                                                                    <option value="MANUAL">Manual / Cash</option>
+                                                                </select>
+                                                            </div>
+                                                            <div>
+                                                                <Label className="text-gray-400 text-xs">Reference (optional)</Label>
+                                                                <Input
+                                                                    value={payForm.reference}
+                                                                    onChange={e => setPayForm(p => p ? { ...p, reference: e.target.value } : p)}
+                                                                    className="mt-1 bg-white/5 border-white/10 text-white text-sm"
+                                                                    placeholder="e.g. transfer ID"
+                                                                />
+                                                            </div>
+                                                            <div className="flex items-end gap-2">
+                                                                <Button
+                                                                    onClick={handleRecordPayment}
+                                                                    disabled={payLoading || !payForm.amount}
+                                                                    className="bg-cyan-600 hover:bg-cyan-500 text-white rounded-xl text-sm"
+                                                                >
+                                                                    {payLoading ? "Saving..." : "Confirm"}
+                                                                </Button>
+                                                                <Button
+                                                                    variant="outline"
+                                                                    onClick={() => setPayForm(null)}
+                                                                    className="border-white/10 text-gray-400 rounded-xl text-sm"
+                                                                >
+                                                                    Cancel
+                                                                </Button>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                )}
                                             </motion.div>
                                         )}
                                     </CardContent>
@@ -249,6 +506,14 @@ export default function PaymentsPage() {
                             </motion.div>
                         )
                     })}
+
+                    {invoices.length === 0 && !loading && (
+                        <Card className="bg-card border-white/5">
+                            <CardContent className="p-8 text-center">
+                                <p className="text-gray-500">No invoices found</p>
+                            </CardContent>
+                        </Card>
+                    )}
                 </div>
             </div>
 
@@ -293,6 +558,6 @@ export default function PaymentsPage() {
                     </div>
                 </CardContent>
             </Card>
-        </div >
+        </div>
     )
 }

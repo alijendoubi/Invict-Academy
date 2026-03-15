@@ -5,16 +5,16 @@ import { emailService } from '../lib/email';
 // Prevent workers from starting during build phase
 const isBuildPhase = process.env.NEXT_PHASE === 'phase-production-build';
 
-let emailWorker: Worker<EmailJob> | null = null;
-let documentWorker: Worker<DocumentJob> | null = null;
-let notificationWorker: Worker<NotificationJob> | null = null;
+let emailWorker: Worker | null = null;
+let documentWorker: Worker | null = null;
+let notificationWorker: Worker | null = null;
 
 if (!isBuildPhase) {
     const redisConn = connection();
 
     if (redisConn) {
         // Email worker
-        emailWorker = new Worker<EmailJob>(
+        emailWorker = new Worker(
             'email-notifications',
             async (job) => {
                 console.log(`Processing email job ${job.id}:`, job.data);
@@ -59,11 +59,11 @@ if (!isBuildPhase) {
                     throw error; // Will trigger retry
                 }
             },
-            { connection: redisConn }
+            { connection: redisConn as any }
         );
 
         // Document worker
-        documentWorker = new Worker<DocumentJob>(
+        documentWorker = new Worker(
             'document-processing',
             async (job) => {
                 console.log(`Processing document job ${job.id}:`, job.data);
@@ -86,11 +86,11 @@ if (!isBuildPhase) {
                     throw error;
                 }
             },
-            { connection: redisConn }
+            { connection: redisConn as any }
         );
 
         // Notification worker
-        notificationWorker = new Worker<NotificationJob>(
+        notificationWorker = new Worker(
             'notifications',
             async (job) => {
                 console.log(`Processing notification job ${job.id}:`, job.data);
@@ -137,7 +137,7 @@ if (!isBuildPhase) {
                     throw error;
                 }
             },
-            { connection: redisConn }
+            { connection: redisConn as any }
         );
 
         // Worker event listeners

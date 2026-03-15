@@ -48,16 +48,16 @@ export const getConnection = () => {
 };
 
 // Lazy-loaded Queues
-let _emailQueue: Queue<EmailJob> | null = null;
-let _documentQueue: Queue<DocumentJob> | null = null;
-let _notificationQueue: Queue<NotificationJob> | null = null;
+let _emailQueue: Queue | null = null;
+let _documentQueue: Queue | null = null;
+let _notificationQueue: Queue | null = null;
 
 export const getEmailQueue = () => {
     if (isBuildPhase) return null;
     if (!_emailQueue) {
         const conn = getConnection();
         if (!conn) return null;
-        _emailQueue = new Queue<EmailJob>('email-notifications', { connection: conn });
+        _emailQueue = new Queue('email-notifications', { connection: conn as any });
     }
     return _emailQueue;
 };
@@ -67,7 +67,7 @@ export const getDocumentQueue = () => {
     if (!_documentQueue) {
         const conn = getConnection();
         if (!conn) return null;
-        _documentQueue = new Queue<DocumentJob>('document-processing', { connection: conn });
+        _documentQueue = new Queue('document-processing', { connection: conn as any });
     }
     return _documentQueue;
 };
@@ -77,7 +77,7 @@ export const getNotificationQueue = () => {
     if (!_notificationQueue) {
         const conn = getConnection();
         if (!conn) return null;
-        _notificationQueue = new Queue<NotificationJob>('notifications', { connection: conn });
+        _notificationQueue = new Queue('notifications', { connection: conn as any });
     }
     return _notificationQueue;
 };

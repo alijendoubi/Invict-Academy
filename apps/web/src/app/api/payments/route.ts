@@ -54,12 +54,14 @@ export async function GET(request: NextRequest) {
                     paidDate: inv.payments.find(p => p.status === 'SUCCESS')?.createdAt?.toISOString() ?? null,
                     studentName: `${inv.student.user.firstName} ${inv.student.user.lastName}`,
                     studentEmail: inv.student.user.email,
+                    studentId: inv.studentId,
                     paidAmount: inv.paidAmount,
                 })),
                 summary: {
                     totalPaid: allInvoices.filter(i => i.status === 'PAID').reduce((s, i) => s + i.amount, 0),
                     totalDue: allInvoices.filter(i => i.status !== 'PAID').reduce((s, i) => s + i.amount, 0),
-                }
+                },
+                isAdmin: true,
             });
         }
 
