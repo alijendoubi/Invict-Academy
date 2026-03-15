@@ -12,7 +12,10 @@
       "Bash(find 'd:/Invict Academy/Invict-Academy/node_modules' -path */eslint/package.json -maxdepth 4)",
       "Bash(grep '\"\"version\"\"' \"d:/Invict Academy/Invict-Academy/apps/web/node_modules/eslint/package.json\")",
       "Bash(npm why:*)",
-      "Bash(node -e \"console.log\\(require\\(''./node_modules/bullmq/package.json''\\).version\\)\")"
+      "Bash(node -e \"console.log\\(require\\(''./node_modules/bullmq/package.json''\\).version\\)\")",
+      "Bash(find '/d/Invict Academy/Invict-Academy/apps/web/src/app/dashboard/payments' -type f -name *.tsx -o -name *.ts -o -name *.jsx -o -name *.js)",
+      "Bash(find '/d/Invict Academy/Invict-Academy/apps/web/src/components' -type f \\\\\\(-name *.tsx -o -name *.ts \\\\\\))",
+      "Bash(xargs grep:*)"
     ]
   }
 }

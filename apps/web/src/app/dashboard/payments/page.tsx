@@ -193,11 +193,11 @@ export default function PaymentsPage() {
                                 <select
                                     value={newInvoice.studentId}
                                     onChange={e => setNewInvoice(p => ({ ...p, studentId: e.target.value }))}
-                                    className="w-full mt-1 bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-sm"
+                                    className="w-full mt-1 bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-sm [&>option]:bg-gray-900 [&>option]:text-white"
                                 >
-                                    <option value="">Select student...</option>
+                                    <option value="" className="bg-gray-900 text-white">Select student...</option>
                                     {students.map((s: any) => (
-                                        <option key={s.id} value={s.id}>
+                                        <option key={s.id} value={s.id} className="bg-gray-900 text-white">
                                             {s.user?.firstName} {s.user?.lastName} — {s.user?.email}
                                         </option>
                                     ))}
@@ -521,14 +521,8 @@ export default function PaymentsPage() {
             <Card className="bg-card border-white/10">
                 <CardContent className="p-6">
                     <h3 className="text-white font-semibold mb-4 flex items-center gap-2"><CreditCard size={16} className="text-cyan-400" /> How to Pay</h3>
-                    <div className="grid md:grid-cols-3 gap-4">
+                    <div className="grid md:grid-cols-2 gap-4">
                         {[
-                            {
-                                method: "Bank Transfer",
-                                detail: "IBAN: TN59 1234 5678 9012 3456",
-                                note: "Reference: your invoice number",
-                                icon: "🏦",
-                            },
                             {
                                 method: "WhatsApp Coordination",
                                 detail: "+39 347 7590963",

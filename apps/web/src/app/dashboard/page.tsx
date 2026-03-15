@@ -317,7 +317,7 @@ export default function DashboardPage() {
                                         </div>
                                         <div className="text-right">
                                             <p className="text-xs text-gray-500 mt-1">
-                                                {new Date(activity.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                {new Date(activity.timestamp).toLocaleDateString([], { month: 'short', day: 'numeric' })}, {new Date(activity.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                             </p>
                                         </div>
                                     </div>
