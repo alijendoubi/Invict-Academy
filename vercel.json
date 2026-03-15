@@ -2,6 +2,6 @@
     "version": 2,
     "public": true,
     "buildCommand": "npm run db:generate --workspace=@invict/db && npm run build --workspace=web",
-    "installCommand": "npm install --force",
+    "installCommand": "npm install",
     "ignoreCommand": "false"
 }
