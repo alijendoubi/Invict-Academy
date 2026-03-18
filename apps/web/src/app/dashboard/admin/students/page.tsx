@@ -194,6 +194,37 @@ export default function AdminStudentsPage() {
         setSending(false)
     }
 
+    async function handleQuickTemplate(contentSid: string, variables: Record<string, string>) {
+        if (!selectedStudent?.phone) return
+        setSending(true)
+        setMessageFailed(false)
+        setWhatsappError("")
+        try {
+            const res = await fetch("/api/whatsapp/send", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ to: selectedStudent.phone, contentSid, variables }),
+            })
+            if (res.ok) {
+                setMessageSent(true)
+                setTimeout(() => setMessageSent(false), 3000)
+            } else {
+                const data = await res.json().catch(() => ({}))
+                const errMsg = data?.error || "Failed to send template"
+                console.error('WhatsApp template failed:', errMsg)
+                setWhatsappError(errMsg)
+                setMessageFailed(true)
+                setTimeout(() => { setMessageFailed(false); setWhatsappError("") }, 8000)
+            }
+        } catch (err) {
+            console.error('WhatsApp template error:', err)
+            setWhatsappError("Network error")
+            setMessageFailed(true)
+            setTimeout(() => { setMessageFailed(false); setWhatsappError("") }, 8000)
+        }
+        setSending(false)
+    }
+
     async function handleScheduleMeeting() {
         if (!meetingDate || !selectedStudent) return
         setScheduling(true)
@@ -623,20 +654,41 @@ export default function AdminStudentsPage() {
                                         </div>
                                     </div>
 
-                                    {/* Quick Templates */}
+                                    {/* Quick Templates — send approved Twilio templates directly (no session window needed) */}
                                     <div className="flex flex-wrap gap-2 mb-3">
                                         {[
-                                            `Hi ${student.user?.firstName}, your application has been received and is under review. We'll update you shortly.`,
-                                            `Congratulations ${student.user?.firstName}! Your application has been ACCEPTED. Please check your email for next steps.`,
-                                            `Hi ${student.user?.firstName}, we need 1-2 additional documents. Please contact us ASAP.`,
-                                            `Your consultation is tomorrow. Link: calendly.com/invictacademy777`,
-                                        ].map((template, i) => (
-                                            <button key={i} onClick={() => setWhatsappMsg(template)}
-                                                className="text-xs px-3 py-1.5 rounded-lg bg-white/5 text-gray-400 hover:text-white hover:bg-white/10 transition-all text-left">
-                                                {["📬 Received", "🎉 Accepted", "📄 Need Docs", "📅 Reminder"][i]}
+                                            {
+                                                label: "📬 Received",
+                                                contentSid: "HX24d3d9d55906000550de51f14d29d029",
+                                                variables: { '1': student.user?.firstName || 'Student', '2': student.universityInterest || 'your programme' },
+                                            },
+                                            {
+                                                label: "🎉 Accepted",
+                                                contentSid: "HXf1d51c9a0153a5a53bacfa2d31bcbaae",
+                                                variables: { '1': student.user?.firstName || 'Student', '2': student.universityInterest || 'your programme' },
+                                            },
+                                            {
+                                                label: "📄 Need Docs",
+                                                contentSid: "HXfe3b8f8ee3f05010aa54fbe1a70ad20f",
+                                                variables: { '1': student.user?.firstName || 'Student', '2': 'required documents' },
+                                            },
+                                            {
+                                                label: "📅 Reminder",
+                                                contentSid: "HX6d76193beb1787850114c12c3b0f1eec",
+                                                variables: { '1': student.user?.firstName || 'Student', '2': 'your upcoming consultation' },
+                                            },
+                                        ].map((t) => (
+                                            <button
+                                                key={t.label}
+                                                onClick={() => handleQuickTemplate(t.contentSid, t.variables)}
+                                                disabled={sending || !selectedStudent?.phone}
+                                                className="text-xs px-3 py-1.5 rounded-lg bg-green-500/10 text-green-400 hover:bg-green-500/20 border border-green-500/20 transition-all disabled:opacity-40"
+                                            >
+                                                {t.label}
                                             </button>
                                         ))}
                                     </div>
+                                    <p className="text-gray-600 text-[10px] mb-3">↑ Template buttons send instantly — or type a custom message below (requires active WhatsApp session)</p>
 
                                     <textarea
                                         value={whatsappMsg}
