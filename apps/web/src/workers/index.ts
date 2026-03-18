@@ -13,7 +13,7 @@ if (!isBuildPhase) {
     const redisConn = connection();
 
     if (redisConn) {
-        // Email worker
+        // ─── Email worker ──────────────────────────────────────────────────────
         emailWorker = new Worker(
             'email-notifications',
             async (job) => {
@@ -56,20 +56,20 @@ if (!isBuildPhase) {
                     return { success: true };
                 } catch (error) {
                     console.error('Email worker error:', error);
-                    throw error; // Will trigger retry
+                    throw error;
                 }
             },
             { connection: redisConn as any }
         );
 
-        // Document worker
+        // ─── Document worker ───────────────────────────────────────────────────
         documentWorker = new Worker(
             'document-processing',
             async (job) => {
                 console.log(`Processing document job ${job.id}:`, job.data);
 
                 try {
-                    const { type, userId, data } = job.data;
+                    const { type } = job.data;
 
                     switch (type) {
                         case 'generate_pdf':
@@ -89,44 +89,85 @@ if (!isBuildPhase) {
             { connection: redisConn as any }
         );
 
-        // Notification worker
+        // ─── Notification worker ───────────────────────────────────────────────
         notificationWorker = new Worker(
             'notifications',
             async (job) => {
                 console.log(`Processing notification job ${job.id}:`, job.data);
 
                 try {
-                    const { type, userId, data } = job.data;
+                    const { type, data } = job.data;
 
                     switch (type) {
                         case 'email':
-                            // Already handled by email worker
+                            // Handled by email worker
                             break;
-                        case 'sms':
-                            throw new Error('sms notifications are not yet implemented');
-                        case 'whatsapp':
-                            const { phone, studentName, scheduledAt, consultationId, messageType, message } = data;
-                            let msgBody = message;
 
-                            if (messageType === 'meeting_reminder') {
-                                msgBody = `Hi ${studentName}, this is a reminder for your consultation at Invict Academy scheduled for ${new Date(scheduledAt).toLocaleString()}. We look forward to seeing you!`;
+                        case 'sms':
+                            throw new Error('SMS notifications are not yet implemented');
+
+                        case 'push':
+                            throw new Error('Push notifications are not yet implemented');
+
+                        case 'whatsapp': {
+                            const {
+                                phone,
+                                studentName,
+                                scheduledAt,
+                                consultationId,
+                                messageType,
+                                contentSid,
+                                variables,
+                                message,
+                            } = data;
+
+                            if (!phone) {
+                                console.warn('WhatsApp job has no phone number — skipping');
+                                break;
                             }
 
-                            if (phone && msgBody) {
-                                const { twilioService } = await import('../lib/twilio');
-                                const res = await twilioService.sendWhatsApp(phone, msgBody);
+                            const { twilioService, TEMPLATES } = await import('../lib/twilio');
+
+                            if (messageType === 'meeting_reminder') {
+                                // ── Consultation Reminder template ──
+                                const formattedTime = new Date(scheduledAt).toLocaleString('en-GB', {
+                                    weekday: 'long',
+                                    day: 'numeric',
+                                    month: 'long',
+                                    year: 'numeric',
+                                    hour: '2-digit',
+                                    minute: '2-digit',
+                                    timeZone: 'Europe/Rome',
+                                });
+
+                                const res = await twilioService.sendTemplate(
+                                    phone,
+                                    TEMPLATES.CONSULTATION_REMINDER,
+                                    {
+                                        '1': studentName || 'Student',
+                                        '2': formattedTime,
+                                    }
+                                );
 
                                 if (res.success && consultationId) {
                                     const { prisma } = await import('../lib/db');
                                     await prisma.consultation.update({
                                         where: { id: consultationId },
-                                        data: { reminderSent: true }
+                                        data: { reminderSent: true },
                                     });
                                 }
+                            } else if (contentSid && variables) {
+                                // ── Generic template call ──
+                                await twilioService.sendTemplate(phone, contentSid, variables);
+                            } else if (message) {
+                                // ── Plain text fallback ──
+                                await twilioService.sendWhatsApp(phone, message);
+                            } else {
+                                console.warn('WhatsApp job has no message body or template — skipping');
                             }
                             break;
-                        case 'push':
-                            throw new Error('push notifications are not yet implemented');
+                        }
+
                         default:
                             console.warn(`Unknown notification type: ${type}`);
                     }
@@ -140,16 +181,14 @@ if (!isBuildPhase) {
             { connection: redisConn as any }
         );
 
-        // Worker event listeners
+        // ─── Worker event listeners ────────────────────────────────────────────
         [emailWorker, documentWorker, notificationWorker].forEach((worker) => {
             worker.on('completed', (job) => {
-                console.log(`✅ Job ${job.id} completed successfully`);
+                console.log(`✅ Job ${job.id} completed`);
             });
-
             worker.on('failed', (job, err) => {
                 console.error(`❌ Job ${job?.id} failed:`, err);
             });
-
             worker.on('error', (err) => {
                 console.error('Worker error:', err);
             });
@@ -171,8 +210,7 @@ if (!isBuildPhase) {
         process.exit(0);
     });
 } else {
-    console.log('⏭️ Skipping worker initialization during build phase');
+    console.log('⏭️ Skipping worker initialisation during build phase');
 }
 
 export { emailWorker, documentWorker, notificationWorker };
-

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { getSession } from '@/lib/auth';
+import { twilioService, TEMPLATES } from '@/lib/twilio';
 
 export const dynamic = 'force-dynamic';
 
@@ -20,22 +21,16 @@ export async function GET(request: NextRequest) {
         const where: any = {};
 
         if (isStaff) {
-            // Staff only sees assigned students' applications
             where.student = { assignedToId: session.user.id };
         } else if (!isManagement) {
-            // Student only sees their own
-            const userId = session.user.id || session.user?.id;
-            if (!userId) {
-                return NextResponse.json([]);
-            }
+            const userId = session.user.id;
+            if (!userId) return NextResponse.json([]);
 
             const profile = await prisma.studentProfile.findUnique({
                 where: { userId },
                 select: { id: true },
             });
-            if (!profile) {
-                return NextResponse.json([]);
-            }
+            if (!profile) return NextResponse.json([]);
             where.studentId = profile.id;
         }
 
@@ -44,10 +39,8 @@ export async function GET(request: NextRequest) {
             include: {
                 student: {
                     include: {
-                        user: {
-                            select: { firstName: true, lastName: true }
-                        }
-                    }
+                        user: { select: { firstName: true, lastName: true } },
+                    },
                 },
             },
             orderBy: { createdAt: 'desc' },
@@ -68,39 +61,22 @@ export async function POST(request: NextRequest) {
         }
 
         const body = await request.json();
-        const {
-            studentId,
-            universityName,
-            courseName,
-            type,
-            status,
-            country,
-            intakeTerm,
-            deadline
-        } = body;
+        const { studentId, universityName, courseName, type, status, country, intakeTerm, deadline } = body;
 
         let finalStudentId = studentId;
 
-        // If user is a student, securely infer their ID and ignore frontend payloads
         if (session.user.role === 'STUDENT') {
-            const userId = session.user.id || session.user?.id;
-            if (!userId) {
-                return NextResponse.json({ error: 'User ID missing' }, { status: 401 });
-            }
+            const userId = session.user.id;
+            if (!userId) return NextResponse.json({ error: 'User ID missing' }, { status: 401 });
 
             const profile = await prisma.studentProfile.findUnique({
                 where: { userId },
                 select: { id: true },
             });
-            if (!profile) {
-                return NextResponse.json({ error: 'Student profile not found' }, { status: 404 });
-            }
+            if (!profile) return NextResponse.json({ error: 'Student profile not found' }, { status: 404 });
             finalStudentId = profile.id;
         } else {
-            // Admins must explicitly provide the student ID
-            if (!finalStudentId) {
-                return NextResponse.json({ error: 'Student ID is required' }, { status: 400 });
-            }
+            if (!finalStudentId) return NextResponse.json({ error: 'Student ID is required' }, { status: 400 });
         }
 
         const application = await prisma.application.create({
@@ -108,13 +84,34 @@ export async function POST(request: NextRequest) {
                 studentId: finalStudentId,
                 university: universityName,
                 program: courseName,
-                country: country || "Italy",
+                country: country || 'Italy',
                 type: type || 'UNIVERSITY',
                 status: status || 'DRAFT',
                 intakeTerm: intakeTerm || null,
                 deadline: deadline ? new Date(deadline) : null,
             },
         });
+
+        // ── Send "Application Received" WhatsApp template ─────────────────────
+        try {
+            const student = await prisma.studentProfile.findUnique({
+                where: { id: finalStudentId },
+                include: { user: { select: { firstName: true } } },
+            });
+
+            if (student?.phone) {
+                await twilioService.sendTemplate(
+                    student.phone,
+                    TEMPLATES.APPLICATION_RECEIVED,
+                    {
+                        '1': student.user.firstName || 'Student',
+                        '2': universityName || 'your university',
+                    }
+                );
+            }
+        } catch (notifyError) {
+            console.error('Application Received notification failed (non-fatal):', notifyError);
+        }
 
         return NextResponse.json(application);
     } catch (error) {

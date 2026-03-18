@@ -30,28 +30,39 @@ const APPLICATION_STEPS = [
 ]
 
 function StepTracker({ currentStep }: { currentStep: string }) {
-    const currentIdx = APPLICATION_STEPS.findIndex(s => s.key === currentStep)
+    const isRejected = currentStep === "REJECTED"
+    const currentIdx = isRejected
+        ? APPLICATION_STEPS.length - 1
+        : APPLICATION_STEPS.findIndex(s => s.key === currentStep)
+    const safeIdx = currentIdx < 0 ? 0 : currentIdx
     return (
         <div className="relative p-2">
+            {isRejected && (
+                <div className="mb-3 flex items-center gap-2 text-red-400 text-xs font-semibold">
+                    <XCircle size={13} /> This application was not approved
+                </div>
+            )}
             <div className="flex items-center justify-between relative">
                 <div className="absolute top-5 left-8 right-8 h-[2px] bg-white/5 z-0" />
                 <div
-                    className="absolute top-5 left-8 h-[2px] bg-gradient-to-r from-cyan-500 to-blue-500 z-0 transition-all duration-700"
-                    style={{ width: `${Math.max(0, (currentIdx / (APPLICATION_STEPS.length - 1)) * 100 - 5)}%` }}
+                    className={`absolute top-5 left-8 h-[2px] z-0 transition-all duration-700 ${isRejected ? "bg-gradient-to-r from-red-500 to-red-700" : "bg-gradient-to-r from-cyan-500 to-blue-500"}`}
+                    style={{ width: `${Math.max(0, (safeIdx / (APPLICATION_STEPS.length - 1)) * 100 - 5)}%` }}
                 />
                 {APPLICATION_STEPS.map((step, idx) => {
-                    const isCompleted = idx < currentIdx
-                    const isCurrent = idx === currentIdx
+                    const isCompleted = idx < safeIdx
+                    const isCurrent = idx === safeIdx
                     const Icon = step.icon
                     return (
                         <div key={step.key} className="flex flex-col items-center gap-2 z-10 relative px-2">
-                            <div className={`h-10 w-10 rounded-full border-2 flex items-center justify-center transition-all duration-300 ${isCompleted ? "bg-cyan-500 border-cyan-500 text-black shadow-[0_0_15px_rgba(6,182,212,0.4)]" :
-                                isCurrent ? "bg-card border-cyan-400 text-cyan-400 shadow-[0_0_20px_rgba(34,211,238,0.3)]" :
-                                    "bg-card border-white/10 text-gray-600"
+                            <div className={`h-10 w-10 rounded-full border-2 flex items-center justify-center transition-all duration-300 ${isCompleted
+                                ? isRejected ? "bg-red-500/30 border-red-500/50 text-red-400 shadow-[0_0_15px_rgba(239,68,68,0.3)]" : "bg-cyan-500 border-cyan-500 text-black shadow-[0_0_15px_rgba(6,182,212,0.4)]"
+                                : isCurrent
+                                    ? isRejected ? "bg-card border-red-400 text-red-400 shadow-[0_0_20px_rgba(239,68,68,0.3)]" : "bg-card border-cyan-400 text-cyan-400 shadow-[0_0_20px_rgba(34,211,238,0.3)]"
+                                    : "bg-card border-white/10 text-gray-600"
                                 }`}>
                                 {isCompleted ? <CheckCircle size={16} /> : <Icon size={16} />}
                             </div>
-                            <span className={`text-[10px] text-center max-w-[80px] leading-tight hidden sm:block ${isCurrent ? "text-cyan-400 font-bold" :
+                            <span className={`text-[10px] text-center max-w-[80px] leading-tight hidden sm:block ${isCurrent ? (isRejected ? "text-red-400 font-bold" : "text-cyan-400 font-bold") :
                                 isCompleted ? "text-gray-300" : "text-gray-600"
                                 }`}>{step.label}</span>
                         </div>
@@ -76,6 +87,10 @@ export default function ApplicationDetailsPage() {
     const [newTaskTitle, setNewTaskTitle] = useState("")
     const [fetchingTasks, setFetchingTasks] = useState(false)
     const [taskError, setTaskError] = useState<string | null>(null)
+    const [newChecklistText, setNewChecklistText] = useState("")
+    const [addingChecklist, setAddingChecklist] = useState(false)
+    const [checklistError, setChecklistError] = useState<string | null>(null)
+    const [deletingChecklist, setDeletingChecklist] = useState<string | null>(null)
 
     const fetchApplication = useCallback(async () => {
         try {
@@ -126,6 +141,42 @@ export default function ApplicationDetailsPage() {
             })
             if (res.ok) fetchApplication()
         } catch (error) { }
+    }
+
+    const addChecklistItem = async (e: React.FormEvent) => {
+        e.preventDefault()
+        if (!newChecklistText.trim()) return
+        setAddingChecklist(true)
+        setChecklistError(null)
+        try {
+            const res = await fetch(`/api/applications/${id}/checklist`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ text: newChecklistText.trim() })
+            })
+            if (res.ok) {
+                setNewChecklistText("")
+                fetchApplication()
+            } else {
+                const data = await res.json().catch(() => ({}))
+                setChecklistError(data?.error || "Failed to add item")
+                setTimeout(() => setChecklistError(null), 4000)
+            }
+        } catch {
+            setChecklistError("Network error — could not add item")
+            setTimeout(() => setChecklistError(null), 4000)
+        } finally {
+            setAddingChecklist(false)
+        }
+    }
+
+    const deleteChecklistItem = async (itemId: string) => {
+        setDeletingChecklist(itemId)
+        try {
+            const res = await fetch(`/api/applications/checklist/${itemId}`, { method: "DELETE" })
+            if (res.ok) fetchApplication()
+        } catch (error) { }
+        finally { setDeletingChecklist(null) }
     }
 
     const addTask = async (e: React.FormEvent) => {
@@ -294,13 +345,32 @@ export default function ApplicationDetailsPage() {
                     <Card className="bg-card border-white/10">
                         <CardHeader className="border-b border-white/5">
                             <CardTitle className="text-lg text-white">Application Checklist</CardTitle>
-                            <CardDescription className="text-gray-500 text-xs">Complete these steps to advance the application</CardDescription>
+                            <CardDescription className="text-gray-500 text-xs">
+                                {isAdmin ? "Add and manage checklist steps for this application" : "Complete these steps to advance your application"}
+                            </CardDescription>
                         </CardHeader>
-                        <CardContent className="pt-6">
+                        <CardContent className="pt-6 space-y-4">
+                            {isAdmin && (
+                                <form onSubmit={addChecklistItem} className="flex gap-2">
+                                    <Input
+                                        placeholder="Add a checklist item..."
+                                        className="bg-white/5 border-white/10 text-white"
+                                        value={newChecklistText}
+                                        onChange={(e) => setNewChecklistText(e.target.value)}
+                                        disabled={addingChecklist}
+                                    />
+                                    <Button type="submit" size="icon" className="shrink-0 bg-cyan-600 hover:bg-cyan-500" disabled={addingChecklist || !newChecklistText.trim()}>
+                                        {addingChecklist ? <Loader2 size={16} className="animate-spin" /> : <Plus size={16} />}
+                                    </Button>
+                                </form>
+                            )}
+                            {checklistError && (
+                                <p className="text-xs text-red-400 bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2">{checklistError}</p>
+                            )}
                             {application.checklistItems?.length === 0 ? (
                                 <div className="text-center py-12 text-gray-600 space-y-2">
                                     <CheckCircle className="h-8 w-8 mx-auto opacity-20" />
-                                    <p>No checklist items assigned to this application type yet.</p>
+                                    <p>{isAdmin ? "No checklist items yet. Add the first item above." : "No checklist items assigned yet. Your advisor will add them soon."}</p>
                                 </div>
                             ) : (
                                 <div className="space-y-3">
@@ -308,15 +378,32 @@ export default function ApplicationDetailsPage() {
                                         <div
                                             key={item.id}
                                             className={cn(
-                                                "flex items-center gap-3 p-4 rounded-xl border transition-all cursor-pointer group",
+                                                "flex items-center gap-3 p-4 rounded-xl border transition-all group",
                                                 item.isCompleted
                                                     ? "bg-green-500/5 border-green-500/20 text-green-400/70"
                                                     : "bg-white/5 border-white/10 text-gray-300 hover:border-cyan-500/30"
                                             )}
-                                            onClick={() => toggleChecklistItem(item.id, item.isCompleted)}
                                         >
-                                            {item.isCompleted ? <CheckSquare className="h-5 w-5 text-green-400" /> : <Square className="h-5 w-5 text-gray-600 group-hover:text-cyan-400" />}
-                                            <span className={cn("text-sm font-medium", item.isCompleted && "line-through opacity-70")}>{item.text}</span>
+                                            <button
+                                                onClick={() => toggleChecklistItem(item.id, item.isCompleted)}
+                                                className="shrink-0"
+                                            >
+                                                {item.isCompleted ? <CheckSquare className="h-5 w-5 text-green-400" /> : <Square className="h-5 w-5 text-gray-600 group-hover:text-cyan-400" />}
+                                            </button>
+                                            <span
+                                                className={cn("text-sm font-medium flex-1 cursor-pointer", item.isCompleted && "line-through opacity-70")}
+                                                onClick={() => toggleChecklistItem(item.id, item.isCompleted)}
+                                            >{item.text}</span>
+                                            {isAdmin && (
+                                                <button
+                                                    onClick={() => deleteChecklistItem(item.id)}
+                                                    disabled={deletingChecklist === item.id}
+                                                    className="opacity-0 group-hover:opacity-100 transition-opacity text-gray-600 hover:text-red-400 shrink-0"
+                                                    title="Delete item"
+                                                >
+                                                    {deletingChecklist === item.id ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
+                                                </button>
+                                            )}
                                         </div>
                                     ))}
                                 </div>
@@ -415,14 +502,22 @@ export default function ApplicationDetailsPage() {
                                 <FileText size={32} strokeWidth={1} />
                             </div>
                             <div className="space-y-1">
-                                <p className="text-white font-semibold">View Student&apos;s Global Document Locker</p>
-                                <p className="text-gray-500 text-sm max-w-sm">All documents like Passport, Transcripts and Diplomas are managed centrally for all applications.</p>
+                                <p className="text-white font-semibold">View Document Locker</p>
+                                <p className="text-gray-500 text-sm max-w-sm">All documents like Passport, Transcripts and Diplomas are managed centrally across all applications.</p>
                             </div>
-                            <Button asChild className="bg-cyan-600 hover:bg-cyan-500 h-10 mt-4 rounded-xl px-6">
-                                <Link href={`/dashboard/admin/students?studentId=${application.studentId}&tab=documents`}>
-                                    Go to Documents Section
-                                </Link>
-                            </Button>
+                            {isAdmin ? (
+                                <Button asChild className="bg-cyan-600 hover:bg-cyan-500 h-10 mt-4 rounded-xl px-6">
+                                    <Link href={`/dashboard/admin/students?studentId=${application.studentId}`}>
+                                        Open Student&apos;s Document Locker
+                                    </Link>
+                                </Button>
+                            ) : (
+                                <Button asChild className="bg-cyan-600 hover:bg-cyan-500 h-10 mt-4 rounded-xl px-6">
+                                    <Link href="/dashboard/student">
+                                        Go to My Documents
+                                    </Link>
+                                </Button>
+                            )}
                         </CardContent>
                     </Card>
                 </TabsContent>

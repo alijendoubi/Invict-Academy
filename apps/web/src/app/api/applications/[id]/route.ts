@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { getSession, verifyStudentAccess, logAudit } from '@/lib/auth';
+import { twilioService, TEMPLATES } from '@/lib/twilio';
 
 export const dynamic = 'force-dynamic';
 
@@ -21,23 +22,13 @@ export async function GET(
                 student: {
                     include: {
                         user: {
-                            select: {
-                                firstName: true,
-                                lastName: true,
-                                email: true
-                            }
-                        }
-                    }
+                            select: { firstName: true, lastName: true, email: true },
+                        },
+                    },
                 },
-                checklistItems: {
-                    orderBy: { text: 'asc' }
-                },
-                tasks: {
-                    orderBy: { createdAt: 'desc' }
-                },
-                stepLogs: {
-                    orderBy: { createdAt: 'desc' }
-                }
+                checklistItems: { orderBy: { text: 'asc' } },
+                tasks: { orderBy: { createdAt: 'desc' } },
+                stepLogs: { orderBy: { createdAt: 'desc' } },
             },
         });
 
@@ -45,7 +36,6 @@ export async function GET(
             return NextResponse.json({ error: 'Application not found' }, { status: 404 });
         }
 
-        // Access Control
         const hasAccess = await verifyStudentAccess(application.studentId);
         if (!hasAccess) {
             return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
@@ -72,10 +62,9 @@ export async function PATCH(
         const body = await request.json();
         const { status, intakeTerm, deadline, university, program, country } = body;
 
-        // Fetch application for permission check
         const application = await prisma.application.findUnique({
             where: { id },
-            select: { studentId: true }
+            select: { studentId: true, status: true, university: true, program: true },
         });
 
         if (!application) {
@@ -102,7 +91,7 @@ export async function PATCH(
             data: updateData,
         });
 
-        // Auto-sync student profile status when application status changes
+        // ── Auto-sync student profile status ──────────────────────────────────
         if (status && isAdmin) {
             const statusMap: Record<string, 'ACTIVE' | 'APPLYING' | 'ACCEPTED' | 'VISA_IN_PROGRESS' | 'DEPARTED' | 'ARRIVED' | 'COMPLETED'> = {
                 DRAFT: 'ACTIVE',
@@ -118,6 +107,48 @@ export async function PATCH(
                     where: { id: application.studentId },
                     data: { status: newStudentStatus },
                 });
+            }
+        }
+
+        // ── WhatsApp template notifications on status change ──────────────────
+        const statusChanged = status && isAdmin && status !== application.status;
+        if (statusChanged) {
+            try {
+                const student = await prisma.studentProfile.findUnique({
+                    where: { id: application.studentId },
+                    include: { user: { select: { firstName: true } } },
+                });
+
+                const phone = student?.phone;
+                const firstName = student?.user.firstName || 'Student';
+                const uniName = university || application.university || 'your university';
+                const progName = program || application.program || 'your programme';
+
+                if (phone) {
+                    if (status === 'APPROVED') {
+                        // Application Accepted
+                        await twilioService.sendTemplate(
+                            phone,
+                            TEMPLATES.APPLICATION_ACCEPTED,
+                            {
+                                '1': firstName,
+                                '2': uniName,
+                            }
+                        );
+                    } else if (status === 'DOCUMENTS_PENDING') {
+                        // Documents Needed
+                        await twilioService.sendTemplate(
+                            phone,
+                            TEMPLATES.DOCUMENTS_NEEDED,
+                            {
+                                '1': firstName,
+                                '2': uniName,
+                            }
+                        );
+                    }
+                }
+            } catch (notifyError) {
+                console.error('Application status notification failed (non-fatal):', notifyError);
             }
         }
 

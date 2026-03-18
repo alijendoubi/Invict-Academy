@@ -24,8 +24,8 @@ export async function POST(request: NextRequest) {
             include: { user: true }
         });
 
-        if (!student || !student.phone) {
-            return NextResponse.json({ error: 'Student or phone number not found' }, { status: 404 });
+        if (!student) {
+            return NextResponse.json({ error: 'Student not found' }, { status: 404 });
         }
 
         const consultation = await prisma.consultation.create({
@@ -33,30 +33,36 @@ export async function POST(request: NextRequest) {
                 studentId,
                 scheduledAt: new Date(scheduledAt),
                 notes,
-                whatsappPhone: student.phone,
+                whatsappPhone: student.phone || '',
             }
         });
 
-        // Queue reminder (24 hours before)
-        const meetingTime = new Date(scheduledAt).getTime();
-        const now = Date.now();
-        const reminderTime = meetingTime - (24 * 60 * 60 * 1000);
-        let delay = reminderTime - now;
+        // Only queue WhatsApp reminder if student has a phone number
+        if (student.phone) {
+            const meetingTime = new Date(scheduledAt).getTime();
+            const now = Date.now();
+            const reminderTime = meetingTime - (24 * 60 * 60 * 1000);
+            let delay = reminderTime - now;
 
-        // If it's already less than 24 hours away, send it in 1 minute
-        if (delay < 0) delay = 60 * 1000;
+            // If it's already less than 24 hours away, send it in 1 minute
+            if (delay < 0) delay = 60 * 1000;
 
-        await queueService.sendNotification({
-            type: 'whatsapp',
-            userId: student.userId,
-            data: {
-                consultationId: consultation.id,
-                studentName: student.user.firstName,
-                scheduledAt: scheduledAt,
-                phone: student.phone,
-                messageType: 'meeting_reminder'
+            try {
+                await queueService.sendNotification({
+                    type: 'whatsapp',
+                    userId: student.userId,
+                    data: {
+                        consultationId: consultation.id,
+                        studentName: student.user.firstName,
+                        scheduledAt: scheduledAt,
+                        phone: student.phone,
+                        messageType: 'meeting_reminder'
+                    }
+                }, delay);
+            } catch (queueError) {
+                console.error('Failed to queue WhatsApp reminder (non-fatal):', queueError);
             }
-        }, delay);
+        }
 
         return NextResponse.json({ success: true, consultation });
     } catch (error) {

@@ -29,9 +29,12 @@ export const getConnection = () => {
 
     if (!redisConnection) {
         console.log('🔌 Initializing Redis connection...');
-        redisConnection = new Redis(process.env.REDIS_URL || 'redis://localhost:6379', {
+        const redisUrl = process.env.REDIS_URL ||
+            (process.env.REDIS_HOST
+                ? `rediss://default:${process.env.REDIS_PASSWORD}@${process.env.REDIS_HOST}:${process.env.REDIS_PORT || '6379'}`
+                : 'redis://localhost:6379');
+        redisConnection = new Redis(redisUrl, {
             maxRetriesPerRequest: null,
-            // Add connection timeout and retry strategy for better stability
             connectTimeout: 10000,
             retryStrategy: (times) => Math.min(times * 50, 2000),
         });

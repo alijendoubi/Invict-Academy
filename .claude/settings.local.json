@@ -27,7 +27,8 @@
       "Bash(grep -n -A 5 \"doc.status === ''REJECTED''\" \"d:\\\\Invict Academy\\\\Invict-Academy\\\\apps\\\\web\\\\src\\\\app\\\\dashboard\\\\student\\\\page.tsx\")",
       "Bash(grep -r verifyStudentAccess '/d/Invict Academy/Invict-Academy/apps/web/src/lib' --include=*.ts)",
       "Bash(find \"d:\\\\Invict Academy\\\\Invict-Academy\\\\apps\\\\web\\\\src\\\\app\\\\api\" -name \"route.ts\" -exec grep -L \"getSession\\\\|prisma\" {})",
-      "Bash(find \"d:\\\\Invict Academy\\\\Invict-Academy\\\\apps\\\\web\\\\src\" -name \"*.tsx\" -exec grep -l \"window.location.href\" {})"
+      "Bash(find \"d:\\\\Invict Academy\\\\Invict-Academy\\\\apps\\\\web\\\\src\" -name \"*.tsx\" -exec grep -l \"window.location.href\" {})",
+      "Bash(grep:*)"
     ]
   }
 }

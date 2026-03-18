@@ -26,30 +26,40 @@ const APPLICATION_STEPS = [
 ]
 
 function StepTracker({ currentStep }: { currentStep: string }) {
-    const currentIdx = APPLICATION_STEPS.findIndex(s => s.key === currentStep)
+    const isRejected = currentStep === "REJECTED"
+    const currentIdx = isRejected
+        ? APPLICATION_STEPS.length - 1
+        : APPLICATION_STEPS.findIndex(s => s.key === currentStep)
+    const safeIdx = currentIdx < 0 ? 0 : currentIdx
     return (
         <div className="relative">
+            {isRejected && (
+                <div className="mb-3 flex items-center gap-2 text-red-400 text-xs font-semibold">
+                    <AlertCircle size={13} /> Application was not approved
+                </div>
+            )}
             <div className="flex items-center justify-between relative">
                 {/* Connecting line */}
                 <div className="absolute top-5 left-0 right-0 h-[2px] bg-white/5 z-0" />
                 <div
-                    className="absolute top-5 left-0 h-[2px] bg-gradient-to-r from-cyan-500 to-blue-500 z-0 transition-all duration-700"
-                    style={{ width: `${(currentIdx / (APPLICATION_STEPS.length - 1)) * 100}%` }}
+                    className={`absolute top-5 left-0 h-[2px] z-0 transition-all duration-700 ${isRejected ? "bg-gradient-to-r from-red-500 to-red-700" : "bg-gradient-to-r from-cyan-500 to-blue-500"}`}
+                    style={{ width: `${(safeIdx / (APPLICATION_STEPS.length - 1)) * 100}%` }}
                 />
                 {APPLICATION_STEPS.map((step, idx) => {
-                    const isCompleted = idx < currentIdx
-                    const isCurrent = idx === currentIdx
-                    const isPending = idx > currentIdx
+                    const isCompleted = idx < safeIdx
+                    const isCurrent = idx === safeIdx
                     const Icon = step.icon
                     return (
                         <div key={step.key} className="flex flex-col items-center gap-2 z-10 relative">
-                            <div className={`h-10 w-10 rounded-full border-2 flex items-center justify-center transition-all duration-300 ${isCompleted ? "bg-cyan-500 border-cyan-500 text-black" :
-                                isCurrent ? "bg-card border-cyan-400 text-cyan-400 shadow-[0_0_20px_rgba(34,211,238,0.3)]" :
-                                    "bg-card border-white/10 text-gray-600"
+                            <div className={`h-10 w-10 rounded-full border-2 flex items-center justify-center transition-all duration-300 ${isCompleted
+                                ? isRejected ? "bg-red-500/30 border-red-500/50 text-red-400" : "bg-cyan-500 border-cyan-500 text-black"
+                                : isCurrent
+                                    ? isRejected ? "bg-card border-red-400 text-red-400 shadow-[0_0_20px_rgba(239,68,68,0.3)]" : "bg-card border-cyan-400 text-cyan-400 shadow-[0_0_20px_rgba(34,211,238,0.3)]"
+                                    : "bg-card border-white/10 text-gray-600"
                                 }`}>
-                                {isCompleted ? <CheckCircle size={16} /> : <Icon size={16} className={isPending ? "" : ""} />}
+                                {isCompleted ? <CheckCircle size={16} /> : <Icon size={16} />}
                             </div>
-                            <span className={`text-[10px] text-center max-w-[70px] leading-tight hidden sm:block ${isCurrent ? "text-cyan-400 font-bold" :
+                            <span className={`text-[10px] text-center max-w-[70px] leading-tight hidden sm:block ${isCurrent ? (isRejected ? "text-red-400 font-bold" : "text-cyan-400 font-bold") :
                                 isCompleted ? "text-gray-300" : "text-gray-600"
                                 }`}>{step.label}</span>
                         </div>
@@ -58,8 +68,8 @@ function StepTracker({ currentStep }: { currentStep: string }) {
             </div>
             {/* Mobile: current step label */}
             <div className="mt-4 sm:hidden text-center">
-                <span className="text-cyan-400 font-bold text-sm">
-                    {APPLICATION_STEPS[currentIdx]?.label}
+                <span className={`font-bold text-sm ${isRejected ? "text-red-400" : "text-cyan-400"}`}>
+                    {isRejected ? "Rejected" : APPLICATION_STEPS[safeIdx]?.label}
                 </span>
             </div>
         </div>
@@ -433,23 +443,33 @@ export default function StudentDashboardPage() {
                                 ) : (
                                     <div className="grid grid-cols-1 gap-2 mb-4">
                                         {documents.map((doc, i) => (
-                                            <div key={doc.id || i} className={`flex items-center gap-3 p-3 rounded-xl border ${doc.status === 'APPROVED' ? 'bg-green-500/5 border-green-500/20' :
+                                            <div key={doc.id || i} className={`p-3 rounded-xl border ${doc.status === 'APPROVED' ? 'bg-green-500/5 border-green-500/20' :
                                                 doc.status === 'REJECTED' ? 'bg-red-500/5 border-red-500/20' :
                                                     'bg-white/[0.02] border-white/5'
                                                 }`}>
-                                                {doc.status === 'APPROVED'
-                                                    ? <CheckCircle size={14} className="text-green-400 shrink-0" />
-                                                    : doc.status === 'REJECTED'
-                                                        ? <Circle size={14} className="text-red-400 shrink-0" />
-                                                        : <Clock size={14} className="text-yellow-400 shrink-0" />}
-                                                <div className="flex-1 min-w-0">
-                                                    <p className="text-sm text-white truncate">{doc.filename}</p>
-                                                    <p className="text-xs text-gray-600">{doc.type} · {new Date(doc.createdAt).toLocaleDateString('en-GB', { day: "numeric", month: "short" })}</p>
+                                                <div className="flex items-center gap-3">
+                                                    {doc.status === 'APPROVED'
+                                                        ? <CheckCircle size={14} className="text-green-400 shrink-0" />
+                                                        : doc.status === 'REJECTED'
+                                                            ? <AlertCircle size={14} className="text-red-400 shrink-0" />
+                                                            : <Clock size={14} className="text-yellow-400 shrink-0" />}
+                                                    <div className="flex-1 min-w-0">
+                                                        <p className="text-sm text-white truncate">{doc.filename}</p>
+                                                        <p className="text-xs text-gray-600">{doc.type} · {new Date(doc.createdAt).toLocaleDateString('en-GB', { day: "numeric", month: "short" })}</p>
+                                                    </div>
+                                                    <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium shrink-0 ${doc.status === 'APPROVED' ? 'bg-green-500/20 text-green-400' :
+                                                        doc.status === 'REJECTED' ? 'bg-red-500/20 text-red-400' :
+                                                            'bg-yellow-500/20 text-yellow-400'
+                                                        }`}>{doc.status}</span>
                                                 </div>
-                                                <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${doc.status === 'APPROVED' ? 'bg-green-500/20 text-green-400' :
-                                                    doc.status === 'REJECTED' ? 'bg-red-500/20 text-red-400' :
-                                                        'bg-yellow-500/20 text-yellow-400'
-                                                    }`}>{doc.status}</span>
+                                                {doc.status === 'REJECTED' && doc.rejectionReason && (
+                                                    <div className="mt-2 ml-[22px] flex items-start gap-1.5">
+                                                        <AlertCircle size={11} className="text-red-400 shrink-0 mt-0.5" />
+                                                        <p className="text-xs text-red-400/80 leading-relaxed">
+                                                            <span className="font-semibold">Reason: </span>{doc.rejectionReason}
+                                                        </p>
+                                                    </div>
+                                                )}
                                             </div>
                                         ))}
                                     </div>

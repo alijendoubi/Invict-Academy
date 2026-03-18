@@ -7,7 +7,8 @@
         "build": "next build",
         "build:local": "export NEXT_FONT_GOOGLE_MOCKED=1 && next build",
         "start": "next start",
-        "lint": "next lint"
+        "lint": "next lint",
+        "worker": "ts-node --esm src/workers/index.ts"
     },
     "dependencies": {
         "@aws-sdk/client-s3": "^3.1001.0",

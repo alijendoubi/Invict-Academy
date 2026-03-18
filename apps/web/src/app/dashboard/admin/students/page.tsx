@@ -6,7 +6,7 @@ import {
     Users, MessageSquare, Calendar, CheckSquare, TrendingUp,
     Search, Send, Phone, Mail, ChevronRight, Clock,
     MoreVertical, CheckCircle2, XCircle, AlertCircle,
-    Loader2, RefreshCw, QrCode, FileText, Globe, Sparkles
+    Loader2, RefreshCw, QrCode, FileText, Globe, Sparkles, Inbox
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -62,6 +62,13 @@ export default function AdminStudentsPage() {
     const [rejectDocId, setRejectDocId] = useState<string | null>(null)
     const [rejectReason, setRejectReason] = useState("")
 
+    // Internal messaging state
+    const [messages, setMessages] = useState<any[]>([])
+    const [loadingMessages, setLoadingMessages] = useState(false)
+    const [messageInput, setMessageInput] = useState("")
+    const [sendingMessage, setSendingMessage] = useState(false)
+    const [messageSentInternal, setMessageSentInternal] = useState(false)
+
     const searchParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
     const targetStudentId = searchParams?.get('studentId');
 
@@ -90,6 +97,8 @@ export default function AdminStudentsPage() {
         if (selectedStudent) {
             setDisplayStatus(toStudentStatus(selectedStudent.status))
             fetchConsultations(selectedStudent.id)
+            setMessages([])
+            fetchMessages(selectedStudent.id)
         }
     }, [selectedStudent])
 
@@ -105,6 +114,44 @@ export default function AdminStudentsPage() {
             console.error("Failed to fetch consultations:", error)
         } finally {
             setLoadingConsults(false)
+        }
+    }
+
+    async function fetchMessages(studentId: string) {
+        setLoadingMessages(true)
+        try {
+            const res = await fetch(`/api/messages?studentId=${studentId}`)
+            if (res.ok) {
+                const data = await res.json()
+                setMessages(Array.isArray(data) ? data : [])
+            }
+        } catch (error) {
+            console.error("Failed to fetch messages:", error)
+        } finally {
+            setLoadingMessages(false)
+        }
+    }
+
+    async function sendInternalMessage() {
+        if (!messageInput.trim() || !selectedStudent) return
+        setSendingMessage(true)
+        try {
+            const res = await fetch("/api/messages", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ content: messageInput.trim(), studentId: selectedStudent.id }),
+            })
+            if (res.ok) {
+                const newMsg = await res.json()
+                setMessages(prev => [...prev, newMsg])
+                setMessageInput("")
+                setMessageSentInternal(true)
+                setTimeout(() => setMessageSentInternal(false), 2000)
+            }
+        } catch (error) {
+            console.error("Failed to send message:", error)
+        } finally {
+            setSendingMessage(false)
         }
     }
 
@@ -466,6 +513,96 @@ export default function AdminStudentsPage() {
                                             ))}
                                         </div>
                                     )}
+                                </div>
+
+                                {/* Internal Messaging Panel */}
+                                <div className="p-6 rounded-3xl bg-white/[0.03] border border-white/10">
+                                    <div className="flex items-center justify-between mb-4">
+                                        <div className="flex items-center gap-2">
+                                            <div className="h-8 w-8 rounded-xl bg-cyan-500/10 flex items-center justify-center">
+                                                <Inbox size={16} className="text-cyan-400" />
+                                            </div>
+                                            <div>
+                                                <p className="text-sm font-semibold text-white">Internal Messages</p>
+                                                <p className="text-xs text-gray-500">Portal inbox — visible to student</p>
+                                            </div>
+                                        </div>
+                                        <button
+                                            onClick={() => fetchMessages(selectedStudent.id)}
+                                            className="text-gray-500 hover:text-white transition-colors"
+                                            title="Refresh messages"
+                                        >
+                                            <RefreshCw size={14} />
+                                        </button>
+                                    </div>
+
+                                    {/* Message thread */}
+                                    <div className="space-y-2 max-h-64 overflow-y-auto mb-4 pr-1">
+                                        {loadingMessages ? (
+                                            <div className="flex items-center justify-center py-8">
+                                                <Loader2 size={16} className="animate-spin text-cyan-500" />
+                                            </div>
+                                        ) : messages.length === 0 ? (
+                                            <div className="text-center py-8 text-gray-600 text-xs">
+                                                <Inbox size={28} className="mx-auto mb-2 opacity-20" />
+                                                No messages yet. Send the first message below.
+                                            </div>
+                                        ) : (
+                                            messages.map((msg: any) => (
+                                                <div key={msg.id} className={`flex ${msg.fromAdmin ? "justify-end" : "justify-start"}`}>
+                                                    <div className={`max-w-[80%] px-3 py-2 rounded-xl text-xs ${msg.fromAdmin
+                                                        ? "bg-cyan-500/10 border border-cyan-500/20 text-cyan-100 rounded-br-sm"
+                                                        : "bg-white/[0.04] border border-white/10 text-gray-300 rounded-bl-sm"
+                                                    }`}>
+                                                        <p className={`text-[10px] font-semibold mb-1 ${msg.fromAdmin ? "text-cyan-400" : "text-gray-500"}`}>
+                                                            {msg.fromAdmin ? "You (Admin)" : name}
+                                                        </p>
+                                                        <p className="leading-relaxed">{msg.content}</p>
+                                                        <p className="text-[9px] text-gray-600 mt-1">
+                                                            {new Date(msg.createdAt).toLocaleString("en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
+                                                            {!msg.fromAdmin && !msg.readAt && <span className="ml-1 text-yellow-500">● unread</span>}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            ))
+                                        )}
+                                    </div>
+
+                                    {/* Quick templates */}
+                                    <div className="flex flex-wrap gap-1.5 mb-3">
+                                        {[
+                                            { label: "📋 Docs needed", text: `Hi ${student.user?.firstName}, we need some additional documents from you. Please check your portal.` },
+                                            { label: "✅ Approved", text: `Great news ${student.user?.firstName}! Your application has been approved. Please check your portal for next steps.` },
+                                            { label: "📅 Meeting", text: `Hi ${student.user?.firstName}, your consultation is scheduled. Please check your portal for the details.` },
+                                        ].map((t, i) => (
+                                            <button key={i} onClick={() => setMessageInput(t.text)}
+                                                className="text-[10px] px-2 py-1 rounded-lg bg-white/5 text-gray-400 hover:text-white hover:bg-white/10 transition-all">
+                                                {t.label}
+                                            </button>
+                                        ))}
+                                    </div>
+
+                                    {/* Input */}
+                                    <div className="flex gap-2">
+                                        <textarea
+                                            value={messageInput}
+                                            onChange={e => setMessageInput(e.target.value)}
+                                            onKeyDown={e => {
+                                                if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendInternalMessage() }
+                                            }}
+                                            placeholder="Type a message to the student… (Enter to send)"
+                                            rows={2}
+                                            className="flex-1 bg-white/[0.03] border border-white/10 rounded-xl px-3 py-2 text-xs text-white placeholder:text-gray-600 focus:outline-none focus:border-cyan-500/40 resize-none"
+                                        />
+                                        <button
+                                            onClick={sendInternalMessage}
+                                            disabled={sendingMessage || !messageInput.trim()}
+                                            className="px-3 py-2 rounded-xl bg-cyan-600 hover:bg-cyan-500 disabled:opacity-40 text-white flex items-center gap-1.5 text-xs font-semibold transition-colors h-10 self-end"
+                                        >
+                                            {sendingMessage ? <Loader2 size={12} className="animate-spin" /> : <Send size={12} />}
+                                            {messageSentInternal ? "Sent!" : "Send"}
+                                        </button>
+                                    </div>
                                 </div>
 
                                 {/* WhatsApp Message Panel */}
