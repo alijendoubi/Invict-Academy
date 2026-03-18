@@ -50,6 +50,7 @@ export default function AdminStudentsPage() {
     const [selectedStatus, setSelectedStatus] = useState<StudentStatusType | "">("")
     const [messageSent, setMessageSent] = useState(false)
     const [messageFailed, setMessageFailed] = useState(false)
+    const [whatsappError, setWhatsappError] = useState("")
 
     const [meetingDate, setMeetingDate] = useState("")
     const [meetingType, setMeetingType] = useState("Video Call")
@@ -165,6 +166,7 @@ export default function AdminStudentsPage() {
         if (!whatsappMsg.trim() || !selectedStudent) return
         setSending(true)
         setMessageFailed(false)
+        setWhatsappError("")
         try {
             const res = await fetch("/api/whatsapp/send", {
                 method: "POST",
@@ -176,14 +178,18 @@ export default function AdminStudentsPage() {
                 setWhatsappMsg("")
                 setTimeout(() => setMessageSent(false), 3000)
             } else {
-                console.error('WhatsApp send failed:', await res.text())
+                const data = await res.json().catch(() => ({}))
+                const errMsg = data?.error || "Failed to send"
+                console.error('WhatsApp send failed:', errMsg)
+                setWhatsappError(errMsg)
                 setMessageFailed(true)
-                setTimeout(() => setMessageFailed(false), 4000)
+                setTimeout(() => { setMessageFailed(false); setWhatsappError("") }, 8000)
             }
         } catch (err) {
             console.error('WhatsApp send error:', err)
+            setWhatsappError("Network error")
             setMessageFailed(true)
-            setTimeout(() => setMessageFailed(false), 4000)
+            setTimeout(() => { setMessageFailed(false); setWhatsappError("") }, 8000)
         }
         setSending(false)
     }
@@ -464,7 +470,7 @@ export default function AdminStudentsPage() {
                                                         </Badge>
                                                     </div>
                                                     {doc.status === 'REJECTED' && doc.rejectionReason && (
-                                                        <p className="text-red-400/70 text-[10px] mt-2 ml-13 pl-[52px]">Reason: {doc.rejectionReason}</p>
+                                                        <p className="text-red-400/70 text-[10px] mt-2 pl-[52px] break-words whitespace-pre-wrap">Reason: {doc.rejectionReason}</p>
                                                     )}
                                                     <div className="flex items-center gap-2 mt-2 pl-[52px]">
                                                         <button
@@ -639,9 +645,17 @@ export default function AdminStudentsPage() {
                                         rows={4}
                                         className="w-full bg-white/[0.03] border border-white/10 rounded-xl p-4 text-sm text-white placeholder:text-gray-600 focus:outline-none focus:border-green-500/30 resize-none mb-3"
                                     />
+                                    {!selectedStudent?.phone && (
+                                        <p className="text-yellow-400/70 text-xs mb-3 flex items-center gap-1.5">
+                                            <AlertCircle size={12} /> No phone number on this student's profile — WhatsApp unavailable.
+                                        </p>
+                                    )}
                                     <div className="flex items-center gap-3">
-                                        <Button onClick={handleWhatsAppSend} disabled={sending || !whatsappMsg.trim() || !selectedStudent?.phone}
-                                            className="bg-green-600 hover:bg-green-500 text-white font-bold rounded-xl flex items-center gap-2">
+                                        <Button
+                                            onClick={handleWhatsAppSend}
+                                            disabled={sending || !whatsappMsg.trim() || !selectedStudent?.phone}
+                                            className="bg-green-600 hover:bg-green-500 disabled:opacity-40 text-white font-bold rounded-xl flex items-center gap-2"
+                                        >
                                             {sending ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
                                             {sending ? "Sending..." : "Send via WhatsApp"}
                                         </Button>
@@ -651,8 +665,9 @@ export default function AdminStudentsPage() {
                                             </motion.span>
                                         )}
                                         {messageFailed && (
-                                            <motion.span initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} className="text-red-400 text-sm flex items-center gap-1">
-                                                <XCircle size={14} /> Failed to send
+                                            <motion.span initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} className="text-red-400 text-xs flex items-start gap-1 flex-1 min-w-0">
+                                                <XCircle size={14} className="shrink-0 mt-0.5" />
+                                                <span className="break-words">{whatsappError || "Failed to send"}</span>
                                             </motion.span>
                                         )}
                                     </div>

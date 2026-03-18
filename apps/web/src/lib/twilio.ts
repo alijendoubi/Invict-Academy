@@ -41,8 +41,9 @@ export const twilioService = {
             console.log(`✅ WhatsApp (text) sent to ${formattedTo}: ${response.sid}`);
             return { success: true, sid: response.sid };
         } catch (error: any) {
-            console.error('❌ Twilio WhatsApp (text) error:', error?.message ?? error);
-            return { success: false, error };
+            const msg = error?.message ?? String(error);
+            console.error('❌ Twilio WhatsApp (text) error:', msg);
+            return { success: false, error: msg };
         }
     },
 
@@ -67,8 +68,9 @@ export const twilioService = {
             console.log(`✅ WhatsApp template ${contentSid} sent to ${formattedTo}: ${response.sid}`);
             return { success: true, sid: response.sid };
         } catch (error: any) {
-            console.error(`❌ Twilio template ${contentSid} error:`, error?.message ?? error);
-            return { success: false, error };
+            const msg = error?.message ?? String(error);
+            console.error(`❌ Twilio template ${contentSid} error:`, msg);
+            return { success: false, error: msg };
         }
     },
 };
