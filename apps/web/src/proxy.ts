@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { jwtVerify } from 'jose';
 
-const protectedRoutes = ['/dashboard', '/auth/setup-profile'];
+const protectedRoutes = ['/dashboard'];
 const locales = ['en', 'fr', 'ar', 'tr', 'az'];
 const defaultLocale = 'en';
 
@@ -63,9 +63,10 @@ export default async function proxy(request: NextRequest) {
 
             // Enforce password change for invited users
             const requiresPasswordChange = payload?.user?.requiresPasswordChange;
-            const isSetupRoute = normalizedPathname === '/auth/setup-profile';
-            if (requiresPasswordChange && !isSetupRoute) {
-                return NextResponse.redirect(new URL('/auth/setup-profile', request.nextUrl));
+            if (requiresPasswordChange) {
+                const locale = request.cookies.get('invict-locale')?.value || defaultLocale;
+                const safeLocale = locales.includes(locale) ? locale : defaultLocale;
+                return NextResponse.redirect(new URL(`/${safeLocale}/auth/setup-profile`, request.nextUrl));
             }
 
             // Define management-only routes (check against normalized pathname).

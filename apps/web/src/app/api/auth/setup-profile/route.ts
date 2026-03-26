@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
-import { getSession } from '@/lib/auth';
+import { getSession, encrypt } from '@/lib/auth';
 import * as bcrypt from 'bcryptjs';
 
 export async function POST(request: NextRequest) {
@@ -55,7 +55,21 @@ export async function POST(request: NextRequest) {
             }
         });
 
-        return NextResponse.json({ success: true, message: 'Profile completed successfully' });
+        // Issue a fresh session token with requiresPasswordChange removed
+        // so the middleware no longer redirects the user to this page
+        const newSession = await encrypt(
+            { user: { id: session.user.id, email: session.user.email, role: session.user.role } },
+            '7d'
+        );
+        const response = NextResponse.json({ success: true, message: 'Profile completed successfully' });
+        response.cookies.set('session', newSession, {
+            maxAge: 7 * 24 * 60 * 60,
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'lax',
+            path: '/',
+        });
+        return response;
 
     } catch (error) {
         console.error('Setup Profile error:', error);
