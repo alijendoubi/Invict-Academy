@@ -1,9 +1,6 @@
 "use client"
 
-export const dynamic = 'force-dynamic'
-
 import { useState, useEffect, useCallback } from "react"
-import { useSearchParams } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -65,9 +62,13 @@ export default function StudentsPage() {
     const [studentProfile, setStudentProfile] = useState<any>(null)
     const [loadingProfile, setLoadingProfile] = useState(false)
 
-    const searchParams = useSearchParams();
-    const initialSearch = searchParams.get('search') || "";
-    const initialTab = searchParams.get('tab') || "all";
+    // Read URL params client-side only (avoids useSearchParams Suspense requirement)
+    const [initialSearch] = useState(() =>
+        typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('search') || '' : ''
+    );
+    const [initialTab] = useState(() =>
+        typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('tab') || 'all' : 'all'
+    );
 
     const fetchStudentProfile = async (id: string) => {
         setLoadingProfile(true)

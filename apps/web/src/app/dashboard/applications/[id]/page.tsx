@@ -1,9 +1,7 @@
 "use client"
 
-export const dynamic = 'force-dynamic'
-
 import { useState, useEffect, useCallback } from "react"
-import { useParams, useRouter, useSearchParams } from "next/navigation"
+import { useParams, useRouter } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -77,10 +75,11 @@ function StepTracker({ currentStep }: { currentStep: string }) {
 
 export default function ApplicationDetailsPage() {
     const params = useParams()
-    const searchParams = useSearchParams()
     const router = useRouter()
     const id = params.id as string
-    const defaultTab = searchParams.get('tab') || 'overview'
+    const [defaultTab] = useState(() =>
+        typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('tab') || 'overview' : 'overview'
+    )
 
     const [application, setApplication] = useState<any>(null)
     const [user, setUser] = useState<any>(null)

@@ -1,9 +1,6 @@
 "use client"
 
-export const dynamic = 'force-dynamic'
-
 import { useState, useEffect } from "react"
-import { useSearchParams } from "next/navigation"
 import { motion, AnimatePresence } from "framer-motion"
 import {
     Users, MessageSquare, Calendar, CheckSquare, TrendingUp,
@@ -66,8 +63,10 @@ export default function AdminStudentsPage() {
     const [sendingMessage, setSendingMessage] = useState(false)
     const [messageSentInternal, setMessageSentInternal] = useState(false)
 
-    const searchParams = useSearchParams();
-    const targetStudentId = searchParams.get('studentId');
+    // Read URL param client-side only (avoids useSearchParams Suspense requirement)
+    const [targetStudentId] = useState<string | null>(() =>
+        typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('studentId') : null
+    );
 
     useEffect(() => {
         fetch("/api/students")
