@@ -61,20 +61,24 @@ export default async function proxy(request: NextRequest) {
             const payload = await decrypt(cookie);
             const userRole = payload?.user?.role;
 
-            // Define management-only routes (check against normalized pathname)
+            // Define management-only routes (check against normalized pathname).
+            // ASSOCIATE role is not included in the allowed set, so associates are
+            // also redirected away from these routes — same as students.
             const managementRoutes = [
                 '/dashboard/leads',
                 '/dashboard/students',
                 '/dashboard/users',
                 '/dashboard/associates',
-                '/dashboard/admin'
+                '/dashboard/admin',
+                // analytics is admin-only; payments is accessible to both students and admins
+                // so /dashboard/payments is intentionally NOT listed here
+                '/dashboard/analytics',
             ];
 
             const isManagementRoute = managementRoutes.some(route => normalizedPathname.startsWith(route));
 
             if (isManagementRoute && !['SUPER_ADMIN', 'ADMIN', 'STAFF'].includes(userRole)) {
-                // Redirect students to their own dashboard or root dashboard
-                // Assuming students have their own specific page or just the overview
+                // Redirect students (and associates) to the root dashboard
                 return NextResponse.redirect(new URL('/dashboard', request.nextUrl));
             }
 

@@ -57,7 +57,15 @@ export async function PATCH(request: NextRequest) {
         }
 
         const body = await request.json();
-        const { firstName, lastName, email, phone, nationality, currentPassword, newPassword } = body;
+        const { firstName, lastName, email, phone, nationality, currentPassword, newPassword, notificationPreferences } = body;
+
+        // TODO: notificationPreferences updates are not yet implemented.
+        // Silently accepting and ignoring this field would mask client bugs, so we log a warning instead.
+        if (notificationPreferences !== undefined) {
+            console.warn('Profile PATCH: notificationPreferences received but is not handled — field ignored.', {
+                userId: session.user.id,
+            });
+        }
 
         // If updating email, check if it's already taken
         if (email) {

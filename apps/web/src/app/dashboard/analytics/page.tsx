@@ -37,7 +37,7 @@ export default function AnalyticsPage() {
         )
     }
 
-    const { kpis, monthlyData, conversionFunnel: leadConversionData, applicationStatusData, studentsByCountry } = data
+    const { kpis, monthlyData, conversionFunnel: leadConversionData, applicationStatusData, studentsByCountry = [] } = data
     const revenueData = monthlyData
     const monthlyStats = monthlyData
 

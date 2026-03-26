@@ -184,7 +184,7 @@ export default function LeadsPage() {
                     <p className="text-gray-400">Manage and track potential students</p>
                 </div>
 
-                <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+                <Dialog open={isAddDialogOpen} onOpenChange={(open) => { setIsAddDialogOpen(open); if (!open) setAddLeadError("") }}>
                     <DialogTrigger asChild>
                         <Button className="bg-cyan-600 hover:bg-cyan-700">
                             <Plus className="h-4 w-4 mr-2" />

@@ -79,7 +79,10 @@ export default function AdminStudentsPage() {
                 if (list.length > 0) {
                     const target = targetStudentId ? list.find((s: any) => s.id === targetStudentId) : null;
                     const initialStudent = target || list[0];
-                    // Fetch full detail (includes documents and applications)
+                    // NOTE: /api/students already includes `documents` and `applications` in its response
+                    // (see apps/web/src/app/api/students/route.ts — Prisma include has both).
+                    // We still fetch the individual detail endpoint here to guarantee we have the most
+                    // up-to-date data and any fields that may be added to the detail endpoint in the future.
                     fetch(`/api/students/${initialStudent.id}`)
                         .then(r => r.ok ? r.json() : initialStudent)
                         .then(data => setSelectedStudent(data))

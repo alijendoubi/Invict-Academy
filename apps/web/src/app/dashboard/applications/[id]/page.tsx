@@ -434,10 +434,10 @@ export default function ApplicationDetailsPage() {
                                 )}
 
                                 <div className="space-y-3">
-                                    {application.tasks?.length === 0 ? (
+                                    {!application.tasks?.length ? (
                                         <div className="py-12 text-center text-gray-600 text-xs italic">No tasks created yet</div>
                                     ) : (
-                                        application.tasks.map((task: any) => (
+                                        (application.tasks ?? []).map((task: any) => (
                                             <div key={task.id} className="flex items-center justify-between p-3 rounded-xl bg-white/5 border border-white/10 group hover:border-white/20 transition-colors">
                                                 <div className="flex items-center gap-3">
                                                     <button onClick={() => toggleTask(task.id, task.status)} className="text-gray-600 hover:text-cyan-400 transition-colors">

@@ -47,10 +47,17 @@ function NotificationBell() {
     const ref = useRef<HTMLDivElement>(null)
 
     useEffect(() => {
-        fetch("/api/notifications")
-            .then(r => r.json())
-            .then(d => Array.isArray(d) ? setNotifications(d) : [])
-            .catch(() => { })
+        const fetchNotifications = () => {
+            fetch("/api/notifications")
+                .then(r => r.json())
+                .then(d => Array.isArray(d) ? setNotifications(d) : [])
+                .catch(() => { })
+        }
+
+        fetchNotifications()
+
+        const intervalId = setInterval(fetchNotifications, 60_000)
+        return () => clearInterval(intervalId)
     }, [])
 
     // Close on outside click

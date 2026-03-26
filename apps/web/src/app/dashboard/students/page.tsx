@@ -155,7 +155,7 @@ export default function StudentsPage() {
 
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault()
-        fetchStudents()
+        // fetchStudents is triggered automatically via the useEffect dependency on searchTerm
     }
 
     const getStatusColor = (status: string) => {
@@ -562,7 +562,7 @@ export default function StudentsPage() {
                                     <SelectItem value="ARRIVED">Arrived</SelectItem>
                                 </SelectContent>
                             </Select>
-                            <Button variant="outline" className="border-white/10 text-gray-300" onClick={() => fetchStudents()}>
+                            <Button variant="outline" className="border-white/10 text-gray-300" onClick={() => {}}>
                                 <Filter className="h-4 w-4 mr-2" />
                                 Apply
                             </Button>

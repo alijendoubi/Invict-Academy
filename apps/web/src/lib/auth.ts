@@ -95,7 +95,6 @@ export async function login(formData: FormData) {
 export async function logout() {
     const cookieStore = await cookies();
     cookieStore.delete('session');
-    cookieStore.delete('refresh_token');
 }
 
 export async function updateSession(request: NextRequest) {
