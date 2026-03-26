@@ -39,3 +39,9 @@ next-env.d.ts
 # database
 prisma/*.db
 prisma/*.db-journal
+
+# Claude worktrees
+.claude/worktrees/
+
+# Root lock file (use workspace-level only)
+/package-lock.json
