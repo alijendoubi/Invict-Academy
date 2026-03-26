@@ -15,7 +15,7 @@ export interface DocumentJob {
 }
 
 export interface NotificationJob {
-    type: 'email' | 'sms' | 'push' | 'whatsapp';
+    type: 'email' | 'sms' | 'push';
     userId: string;
     data: Record<string, any>;
 }

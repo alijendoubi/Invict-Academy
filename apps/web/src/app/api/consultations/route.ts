@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { getSession } from '@/lib/auth';
-import { queueService } from '@/lib/queue';
 
 export const dynamic = 'force-dynamic';
 
@@ -28,41 +27,18 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'Student not found' }, { status: 404 });
         }
 
+        if (!student.phone) {
+            return NextResponse.json({ error: 'Student must have a phone number for consultation scheduling' }, { status: 400 });
+        }
+
         const consultation = await prisma.consultation.create({
             data: {
                 studentId,
                 scheduledAt: new Date(scheduledAt),
                 notes,
-                whatsappPhone: student.phone || '',
+                whatsappPhone: student.phone,
             }
         });
-
-        // Only queue WhatsApp reminder if student has a phone number
-        if (student.phone) {
-            const meetingTime = new Date(scheduledAt).getTime();
-            const now = Date.now();
-            const reminderTime = meetingTime - (24 * 60 * 60 * 1000);
-            let delay = reminderTime - now;
-
-            // If it's already less than 24 hours away, send it in 1 minute
-            if (delay < 0) delay = 60 * 1000;
-
-            try {
-                await queueService.sendNotification({
-                    type: 'whatsapp',
-                    userId: student.userId,
-                    data: {
-                        consultationId: consultation.id,
-                        studentName: student.user.firstName,
-                        scheduledAt: scheduledAt,
-                        phone: student.phone,
-                        messageType: 'meeting_reminder'
-                    }
-                }, delay);
-            } catch (queueError) {
-                console.error('Failed to queue WhatsApp reminder (non-fatal):', queueError);
-            }
-        }
 
         return NextResponse.json({ success: true, consultation });
     } catch (error) {

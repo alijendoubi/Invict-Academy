@@ -131,7 +131,8 @@ export async function POST(request: NextRequest) {
             }
         });
 
-        return NextResponse.json({ user, tempPassword });
+        const { password: _, ...safeUser } = user;
+        return NextResponse.json({ user: safeUser, tempPassword });
     } catch (error) {
         console.error('Associate POST error:', error);
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });

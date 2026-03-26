@@ -109,65 +109,6 @@ if (!isBuildPhase) {
                         case 'push':
                             throw new Error('Push notifications are not yet implemented');
 
-                        case 'whatsapp': {
-                            const {
-                                phone,
-                                studentName,
-                                scheduledAt,
-                                consultationId,
-                                messageType,
-                                contentSid,
-                                variables,
-                                message,
-                            } = data;
-
-                            if (!phone) {
-                                console.warn('WhatsApp job has no phone number — skipping');
-                                break;
-                            }
-
-                            const { twilioService, TEMPLATES } = await import('../lib/twilio');
-
-                            if (messageType === 'meeting_reminder') {
-                                // ── Consultation Reminder template ──
-                                const formattedTime = new Date(scheduledAt).toLocaleString('en-GB', {
-                                    weekday: 'long',
-                                    day: 'numeric',
-                                    month: 'long',
-                                    year: 'numeric',
-                                    hour: '2-digit',
-                                    minute: '2-digit',
-                                    timeZone: 'Europe/Rome',
-                                });
-
-                                const res = await twilioService.sendTemplate(
-                                    phone,
-                                    TEMPLATES.CONSULTATION_REMINDER,
-                                    {
-                                        '1': studentName || 'Student',
-                                        '2': formattedTime,
-                                    }
-                                );
-
-                                if (res.success && consultationId) {
-                                    const { prisma } = await import('../lib/db');
-                                    await prisma.consultation.update({
-                                        where: { id: consultationId },
-                                        data: { reminderSent: true },
-                                    });
-                                }
-                            } else if (contentSid && variables) {
-                                // ── Generic template call ──
-                                await twilioService.sendTemplate(phone, contentSid, variables);
-                            } else if (message) {
-                                // ── Plain text fallback ──
-                                await twilioService.sendWhatsApp(phone, message);
-                            } else {
-                                console.warn('WhatsApp job has no message body or template — skipping');
-                            }
-                            break;
-                        }
-
                         default:
                             console.warn(`Unknown notification type: ${type}`);
                     }

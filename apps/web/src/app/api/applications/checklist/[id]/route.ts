@@ -70,6 +70,8 @@ export async function PATCH(
             if (!profile || profile.id !== item.application.studentId) {
                 return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
             }
+        } else if (!isAdmin) {
+            return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
         }
 
         const updated = await prisma.checklistItem.update({

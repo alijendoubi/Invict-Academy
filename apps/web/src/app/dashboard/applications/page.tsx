@@ -17,6 +17,7 @@ export default function ApplicationsPage() {
     const [applications, setApplications] = useState<any[]>([])
     const [loading, setLoading] = useState(true)
     const [submitting, setSubmitting] = useState(false)
+    const [submitError, setSubmitError] = useState<string | null>(null)
     const [dialogOpen, setDialogOpen] = useState(false)
     const [students, setStudents] = useState<any[]>([])
     const [studentsLoading, setStudentsLoading] = useState(false)
@@ -110,6 +111,7 @@ export default function ApplicationsPage() {
     const handleCreateApplication = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault()
         setSubmitting(true)
+        setSubmitError(null)
         const form = e.currentTarget
         const formData = new FormData(form)
 
@@ -146,7 +148,7 @@ export default function ApplicationsPage() {
             setDialogOpen(false)
             fetchApplications()
         } catch (err: any) {
-            alert(err.message)
+            setSubmitError(err.message)
         } finally {
             setSubmitting(false)
         }
@@ -167,7 +169,7 @@ export default function ApplicationsPage() {
                     <h1 className="text-3xl font-bold text-white mb-2">Applications</h1>
                     <p className="text-gray-400">Track university applications and their status</p>
                 </div>
-                <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+                <Dialog open={dialogOpen} onOpenChange={(open) => { setDialogOpen(open); if (!open) setSubmitError(null); }}>
                     <DialogTrigger asChild>
                         <Button className="bg-cyan-600 hover:bg-cyan-700">
                             <Plus className="mr-2 h-4 w-4" /> New Application
@@ -244,6 +246,9 @@ export default function ApplicationsPage() {
                                         </SelectContent>
                                     </Select>
                                 </div>
+                            )}
+                            {submitError && (
+                                <p className="text-sm text-red-400 bg-red-500/10 border border-red-500/20 rounded-md px-3 py-2">{submitError}</p>
                             )}
                             <DialogFooter className="pt-4">
                                 <DialogClose asChild>

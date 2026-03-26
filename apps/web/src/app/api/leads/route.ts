@@ -115,7 +115,7 @@ export async function POST(request: NextRequest) {
                         : interestedCountry
                             ? [interestedCountry]
                             : ['Italy'],
-                ...(session?.user?.id ? { assignedToId: session.user.id } : {}),
+                ...(session?.user?.id && ['SUPER_ADMIN', 'ADMIN', 'STAFF'].includes(session.user.role) ? { assignedToId: session.user.id } : {}),
             },
         });
 

@@ -97,7 +97,7 @@ export async function PATCH(request: NextRequest) {
         }
 
         // Handle Student Profile updates
-        if (phone || nationality) {
+        if ((phone || nationality) && session.user.role === 'STUDENT') {
             updateData.studentProfile = {
                 upsert: {
                     create: {

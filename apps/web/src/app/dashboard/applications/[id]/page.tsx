@@ -324,11 +324,6 @@ export default function ApplicationDetailsPage() {
                                     View Profile <ChevronRight size={14} className="group-hover:translate-x-1 transition-transform" />
                                 </Link>
                             </Button>
-                            <Button asChild variant="outline" className="w-full border-white/10 hover:bg-green-500/5 text-gray-300 h-10 group rounded-xl">
-                                <Link href={`/dashboard/admin/students?studentId=${application.studentId}&section=whatsapp`} className="flex items-center justify-between w-full">
-                                    Message Student <ChevronRight size={14} className="group-hover:translate-x-1 transition-transform" />
-                                </Link>
-                            </Button>
                         </div>
                     </CardContent>
                 </Card>

@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { getSession } from '@/lib/auth';
-import { twilioService, TEMPLATES } from '@/lib/twilio';
-
 export const dynamic = 'force-dynamic';
 
 export async function GET(request: NextRequest) {
@@ -91,27 +89,6 @@ export async function POST(request: NextRequest) {
                 deadline: deadline ? new Date(deadline) : null,
             },
         });
-
-        // ── Send "Application Received" WhatsApp template ─────────────────────
-        try {
-            const student = await prisma.studentProfile.findUnique({
-                where: { id: finalStudentId },
-                include: { user: { select: { firstName: true } } },
-            });
-
-            if (student?.phone) {
-                await twilioService.sendTemplate(
-                    student.phone,
-                    TEMPLATES.APPLICATION_RECEIVED,
-                    {
-                        '1': student.user.firstName || 'Student',
-                        '2': universityName || 'your university',
-                    }
-                );
-            }
-        } catch (notifyError) {
-            console.error('Application Received notification failed (non-fatal):', notifyError);
-        }
 
         return NextResponse.json(application);
     } catch (error) {

@@ -62,6 +62,10 @@ export async function GET(request: NextRequest) {
                 }
             }
         } else {
+            const isAdmin = ['SUPER_ADMIN', 'ADMIN', 'STAFF'].includes(role);
+            if (!isAdmin) {
+                return NextResponse.json([], { status: 200 });
+            }
             // Admin/Staff: new leads, pending documents, new students
             const [newLeads, pendingDocs, newStudents] = await Promise.all([
                 prisma.lead.findMany({

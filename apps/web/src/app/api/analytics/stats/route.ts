@@ -53,14 +53,14 @@ export async function GET(request: NextRequest) {
                     const date = new Date();
                     date.setMonth(date.getMonth() - (5 - i));
                     const start = new Date(date.getFullYear(), date.getMonth(), 1);
-                    const end = new Date(date.getFullYear(), date.getMonth() + 1, 0, 23, 59, 59);
+                    const end = new Date(date.getFullYear(), date.getMonth() + 1, 1); // exclusive upper bound
                     const month = start.toLocaleString('en-US', { month: 'short' });
 
                     const [leads, students, applications, revenue] = await Promise.all([
-                        prisma.lead.count({ where: { createdAt: { gte: start, lte: end } } }),
-                        prisma.studentProfile.count({ where: { createdAt: { gte: start, lte: end } } }),
-                        prisma.application.count({ where: { createdAt: { gte: start, lte: end } } }),
-                        prisma.payment.aggregate({ _sum: { amount: true }, where: { status: 'SUCCESS', createdAt: { gte: start, lte: end } } }),
+                        prisma.lead.count({ where: { createdAt: { gte: start, lt: end } } }),
+                        prisma.studentProfile.count({ where: { createdAt: { gte: start, lt: end } } }),
+                        prisma.application.count({ where: { createdAt: { gte: start, lt: end } } }),
+                        prisma.payment.aggregate({ _sum: { amount: true }, where: { status: 'SUCCESS', createdAt: { gte: start, lt: end } } }),
                     ]);
 
                     return {

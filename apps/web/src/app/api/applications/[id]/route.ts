@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { getSession, verifyStudentAccess, logAudit } from '@/lib/auth';
-import { twilioService, TEMPLATES } from '@/lib/twilio';
-
 export const dynamic = 'force-dynamic';
 
 export async function GET(
@@ -110,49 +108,9 @@ export async function PATCH(
             }
         }
 
-        // ── WhatsApp template notifications on status change ──────────────────
-        const statusChanged = status && isAdmin && status !== application.status;
-        if (statusChanged) {
-            try {
-                const student = await prisma.studentProfile.findUnique({
-                    where: { id: application.studentId },
-                    include: { user: { select: { firstName: true } } },
-                });
-
-                const phone = student?.phone;
-                const firstName = student?.user.firstName || 'Student';
-                const uniName = university || application.university || 'your university';
-                const progName = program || application.program || 'your programme';
-
-                if (phone) {
-                    if (status === 'APPROVED') {
-                        // Application Accepted
-                        await twilioService.sendTemplate(
-                            phone,
-                            TEMPLATES.APPLICATION_ACCEPTED,
-                            {
-                                '1': firstName,
-                                '2': uniName,
-                            }
-                        );
-                    } else if (status === 'DOCUMENTS_PENDING') {
-                        // Documents Needed
-                        await twilioService.sendTemplate(
-                            phone,
-                            TEMPLATES.DOCUMENTS_NEEDED,
-                            {
-                                '1': firstName,
-                                '2': uniName,
-                            }
-                        );
-                    }
-                }
-            } catch (notifyError) {
-                console.error('Application status notification failed (non-fatal):', notifyError);
-            }
+        if (Object.keys(updateData).length > 0) {
+            await logAudit('UPDATE_APPLICATION', 'Application', id, `Updated application fields: ${Object.keys(updateData).join(', ')}`);
         }
-
-        await logAudit('UPDATE_APPLICATION', 'Application', id, `Updated application fields: ${Object.keys(updateData).join(', ')}`);
 
         return NextResponse.json(updatedApplication);
     } catch (error) {
