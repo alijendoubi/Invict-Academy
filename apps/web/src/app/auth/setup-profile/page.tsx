@@ -48,8 +48,14 @@ export default function SetupProfilePage() {
                 throw new Error(data.error || "Failed to update profile")
             }
 
-            // Successfully set up, go to student dashboard
-            router.push("/dashboard/student")
+            // Re-fetch profile to determine role before redirecting
+            const profileRes = await fetch('/api/user/profile')
+            const profile = await profileRes.json()
+            if (profile.role === 'STUDENT') {
+                router.push('/dashboard/student')
+            } else {
+                router.push('/dashboard')
+            }
         } catch (err: any) {
             setError(err.message)
         } finally {

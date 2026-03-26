@@ -1,7 +1,6 @@
 import { Navbar } from "@/components/layout/Navbar"
 import { Footer } from "@/components/layout/Footer"
 import { ChatWidget } from "@/components/chat/ChatWidget"
-import { WhatsAppButton } from "@/components/chat/WhatsAppButton"
 
 export default function PublicLayout({
     children,
@@ -15,7 +14,6 @@ export default function PublicLayout({
                 {children}
             </main>
             <Footer />
-            <WhatsAppButton />
             <ChatWidget />
         </div>
     )

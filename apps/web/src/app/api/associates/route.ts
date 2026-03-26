@@ -98,8 +98,11 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
         }
 
-        const [firstName, ...lastNameParts] = name.split(' ');
-        const lastName = lastNameParts.join(' ') || 'Associate';
+        // Split on any whitespace run so "John  Doe" or "John" are handled safely.
+        // A last name is optional — lastName will be an empty string if omitted.
+        const parts = name.trim().split(/\s+/);
+        const firstName = parts[0];
+        const lastName = parts.slice(1).join(' ') || '';
 
         const existing = await prisma.user.findUnique({ where: { email } });
         if (existing) {
@@ -131,7 +134,8 @@ export async function POST(request: NextRequest) {
             }
         });
 
-        return NextResponse.json({ user, tempPassword });
+        const { password: _, ...safeUser } = user;
+        return NextResponse.json({ user: safeUser, tempPassword });
     } catch (error) {
         console.error('Associate POST error:', error);
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });

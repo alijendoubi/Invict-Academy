@@ -15,8 +15,6 @@ export async function GET(request: NextRequest) {
         const isManagement = ['SUPER_ADMIN', 'ADMIN'].includes(role);
         const isStaff = role === 'STAFF';
 
-        console.log(`[DEBUG] Students GET - User: ${session.user.email}, Role: ${role}, isManagement: ${isManagement}`);
-
         if (!isManagement && !isStaff) {
             return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
         }
@@ -44,10 +42,9 @@ export async function GET(request: NextRequest) {
             ];
         }
 
-        console.log('[DEBUG] Students GET - Final Where:', JSON.stringify(where));
-
         const students = await prisma.studentProfile.findMany({
             where,
+            take: 500,
             include: {
                 user: {
                     select: { firstName: true, lastName: true, email: true }
@@ -60,7 +57,6 @@ export async function GET(request: NextRequest) {
             orderBy: { updatedAt: 'desc' },
         });
 
-        console.log('[DEBUG] Students GET - Success. Returning count:', students.length);
         return NextResponse.json(students);
     } catch (error: any) {
         console.error('[ERROR] Students GET:', error.message || error);

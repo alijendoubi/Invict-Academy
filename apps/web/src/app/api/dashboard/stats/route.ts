@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
             });
 
             if (!student) {
-                return NextResponse.json({ stats: [], role: 'STUDENT' });
+                return NextResponse.json({ stats: [], role: 'STUDENT', recentActivity: [] });
             }
 
             // Compute readiness score dynamically
@@ -41,6 +41,7 @@ export async function GET(request: NextRequest) {
 
             return NextResponse.json({
                 role: 'STUDENT',
+                recentActivity: [],
                 stats: [
                     {
                         name: "Application Status",
@@ -74,7 +75,12 @@ export async function GET(request: NextRequest) {
             });
         }
 
-        // Admin/Staff logic - Fetch counts and recent activity in parallel
+        // Admin/Staff logic - guard against non-admin roles (e.g. ASSOCIATE)
+        if (!['SUPER_ADMIN', 'ADMIN', 'STAFF'].includes(userRole)) {
+            return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+        }
+
+        // Fetch counts and recent activity in parallel
         const [leadsCount, studentsCount, applicationsCount, revenueData, recentAuditLogs] = await Promise.all([
             prisma.lead.count(),
             prisma.studentProfile.count(),

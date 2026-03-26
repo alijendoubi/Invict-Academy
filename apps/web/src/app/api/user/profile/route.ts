@@ -40,14 +40,7 @@ export async function GET(request: NextRequest) {
             });
         } catch (dbError) {
             console.error('Profile DB error:', dbError);
-            // Fallback: return session data as profile
-            return NextResponse.json({
-                id: userId,
-                email,
-                firstName: 'User',
-                lastName: '',
-                role: session.user?.role || 'ADMIN',
-            });
+            return NextResponse.json({ error: 'Service unavailable' }, { status: 503 });
         }
     } catch (error) {
         console.error('Profile GET error:', error);
@@ -64,7 +57,15 @@ export async function PATCH(request: NextRequest) {
         }
 
         const body = await request.json();
-        const { firstName, lastName, email, phone, nationality, currentPassword, newPassword } = body;
+        const { firstName, lastName, email, phone, nationality, currentPassword, newPassword, notificationPreferences } = body;
+
+        // TODO: notificationPreferences updates are not yet implemented.
+        // Silently accepting and ignoring this field would mask client bugs, so we log a warning instead.
+        if (notificationPreferences !== undefined) {
+            console.warn('Profile PATCH: notificationPreferences received but is not handled — field ignored.', {
+                userId: session.user.id,
+            });
+        }
 
         // If updating email, check if it's already taken
         if (email) {
@@ -97,7 +98,7 @@ export async function PATCH(request: NextRequest) {
         }
 
         // Handle Student Profile updates
-        if (phone || nationality) {
+        if ((phone || nationality) && session.user.role === 'STUDENT') {
             updateData.studentProfile = {
                 upsert: {
                     create: {

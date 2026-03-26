@@ -42,35 +42,39 @@ export async function POST(
         const bcrypt = await import('bcryptjs');
         const hashedPassword = await bcrypt.hash(temporaryPassword, 10);
 
-        // Create user + student profile in one operation
-        const user = await prisma.user.create({
-            data: {
-                email: lead.email,
-                firstName: lead.firstName,
-                lastName: lead.lastName,
-                password: hashedPassword,
-                role: 'STUDENT',
-                requiresPasswordChange: true,
-                studentProfile: {
-                    create: {
-                        phone: lead.phone,
-                        degreeLevel: lead.degreeLevel,
-                        status: 'ACTIVE',
-                        assignedToId: lead.assignedToId || (session.user.role === 'STAFF' ? session.user.id : null),
+        // Create user + student profile and mark lead converted atomically
+        const { user } = await prisma.$transaction(async (tx) => {
+            const createdUser = await tx.user.create({
+                data: {
+                    email: lead.email,
+                    firstName: lead.firstName,
+                    lastName: lead.lastName,
+                    password: hashedPassword,
+                    role: 'STUDENT',
+                    requiresPasswordChange: true,
+                    studentProfile: {
+                        create: {
+                            phone: lead.phone,
+                            degreeLevel: lead.degreeLevel,
+                            status: 'ACTIVE',
+                            assignedToId: lead.assignedToId || (session.user.role === 'STAFF' ? session.user.id : null),
+                        }
                     }
+                } as any,
+                include: {
+                    studentProfile: true,
                 }
-            } as any,
-            include: {
-                studentProfile: true,
-            }
-        }) as any;
+            }) as any;
 
-        // Mark lead as converted by adding note (keeps WON status for reporting, but email check prevents double conversion)
-        await prisma.lead.update({
-            where: { id: leadId },
-            data: {
-                notes: `${lead.notes ? lead.notes + '\n' : ''}[CONVERTED] Converted to student on ${new Date().toISOString().split('T')[0]} (User: ${user.id})`,
-            },
+            // Mark lead as converted — keeps WON status for reporting; email uniqueness check above prevents double conversion
+            await tx.lead.update({
+                where: { id: leadId },
+                data: {
+                    notes: `${lead.notes ? lead.notes + '\n' : ''}[CONVERTED] Converted to student on ${new Date().toISOString().split('T')[0]} (User: ${createdUser.id})`,
+                },
+            });
+
+            return { user: createdUser };
         });
 
         await logAudit(

@@ -10,15 +10,11 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Label } from "@/components/ui/label"
 import { CredentialsDialog } from "@/components/CredentialsDialog"
 
-const DEMO_ASSOCIATES = [
-    { id: "a1", name: "Karim Mansouri", email: "karim@gmail.com", country: "Tunisia 🇹🇳", referrals: 12, converted: 8, commission: 1600, status: "ACTIVE", joinedAt: "2024-09-01" },
-    { id: "a2", name: "Nour Haddad", email: "nour.h@gmail.com", country: "Morocco 🇲🇦", referrals: 7, converted: 4, commission: 800, status: "ACTIVE", joinedAt: "2024-11-01" },
-    { id: "a3", name: "Yasmine Dridi", email: "yasmine.d@gmail.com", country: "Algeria 🇩🇿", referrals: 5, converted: 2, commission: 400, status: "PENDING", joinedAt: "2025-01-15" },
-]
 
 export default function AssociatesPage() {
     const [associates, setAssociates] = useState<any[]>([])
     const [loading, setLoading] = useState(true)
+    const [loadError, setLoadError] = useState("")
     const [search, setSearch] = useState("")
     const [submitting, setSubmitting] = useState(false)
     const [dialogOpen, setDialogOpen] = useState(false)
@@ -33,7 +29,8 @@ export default function AssociatesPage() {
                 if (Array.isArray(data)) setAssociates(data)
                 else throw new Error("not array")
             } catch {
-                setAssociates(DEMO_ASSOCIATES)
+                setAssociates([])
+                setLoadError("Failed to load associates. Please refresh the page.")
             } finally {
                 setLoading(false)
             }
@@ -51,6 +48,12 @@ export default function AssociatesPage() {
 
     return (
         <div className="space-y-6 pb-10">
+            {loadError && (
+                <div className="bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3 flex items-center gap-2">
+                    <TrendingUp size={16} className="text-red-400 shrink-0 hidden" />
+                    <p className="text-sm text-red-400">{loadError}</p>
+                </div>
+            )}
             <div className="flex items-center justify-between">
                 <div>
                     <h1 className="text-3xl font-black text-white mb-1">Associates</h1>

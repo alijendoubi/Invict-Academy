@@ -8,8 +8,9 @@ import { Button } from "@/components/ui/button"
 import {
     LayoutDashboard, Users, UserCircle, FileText,
     Settings, LogOut, Menu, X, GraduationCap,
-    Briefcase, DollarSign, Bell, QrCode, MessageSquare,
-    FileCheck2, UserPlus, MessageCircle, AlertTriangle, CheckCircle2
+    Briefcase, DollarSign, Bell, QrCode,
+    FileCheck2, UserPlus, MessageCircle, AlertTriangle, CheckCircle2,
+    TrendingUp
 } from "lucide-react"
 import { useState, useEffect, useRef } from "react"
 
@@ -46,10 +47,17 @@ function NotificationBell() {
     const ref = useRef<HTMLDivElement>(null)
 
     useEffect(() => {
-        fetch("/api/notifications")
-            .then(r => r.json())
-            .then(d => Array.isArray(d) ? setNotifications(d) : [])
-            .catch(() => { })
+        const fetchNotifications = () => {
+            fetch("/api/notifications")
+                .then(r => r.json())
+                .then(d => Array.isArray(d) ? setNotifications(d) : [])
+                .catch(() => { })
+        }
+
+        fetchNotifications()
+
+        const intervalId = setInterval(fetchNotifications, 60_000)
+        return () => clearInterval(intervalId)
     }, [])
 
     // Close on outside click
@@ -131,10 +139,11 @@ const navigation = [
     { name: "Overview", href: "/dashboard", icon: LayoutDashboard, roles: ["all"] },
     { name: "Leads", href: "/dashboard/leads", icon: UserCircle, roles: ["ADMIN", "SUPER_ADMIN", "STAFF"] },
     { name: "Students", href: "/dashboard/students", icon: GraduationCap, roles: ["ADMIN", "SUPER_ADMIN", "STAFF"] },
-    { name: "Student Management", href: "/dashboard/admin/students", icon: MessageSquare, roles: ["ADMIN", "SUPER_ADMIN", "STAFF"] },
+    { name: "Student Management", href: "/dashboard/admin/students", icon: Users, roles: ["ADMIN", "SUPER_ADMIN", "STAFF"] },
     { name: "Applications", href: "/dashboard/applications", icon: FileText, roles: ["all"] },
     { name: "Associates", href: "/dashboard/associates", icon: Briefcase, roles: ["ADMIN", "SUPER_ADMIN"] },
     { name: "Payments", href: "/dashboard/payments", icon: DollarSign, roles: ["all"] },
+    { name: "Analytics", href: "/dashboard/analytics", icon: TrendingUp, roles: ["ADMIN", "SUPER_ADMIN"] },
     { name: "QR Analytics", href: "/dashboard/admin/qr-analytics", icon: QrCode, roles: ["ADMIN", "SUPER_ADMIN"] },
     { name: "Users", href: "/dashboard/users", icon: Users, roles: ["ADMIN", "SUPER_ADMIN"] },
 ]

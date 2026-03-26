@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { getSession } from '@/lib/auth';
-import { twilioService, TEMPLATES } from '@/lib/twilio';
-
 export const dynamic = 'force-dynamic';
 
 export async function GET(request: NextRequest) {
@@ -15,8 +13,6 @@ export async function GET(request: NextRequest) {
         const role = session.user.role?.toUpperCase();
         const isManagement = ['SUPER_ADMIN', 'ADMIN'].includes(role);
         const isStaff = role === 'STAFF';
-
-        console.log(`[DEBUG] Applications GET - User: ${session.user.email}, Role: ${role}, isManagement: ${isManagement}`);
 
         const where: any = {};
 
@@ -61,7 +57,11 @@ export async function POST(request: NextRequest) {
         }
 
         const body = await request.json();
-        const { studentId, universityName, courseName, type, status, country, intakeTerm, deadline } = body;
+        const { studentId, university: universityField, universityName, program: programField, courseName, type, status, country, intakeTerm, deadline } = body;
+        // The form submits `universityName` and `courseName`; the DB fields are `university` and `program`.
+        // We accept both spellings so the API works from any caller. Do not remove the fallback.
+        const university = universityField || universityName;
+        const program = programField || courseName;
 
         let finalStudentId = studentId;
 
@@ -82,8 +82,8 @@ export async function POST(request: NextRequest) {
         const application = await prisma.application.create({
             data: {
                 studentId: finalStudentId,
-                university: universityName,
-                program: courseName,
+                university: university,
+                program: program,
                 country: country || 'Italy',
                 type: type || 'UNIVERSITY',
                 status: status || 'DRAFT',
@@ -91,27 +91,6 @@ export async function POST(request: NextRequest) {
                 deadline: deadline ? new Date(deadline) : null,
             },
         });
-
-        // ── Send "Application Received" WhatsApp template ─────────────────────
-        try {
-            const student = await prisma.studentProfile.findUnique({
-                where: { id: finalStudentId },
-                include: { user: { select: { firstName: true } } },
-            });
-
-            if (student?.phone) {
-                await twilioService.sendTemplate(
-                    student.phone,
-                    TEMPLATES.APPLICATION_RECEIVED,
-                    {
-                        '1': student.user.firstName || 'Student',
-                        '2': universityName || 'your university',
-                    }
-                );
-            }
-        } catch (notifyError) {
-            console.error('Application Received notification failed (non-fatal):', notifyError);
-        }
 
         return NextResponse.json(application);
     } catch (error) {

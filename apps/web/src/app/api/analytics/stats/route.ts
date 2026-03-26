@@ -53,14 +53,14 @@ export async function GET(request: NextRequest) {
                     const date = new Date();
                     date.setMonth(date.getMonth() - (5 - i));
                     const start = new Date(date.getFullYear(), date.getMonth(), 1);
-                    const end = new Date(date.getFullYear(), date.getMonth() + 1, 0, 23, 59, 59);
+                    const end = new Date(date.getFullYear(), date.getMonth() + 1, 1); // exclusive upper bound
                     const month = start.toLocaleString('en-US', { month: 'short' });
 
                     const [leads, students, applications, revenue] = await Promise.all([
-                        prisma.lead.count({ where: { createdAt: { gte: start, lte: end } } }),
-                        prisma.studentProfile.count({ where: { createdAt: { gte: start, lte: end } } }),
-                        prisma.application.count({ where: { createdAt: { gte: start, lte: end } } }),
-                        prisma.payment.aggregate({ _sum: { amount: true }, where: { status: 'SUCCESS', createdAt: { gte: start, lte: end } } }),
+                        prisma.lead.count({ where: { createdAt: { gte: start, lt: end } } }),
+                        prisma.studentProfile.count({ where: { createdAt: { gte: start, lt: end } } }),
+                        prisma.application.count({ where: { createdAt: { gte: start, lt: end } } }),
+                        prisma.payment.aggregate({ _sum: { amount: true }, where: { status: 'SUCCESS', createdAt: { gte: start, lt: end } } }),
                     ]);
 
                     return {
@@ -86,13 +86,14 @@ export async function GET(request: NextRequest) {
         ];
 
         // Build application status distribution
+        // Keys must match ApplicationStatus enum exactly. IN_PROGRESS is not a valid status — removed.
         const APP_COLORS: Record<string, string> = {
             DRAFT: '#6B7280',
+            DOCUMENTS_PENDING: '#F59E0B',
             SUBMITTED: '#3B82F6',
             UNDER_REVIEW: '#8B5CF6',
             APPROVED: '#10B981',
             REJECTED: '#EF4444',
-            IN_PROGRESS: '#F59E0B',
         };
         const applicationStatusData = applicationsByStatus.map(a => ({
             name: a.status.replace(/_/g, ' '),

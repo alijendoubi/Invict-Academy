@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
-import { getSession, verifyStudentAccess } from '@/lib/auth';
+import { getSession } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
 
@@ -15,23 +15,14 @@ export async function GET(
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        const application = await prisma.application.findUnique({
-            where: { id: applicationId },
-            select: { studentId: true }
-        });
-
-        if (!application) {
-            return NextResponse.json({ error: 'Application not found' }, { status: 404 });
-        }
-
-        const hasAccess = await verifyStudentAccess(application.studentId);
-        if (!hasAccess) {
-            return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-        }
-
         const tasks = await prisma.task.findMany({
             where: { applicationId },
-            orderBy: [{ status: 'asc' }, { dueDate: 'asc' }],
+            include: {
+                assignedTo: {
+                    select: { firstName: true, lastName: true },
+                },
+            },
+            orderBy: { createdAt: 'desc' },
         });
 
         return NextResponse.json(tasks);
@@ -51,54 +42,42 @@ export async function POST(
         if (!session) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
-        const body = await request.json();
-        const { title, description, priority, dueDate } = body;
 
-        if (!title) {
+        const isAdmin = ['SUPER_ADMIN', 'ADMIN', 'STAFF'].includes(session.user.role);
+        if (!isAdmin) {
+            return NextResponse.json({ error: 'Forbidden — only admins can create tasks' }, { status: 403 });
+        }
+
+        const body = await request.json();
+        const { title, description, priority, assignedToId, dueDate } = body;
+
+        if (!title || typeof title !== 'string' || !title.trim()) {
             return NextResponse.json({ error: 'Title is required' }, { status: 400 });
         }
 
-        // Permission check: only admin/staff or the student of the application can add tasks
         const application = await prisma.application.findUnique({
             where: { id: applicationId },
-            select: { studentId: true }
+            select: { id: true },
         });
 
         if (!application) {
             return NextResponse.json({ error: 'Application not found' }, { status: 404 });
         }
 
-        const isAdmin = ['SUPER_ADMIN', 'ADMIN', 'STAFF'].includes(session.user.role);
-        const isStudent = session.user.role === 'STUDENT';
-
-        let hasAccess = false;
-        if (isAdmin) {
-            hasAccess = true;
-        } else if (isStudent) {
-            const profile = await prisma.studentProfile.findUnique({
-                where: { userId: session.user.id },
-                select: { id: true }
-            });
-            if (profile && profile.id === application.studentId) hasAccess = true;
-        }
-
-        if (!hasAccess) {
-            return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-        }
-
         const task = await prisma.task.create({
             data: {
-                title,
-                description,
+                title: title.trim(),
+                description: description || undefined,
                 priority: priority || 'MEDIUM',
-                dueDate: dueDate ? new Date(dueDate) : null,
+                status: 'TODO',
                 applicationId,
                 creatorId: session.user.id,
-                status: 'TODO'
-            }
+                assignedToId: assignedToId || undefined,
+                dueDate: dueDate ? new Date(dueDate) : undefined,
+            },
         });
 
-        return NextResponse.json(task);
+        return NextResponse.json(task, { status: 201 });
     } catch (error) {
         console.error('Task POST error:', error);
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });

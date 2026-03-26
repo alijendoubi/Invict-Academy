@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { encrypt } from '@/lib/auth';
 import { rateLimit, getClientIp } from '@/lib/rate-limit';
+import { prisma } from '@/lib/db';
+import bcrypt from 'bcryptjs';
 
 export const dynamic = 'force-dynamic';
 
@@ -24,9 +26,6 @@ export async function POST(request: NextRequest) {
 
         // ─── Real DB login ──────────────────
         try {
-            const { prisma } = await import('@/lib/db');
-            const bcrypt = await import('bcryptjs');
-
             const user = await prisma.user.findUnique({ where: { email } });
             if (!user) {
                 return NextResponse.json({ error: 'Invalid email or password' }, { status: 401 });
@@ -56,7 +55,7 @@ export async function POST(request: NextRequest) {
                 maxAge: 7 * 24 * 60 * 60,
                 httpOnly: true,
                 secure: process.env.NODE_ENV === 'production',
-                sameSite: 'lax',
+                sameSite: 'strict',
                 path: '/',
             });
             return response;

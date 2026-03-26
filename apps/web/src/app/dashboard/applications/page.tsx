@@ -17,6 +17,7 @@ export default function ApplicationsPage() {
     const [applications, setApplications] = useState<any[]>([])
     const [loading, setLoading] = useState(true)
     const [submitting, setSubmitting] = useState(false)
+    const [submitError, setSubmitError] = useState<string | null>(null)
     const [dialogOpen, setDialogOpen] = useState(false)
     const [students, setStudents] = useState<any[]>([])
     const [studentsLoading, setStudentsLoading] = useState(false)
@@ -110,6 +111,7 @@ export default function ApplicationsPage() {
     const handleCreateApplication = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault()
         setSubmitting(true)
+        setSubmitError(null)
         const form = e.currentTarget
         const formData = new FormData(form)
 
@@ -146,7 +148,7 @@ export default function ApplicationsPage() {
             setDialogOpen(false)
             fetchApplications()
         } catch (err: any) {
-            alert(err.message)
+            setSubmitError(err.message)
         } finally {
             setSubmitting(false)
         }
@@ -167,7 +169,7 @@ export default function ApplicationsPage() {
                     <h1 className="text-3xl font-bold text-white mb-2">Applications</h1>
                     <p className="text-gray-400">Track university applications and their status</p>
                 </div>
-                <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+                <Dialog open={dialogOpen} onOpenChange={(open) => { setDialogOpen(open); if (!open) setSubmitError(null); }}>
                     <DialogTrigger asChild>
                         <Button className="bg-cyan-600 hover:bg-cyan-700">
                             <Plus className="mr-2 h-4 w-4" /> New Application
@@ -245,6 +247,9 @@ export default function ApplicationsPage() {
                                     </Select>
                                 </div>
                             )}
+                            {submitError && (
+                                <p className="text-sm text-red-400 bg-red-500/10 border border-red-500/20 rounded-md px-3 py-2">{submitError}</p>
+                            )}
                             <DialogFooter className="pt-4">
                                 <DialogClose asChild>
                                     <Button variant="outline" className="border-white/10 text-gray-300">Cancel</Button>
@@ -297,16 +302,28 @@ export default function ApplicationsPage() {
 
             {/* Applications List */}
             <Tabs defaultValue="all" className="space-y-4">
-                <TabsList className="bg-card border border-white/10 p-1">
+                <TabsList className="bg-card border border-white/10 p-1 flex-wrap">
                     <TabsTrigger value="all" className="data-[state=active]:bg-white/5 data-[state=active]:text-cyan-400">All Applications</TabsTrigger>
+                    <TabsTrigger value="draft" className="data-[state=active]:bg-white/5 data-[state=active]:text-cyan-400">Draft</TabsTrigger>
                     <TabsTrigger value="submitted" className="data-[state=active]:bg-white/5 data-[state=active]:text-cyan-400">Submitted</TabsTrigger>
+                    <TabsTrigger value="under_review" className="data-[state=active]:bg-white/5 data-[state=active]:text-cyan-400">Under Review</TabsTrigger>
+                    <TabsTrigger value="documents_pending" className="data-[state=active]:bg-white/5 data-[state=active]:text-cyan-400">Documents Pending</TabsTrigger>
                     <TabsTrigger value="approved" className="data-[state=active]:bg-white/5 data-[state=active]:text-cyan-400">Approved</TabsTrigger>
+                    <TabsTrigger value="rejected" className="data-[state=active]:bg-white/5 data-[state=active]:text-cyan-400">Rejected</TabsTrigger>
                 </TabsList>
 
-                {(["all", "submitted", "approved"] as const).map(tab => {
+                {(["all", "submitted", "approved", "draft", "under_review", "documents_pending", "rejected"] as const).map(tab => {
+                    const TAB_STATUS_MAP: Record<string, string> = {
+                        submitted: 'SUBMITTED',
+                        approved: 'APPROVED',
+                        rejected: 'REJECTED',
+                        draft: 'DRAFT',
+                        under_review: 'UNDER_REVIEW',
+                        documents_pending: 'DOCUMENTS_PENDING',
+                    }
                     const tabApps = tab === "all"
                         ? filteredApplications
-                        : filteredApplications.filter(a => a.status === tab.toUpperCase())
+                        : filteredApplications.filter(a => a.status === TAB_STATUS_MAP[tab])
 
                     return (
                         <TabsContent key={tab} value={tab} className="space-y-4">

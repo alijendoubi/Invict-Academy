@@ -1,11 +1,12 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useSearchParams } from "next/navigation"
 import { motion, AnimatePresence } from "framer-motion"
 import {
     Users, MessageSquare, Calendar, CheckSquare, TrendingUp,
     Search, Send, Phone, Mail, ChevronRight, Clock,
-    MoreVertical, CheckCircle2, XCircle, AlertCircle,
+    CheckCircle2,
     Loader2, RefreshCw, QrCode, FileText, Globe, Sparkles, Inbox
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -45,13 +46,6 @@ export default function AdminStudentsPage() {
     const [loading, setLoading] = useState(true)
     const [selectedStudent, setSelectedStudent] = useState<any | null>(null)
     const [search, setSearch] = useState("")
-    const [whatsappMsg, setWhatsappMsg] = useState("")
-    const [sending, setSending] = useState(false)
-    const [selectedStatus, setSelectedStatus] = useState<StudentStatusType | "">("")
-    const [messageSent, setMessageSent] = useState(false)
-    const [messageFailed, setMessageFailed] = useState(false)
-    const [whatsappError, setWhatsappError] = useState("")
-
     const [meetingDate, setMeetingDate] = useState("")
     const [meetingType, setMeetingType] = useState("Video Call")
     const [scheduling, setScheduling] = useState(false)
@@ -70,8 +64,8 @@ export default function AdminStudentsPage() {
     const [sendingMessage, setSendingMessage] = useState(false)
     const [messageSentInternal, setMessageSentInternal] = useState(false)
 
-    const searchParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
-    const targetStudentId = searchParams?.get('studentId');
+    const searchParams = useSearchParams();
+    const targetStudentId = searchParams.get('studentId');
 
     useEffect(() => {
         fetch("/api/students")
@@ -84,7 +78,15 @@ export default function AdminStudentsPage() {
                 setStudents(list)
                 if (list.length > 0) {
                     const target = targetStudentId ? list.find((s: any) => s.id === targetStudentId) : null;
-                    setSelectedStudent(target || list[0])
+                    const initialStudent = target || list[0];
+                    // NOTE: /api/students already includes `documents` and `applications` in its response
+                    // (see apps/web/src/app/api/students/route.ts — Prisma include has both).
+                    // We still fetch the individual detail endpoint here to guarantee we have the most
+                    // up-to-date data and any fields that may be added to the detail endpoint in the future.
+                    fetch(`/api/students/${initialStudent.id}`)
+                        .then(r => r.ok ? r.json() : initialStudent)
+                        .then(data => setSelectedStudent(data))
+                        .catch(() => setSelectedStudent(initialStudent))
                 } else if (!Array.isArray(data)) {
                     // Force zero students state to avoid crash if data is error object
                     setStudents([]);
@@ -162,69 +164,6 @@ export default function AdminStudentsPage() {
     )
 
 
-    async function handleWhatsAppSend() {
-        if (!whatsappMsg.trim() || !selectedStudent) return
-        setSending(true)
-        setMessageFailed(false)
-        setWhatsappError("")
-        try {
-            const res = await fetch("/api/whatsapp/send", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ to: selectedStudent.phone, message: whatsappMsg }),
-            })
-            if (res.ok) {
-                setMessageSent(true)
-                setWhatsappMsg("")
-                setTimeout(() => setMessageSent(false), 3000)
-            } else {
-                const data = await res.json().catch(() => ({}))
-                const errMsg = data?.error || "Failed to send"
-                console.error('WhatsApp send failed:', errMsg)
-                setWhatsappError(errMsg)
-                setMessageFailed(true)
-                setTimeout(() => { setMessageFailed(false); setWhatsappError("") }, 8000)
-            }
-        } catch (err) {
-            console.error('WhatsApp send error:', err)
-            setWhatsappError("Network error")
-            setMessageFailed(true)
-            setTimeout(() => { setMessageFailed(false); setWhatsappError("") }, 8000)
-        }
-        setSending(false)
-    }
-
-    async function handleQuickTemplate(contentSid: string, variables: Record<string, string>) {
-        if (!selectedStudent?.phone) return
-        setSending(true)
-        setMessageFailed(false)
-        setWhatsappError("")
-        try {
-            const res = await fetch("/api/whatsapp/send", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ to: selectedStudent.phone, contentSid, variables }),
-            })
-            if (res.ok) {
-                setMessageSent(true)
-                setTimeout(() => setMessageSent(false), 3000)
-            } else {
-                const data = await res.json().catch(() => ({}))
-                const errMsg = data?.error || "Failed to send template"
-                console.error('WhatsApp template failed:', errMsg)
-                setWhatsappError(errMsg)
-                setMessageFailed(true)
-                setTimeout(() => { setMessageFailed(false); setWhatsappError("") }, 8000)
-            }
-        } catch (err) {
-            console.error('WhatsApp template error:', err)
-            setWhatsappError("Network error")
-            setMessageFailed(true)
-            setTimeout(() => { setMessageFailed(false); setWhatsappError("") }, 8000)
-        }
-        setSending(false)
-    }
-
     async function handleScheduleMeeting() {
         if (!meetingDate || !selectedStudent) return
         setScheduling(true)
@@ -277,6 +216,18 @@ export default function AdminStudentsPage() {
         }
     }
 
+    async function fetchStudentDetail(id: string) {
+        try {
+            const res = await fetch(`/api/students/${id}`)
+            if (res.ok) {
+                const data = await res.json()
+                setSelectedStudent(data)
+            }
+        } catch (error) {
+            console.error("Failed to fetch student detail:", error)
+        }
+    }
+
     async function handleDocView(docId: string) {
         try {
             const res = await fetch(`/api/documents/${docId}`)
@@ -298,7 +249,6 @@ export default function AdminStudentsPage() {
                 body: JSON.stringify({ status: newStatus }),
             })
             if (res.ok) {
-                setSelectedStatus(newStatus)
                 setDisplayStatus(newStatus)
                 // Update local state
                 setSelectedStudent((prev: any) => prev ? { ...prev, status: newStatus } : prev)
@@ -320,7 +270,7 @@ export default function AdminStudentsPage() {
             {/* Header */}
             <div className="mb-8">
                 <h1 className="text-2xl font-black text-white mb-1">Student Management</h1>
-                <p className="text-gray-500 text-sm">Manage applications, send WhatsApp messages, and schedule consultations</p>
+                <p className="text-gray-500 text-sm">Manage applications, send messages, and schedule consultations</p>
             </div>
 
             {/* Stats Row */}
@@ -363,7 +313,7 @@ export default function AdminStudentsPage() {
                             return (
                                 <motion.button
                                     key={student.id}
-                                    onClick={() => { setSelectedStudent(student); setSelectedStatus("") }}
+                                    onClick={() => { fetchStudentDetail(student.id) }}
                                     whileHover={{ x: 2 }}
                                     className={`w-full text-left p-4 rounded-2xl border transition-all ${selectedStudent?.id === student.id ? "bg-cyan-500/10 border-cyan-500/30" : "bg-white/[0.02] border-white/5 hover:border-white/10"}`}
                                 >
@@ -438,7 +388,7 @@ export default function AdminStudentsPage() {
                                                 <button
                                                     key={key}
                                                     onClick={() => handleStatusChange(key)}
-                                                    className={`text-xs px-3 py-1.5 rounded-full border transition-all ${displayStatus === key || selectedStatus === key ? `${cfg.bg} ${cfg.color} border-current` : "bg-white/[0.02] text-gray-500 border-white/5 hover:border-white/20"}`}
+                                                    className={`text-xs px-3 py-1.5 rounded-full border transition-all ${displayStatus === key ? `${cfg.bg} ${cfg.color} border-current` : "bg-white/[0.02] text-gray-500 border-white/5 hover:border-white/20"}`}
                                                 >
                                                     {cfg.label}
                                                 </button>
@@ -642,89 +592,6 @@ export default function AdminStudentsPage() {
                                     </div>
                                 </div>
 
-                                {/* WhatsApp Message Panel */}
-                                <div className="p-6 rounded-3xl bg-white/[0.03] border border-white/10">
-                                    <div className="flex items-center gap-2 mb-4">
-                                        <div className="h-8 w-8 rounded-xl bg-green-500/10 flex items-center justify-center">
-                                            <MessageSquare size={16} className="text-green-400" />
-                                        </div>
-                                        <div>
-                                            <p className="text-sm font-semibold text-white">Send WhatsApp Message</p>
-                                            <p className="text-xs text-gray-500">to {name} · {student.phone || "no phone"}</p>
-                                        </div>
-                                    </div>
-
-                                    {/* Quick Templates — send approved Twilio templates directly (no session window needed) */}
-                                    <div className="flex flex-wrap gap-2 mb-3">
-                                        {[
-                                            {
-                                                label: "📬 Received",
-                                                contentSid: "HX24d3d9d55906000550de51f14d29d029",
-                                                variables: { '1': student.user?.firstName || 'Student', '2': student.universityInterest || 'your programme' },
-                                            },
-                                            {
-                                                label: "🎉 Accepted",
-                                                contentSid: "HXf1d51c9a0153a5a53bacfa2d31bcbaae",
-                                                variables: { '1': student.user?.firstName || 'Student', '2': student.universityInterest || 'your programme' },
-                                            },
-                                            {
-                                                label: "📄 Need Docs",
-                                                contentSid: "HXfe3b8f8ee3f05010aa54fbe1a70ad20f",
-                                                variables: { '1': student.user?.firstName || 'Student', '2': 'required documents' },
-                                            },
-                                            {
-                                                label: "📅 Reminder",
-                                                contentSid: "HX6d76193beb1787850114c12c3b0f1eec",
-                                                variables: { '1': student.user?.firstName || 'Student', '2': 'your upcoming consultation' },
-                                            },
-                                        ].map((t) => (
-                                            <button
-                                                key={t.label}
-                                                onClick={() => handleQuickTemplate(t.contentSid, t.variables)}
-                                                disabled={sending || !selectedStudent?.phone}
-                                                className="text-xs px-3 py-1.5 rounded-lg bg-green-500/10 text-green-400 hover:bg-green-500/20 border border-green-500/20 transition-all disabled:opacity-40"
-                                            >
-                                                {t.label}
-                                            </button>
-                                        ))}
-                                    </div>
-                                    <p className="text-gray-600 text-[10px] mb-3">↑ Template buttons send instantly — or type a custom message below (requires active WhatsApp session)</p>
-
-                                    <textarea
-                                        value={whatsappMsg}
-                                        onChange={e => setWhatsappMsg(e.target.value)}
-                                        placeholder="Type a WhatsApp message..."
-                                        rows={4}
-                                        className="w-full bg-white/[0.03] border border-white/10 rounded-xl p-4 text-sm text-white placeholder:text-gray-600 focus:outline-none focus:border-green-500/30 resize-none mb-3"
-                                    />
-                                    {!selectedStudent?.phone && (
-                                        <p className="text-yellow-400/70 text-xs mb-3 flex items-center gap-1.5">
-                                            <AlertCircle size={12} /> No phone number on this student's profile — WhatsApp unavailable.
-                                        </p>
-                                    )}
-                                    <div className="flex items-center gap-3">
-                                        <Button
-                                            onClick={handleWhatsAppSend}
-                                            disabled={sending || !whatsappMsg.trim() || !selectedStudent?.phone}
-                                            className="bg-green-600 hover:bg-green-500 disabled:opacity-40 text-white font-bold rounded-xl flex items-center gap-2"
-                                        >
-                                            {sending ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
-                                            {sending ? "Sending..." : "Send via WhatsApp"}
-                                        </Button>
-                                        {messageSent && (
-                                            <motion.span initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} className="text-green-400 text-sm flex items-center gap-1">
-                                                <CheckCircle2 size={14} /> Sent!
-                                            </motion.span>
-                                        )}
-                                        {messageFailed && (
-                                            <motion.span initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} className="text-red-400 text-xs flex items-start gap-1 flex-1 min-w-0">
-                                                <XCircle size={14} className="shrink-0 mt-0.5" />
-                                                <span className="break-words">{whatsappError || "Failed to send"}</span>
-                                            </motion.span>
-                                        )}
-                                    </div>
-                                </div>
-
                                 {/* Upcoming Consultations */}
                                 {consultations.length > 0 && (
                                     <div className="p-6 rounded-3xl bg-white/[0.03] border border-white/10">
@@ -790,7 +657,7 @@ export default function AdminStudentsPage() {
                                         )}
                                         {scheduling ? "Scheduling..." : scheduleSuccess ? "Scheduled!" : "Schedule & Send Reminder"}
                                     </Button>
-                                    <p className="text-gray-600 text-xs text-center mt-2">A WhatsApp reminder will be sent 24 hours before</p>
+                                    <p className="text-gray-600 text-xs text-center mt-2">A reminder will be sent 24 hours before</p>
                                 </div>
                             </div>
                         )

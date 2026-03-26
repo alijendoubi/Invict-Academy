@@ -34,6 +34,7 @@ export async function GET(request: NextRequest) {
         } else {
             // Admin with no specific student: return summary of all invoices
             const allInvoices = await prisma.invoice.findMany({
+                take: 500,
                 include: {
                     student: {
                         include: { user: { select: { firstName: true, lastName: true, email: true } } },
@@ -59,7 +60,7 @@ export async function GET(request: NextRequest) {
                 })),
                 summary: {
                     totalPaid: allInvoices.filter(i => i.status === 'PAID').reduce((s, i) => s + i.amount, 0),
-                    totalDue: allInvoices.filter(i => i.status !== 'PAID').reduce((s, i) => s + i.amount, 0),
+                    totalDue: allInvoices.filter(i => i.status !== 'PAID').reduce((s, i) => s + (i.amount - i.paidAmount), 0),
                 },
                 isAdmin: true,
             });
@@ -99,7 +100,7 @@ export async function GET(request: NextRequest) {
             })),
             summary: {
                 totalPaid: paidTotal,
-                totalDue: invoices.filter(i => i.status !== 'PAID').reduce((s, i) => s + i.amount, 0),
+                totalDue: invoices.filter(i => i.status !== 'PAID').reduce((s, i) => s + (i.amount - i.paidAmount), 0),
                 nextPaymentDate: pendingInvoice?.dueDate?.toISOString() ?? null,
                 nextPaymentAmount: pendingInvoice?.amount ?? 0,
                 currency: 'EUR',

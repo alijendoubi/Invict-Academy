@@ -37,6 +37,11 @@ export async function PATCH(
             if (!hasAccess) {
                 return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
             }
+        } else if (task.leadId) {
+            const isAdmin = ['SUPER_ADMIN', 'ADMIN', 'STAFF'].includes(session.user.role);
+            if (!isAdmin) {
+                return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+            }
         }
 
         const isAdmin = ['SUPER_ADMIN', 'ADMIN', 'STAFF'].includes(session.user.role);
@@ -48,7 +53,7 @@ export async function PATCH(
                 title: title || undefined,
                 description: description || undefined,
                 priority: priority || undefined,
-                dueDate: dueDate ? new Date(dueDate) : undefined,
+                dueDate: dueDate !== undefined ? (dueDate ? new Date(dueDate) : null) : undefined,
             };
         } else {
             // Students can only update status

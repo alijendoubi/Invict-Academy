@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { getSession, verifyStudentAccess, logAudit } from '@/lib/auth';
-import { twilioService, TEMPLATES } from '@/lib/twilio';
-
+import { emailService } from '@/lib/email';
 export const dynamic = 'force-dynamic';
 
 export async function GET(
@@ -78,10 +77,14 @@ export async function PATCH(
 
         const isAdmin = ['SUPER_ADMIN', 'ADMIN', 'STAFF'].includes(session.user.role);
 
+        if (!isAdmin) {
+            return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+        }
+
         const updateData: any = {};
-        if (status && isAdmin) updateData.status = status;
+        if (status) updateData.status = status;
         if (intakeTerm) updateData.intakeTerm = intakeTerm;
-        if (deadline) updateData.deadline = new Date(deadline);
+        if (deadline !== undefined) updateData.deadline = deadline ? new Date(deadline) : null;
         if (university) updateData.university = university;
         if (program) updateData.program = program;
         if (country) updateData.country = country;
@@ -89,6 +92,13 @@ export async function PATCH(
         const updatedApplication = await prisma.application.update({
             where: { id },
             data: updateData,
+            include: {
+                student: {
+                    include: {
+                        user: { select: { email: true, firstName: true } },
+                    },
+                },
+            },
         });
 
         // ── Auto-sync student profile status ──────────────────────────────────
@@ -110,49 +120,23 @@ export async function PATCH(
             }
         }
 
-        // ── WhatsApp template notifications on status change ──────────────────
-        const statusChanged = status && isAdmin && status !== application.status;
-        if (statusChanged) {
+        // ── Send status update email to student ────────────────────────────────
+        if (status) {
             try {
-                const student = await prisma.studentProfile.findUnique({
-                    where: { id: application.studentId },
-                    include: { user: { select: { firstName: true } } },
-                });
-
-                const phone = student?.phone;
-                const firstName = student?.user.firstName || 'Student';
-                const uniName = university || application.university || 'your university';
-                const progName = program || application.program || 'your programme';
-
-                if (phone) {
-                    if (status === 'APPROVED') {
-                        // Application Accepted
-                        await twilioService.sendTemplate(
-                            phone,
-                            TEMPLATES.APPLICATION_ACCEPTED,
-                            {
-                                '1': firstName,
-                                '2': uniName,
-                            }
-                        );
-                    } else if (status === 'DOCUMENTS_PENDING') {
-                        // Documents Needed
-                        await twilioService.sendTemplate(
-                            phone,
-                            TEMPLATES.DOCUMENTS_NEEDED,
-                            {
-                                '1': firstName,
-                                '2': uniName,
-                            }
-                        );
-                    }
+                const studentEmail = updatedApplication.student?.user?.email;
+                const studentFirstName = updatedApplication.student?.user?.firstName || 'Student';
+                const universityName = updatedApplication.university || 'your university';
+                if (studentEmail) {
+                    await emailService.sendApplicationStatusUpdate(studentEmail, studentFirstName, universityName, status);
                 }
-            } catch (notifyError) {
-                console.error('Application status notification failed (non-fatal):', notifyError);
+            } catch (emailError) {
+                console.error('Failed to send application status email:', emailError);
             }
         }
 
-        await logAudit('UPDATE_APPLICATION', 'Application', id, `Updated application fields: ${Object.keys(updateData).join(', ')}`);
+        if (Object.keys(updateData).length > 0) {
+            await logAudit('UPDATE_APPLICATION', 'Application', id, `Updated application fields: ${Object.keys(updateData).join(', ')}`);
+        }
 
         return NextResponse.json(updatedApplication);
     } catch (error) {

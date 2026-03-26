@@ -324,11 +324,6 @@ export default function ApplicationDetailsPage() {
                                     View Profile <ChevronRight size={14} className="group-hover:translate-x-1 transition-transform" />
                                 </Link>
                             </Button>
-                            <Button asChild variant="outline" className="w-full border-white/10 hover:bg-green-500/5 text-gray-300 h-10 group rounded-xl">
-                                <Link href={`/dashboard/admin/students?studentId=${application.studentId}&section=whatsapp`} className="flex items-center justify-between w-full">
-                                    Message Student <ChevronRight size={14} className="group-hover:translate-x-1 transition-transform" />
-                                </Link>
-                            </Button>
                         </div>
                     </CardContent>
                 </Card>
@@ -439,10 +434,10 @@ export default function ApplicationDetailsPage() {
                                 )}
 
                                 <div className="space-y-3">
-                                    {application.tasks?.length === 0 ? (
+                                    {!application.tasks?.length ? (
                                         <div className="py-12 text-center text-gray-600 text-xs italic">No tasks created yet</div>
                                     ) : (
-                                        application.tasks.map((task: any) => (
+                                        (application.tasks ?? []).map((task: any) => (
                                             <div key={task.id} className="flex items-center justify-between p-3 rounded-xl bg-white/5 border border-white/10 group hover:border-white/20 transition-colors">
                                                 <div className="flex items-center gap-3">
                                                     <button onClick={() => toggleTask(task.id, task.status)} className="text-gray-600 hover:text-cyan-400 transition-colors">
@@ -464,10 +459,10 @@ export default function ApplicationDetailsPage() {
                             </CardHeader>
                             <CardContent>
                                 <div className="space-y-6 relative before:absolute before:left-2.5 before:top-2 before:bottom-2 before:w-[1px] before:bg-white/10">
-                                    {application.stepLogs?.length === 0 ? (
+                                    {!application.stepLogs?.length ? (
                                         <p className="text-xs text-gray-600 pl-8">No history available yet.</p>
                                     ) : (
-                                        application.stepLogs.map((log: any, idx: number) => (
+                                        (application.stepLogs ?? []).map((log: any, idx: number) => (
                                             <div key={log.id} className="relative pl-8">
                                                 <div className="absolute left-0 top-1 w-5 h-5 rounded-full bg-card border-4 border-white/10 flex items-center justify-center ring-4 ring-card">
                                                     <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.5)]" />

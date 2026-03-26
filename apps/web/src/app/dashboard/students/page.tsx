@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
+import { useSearchParams } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -62,9 +63,9 @@ export default function StudentsPage() {
     const [studentProfile, setStudentProfile] = useState<any>(null)
     const [loadingProfile, setLoadingProfile] = useState(false)
 
-    const searchParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
-    const initialSearch = searchParams?.get('search') || "";
-    const initialTab = searchParams?.get('tab') || "overview";
+    const searchParams = useSearchParams();
+    const initialSearch = searchParams.get('search') || "";
+    const initialTab = searchParams.get('tab') || "all";
 
     const fetchStudentProfile = async (id: string) => {
         setLoadingProfile(true)
@@ -82,12 +83,12 @@ export default function StudentsPage() {
         }
     }
 
-    const fetchStudents = useCallback(async (searchValue = searchTerm) => {
+    const fetchStudents = useCallback(async () => {
         setLoading(true)
         try {
             const params = new URLSearchParams()
             if (statusFilter !== "all") params.append("status", statusFilter)
-            if (searchValue) params.append("search", searchValue)
+            if (searchTerm) params.append("search", searchTerm)
 
             const res = await fetch(`/api/students?${params.toString()}`)
             const data = await res.json()
@@ -115,7 +116,7 @@ export default function StudentsPage() {
 
     useEffect(() => {
         const loadInitial = async () => {
-            const initialStudents = await fetchStudents(initialSearch)
+            const initialStudents = await fetchStudents()
             if (initialSearch && initialStudents && initialStudents.length === 1) {
                 fetchStudentProfile(initialStudents[0].id)
             }
@@ -131,7 +132,7 @@ export default function StudentsPage() {
             }
         }
         fetchUser()
-    }, [fetchStudents, initialSearch])
+    }, [fetchStudents])
 
     const handleDeleteStudent = async () => {
         if (!studentToDelete) return;
@@ -154,13 +155,14 @@ export default function StudentsPage() {
 
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault()
-        fetchStudents()
+        // fetchStudents is triggered automatically via the useEffect dependency on searchTerm
     }
 
     const getStatusColor = (status: string) => {
         const colors: Record<string, string> = {
             ACTIVE: "bg-green-500/10 text-green-400 border-green-500/20",
             APPLYING: "bg-blue-500/10 text-blue-400 border-blue-500/20",
+            ACCEPTED: "bg-teal-500/10 text-teal-400 border-teal-500/20",
             VISA_IN_PROGRESS: "bg-yellow-500/10 text-yellow-400 border-yellow-500/20",
             ARRIVED: "bg-cyan-500/10 text-cyan-400 border-cyan-500/20",
         }
@@ -560,7 +562,7 @@ export default function StudentsPage() {
                                     <SelectItem value="ARRIVED">Arrived</SelectItem>
                                 </SelectContent>
                             </Select>
-                            <Button variant="outline" className="border-white/10 text-gray-300" onClick={() => fetchStudents()}>
+                            <Button variant="outline" className="border-white/10 text-gray-300" onClick={() => {}}>
                                 <Filter className="h-4 w-4 mr-2" />
                                 Apply
                             </Button>

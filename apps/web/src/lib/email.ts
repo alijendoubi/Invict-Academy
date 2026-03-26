@@ -1,7 +1,7 @@
 import { EmailService } from '@invict/email';
 
 const emailServiceInstance = new EmailService(
-  process.env.RESEND_API_KEY || 'placeholder-key',
+  process.env.RESEND_API_KEY || '',
   process.env.FROM_EMAIL,
   process.env.NEXT_PUBLIC_APP_URL
 );

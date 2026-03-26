@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { jwtVerify } from 'jose';
 
-const protectedRoutes = ['/dashboard'];
+const protectedRoutes = ['/dashboard', '/auth/setup-profile'];
 const locales = ['en', 'fr', 'ar', 'tr', 'az'];
 const defaultLocale = 'en';
 
@@ -53,31 +53,46 @@ export default async function proxy(request: NextRequest) {
     if (isProtectedRoute) {
         const cookie = request.cookies.get('session')?.value;
         if (!cookie) {
-            return NextResponse.redirect(new URL('/auth/login', request.nextUrl));
+            const locale = request.cookies.get('invict-locale')?.value || defaultLocale;
+            const safeLocale = locales.includes(locale) ? locale : defaultLocale;
+            return NextResponse.redirect(new URL(`/${safeLocale}/auth/login`, request.nextUrl));
         }
         try {
             const payload = await decrypt(cookie);
             const userRole = payload?.user?.role;
 
-            // Define management-only routes (check against normalized pathname)
+            // Enforce password change for invited users
+            const requiresPasswordChange = payload?.user?.requiresPasswordChange;
+            const isSetupRoute = normalizedPathname === '/auth/setup-profile';
+            if (requiresPasswordChange && !isSetupRoute) {
+                return NextResponse.redirect(new URL('/auth/setup-profile', request.nextUrl));
+            }
+
+            // Define management-only routes (check against normalized pathname).
+            // ASSOCIATE role is not included in the allowed set, so associates are
+            // also redirected away from these routes — same as students.
             const managementRoutes = [
                 '/dashboard/leads',
                 '/dashboard/students',
                 '/dashboard/users',
                 '/dashboard/associates',
-                '/dashboard/admin'
+                '/dashboard/admin',
+                // analytics is admin-only; payments is accessible to both students and admins
+                // so /dashboard/payments is intentionally NOT listed here
+                '/dashboard/analytics',
             ];
 
             const isManagementRoute = managementRoutes.some(route => normalizedPathname.startsWith(route));
 
             if (isManagementRoute && !['SUPER_ADMIN', 'ADMIN', 'STAFF'].includes(userRole)) {
-                // Redirect students to their own dashboard or root dashboard
-                // Assuming students have their own specific page or just the overview
+                // Redirect students (and associates) to the root dashboard
                 return NextResponse.redirect(new URL('/dashboard', request.nextUrl));
             }
 
         } catch (err) {
-            return NextResponse.redirect(new URL('/auth/login', request.nextUrl));
+            const locale = request.cookies.get('invict-locale')?.value || defaultLocale;
+            const safeLocale = locales.includes(locale) ? locale : defaultLocale;
+            return NextResponse.redirect(new URL(`/${safeLocale}/auth/login`, request.nextUrl));
         }
     }
 

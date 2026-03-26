@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label"
 import {
     CreditCard, CheckCircle2, Clock, AlertCircle,
     Download, MessageCircle, Calendar, FileText,
-    ChevronDown, ChevronUp, Lock, Wallet, Plus, DollarSign
+    ChevronDown, ChevronUp, Lock, Wallet, Plus, DollarSign, Loader2
 } from "lucide-react"
 
 // ─── Helpers ────────────────────────────────────────────────────────
@@ -18,7 +18,6 @@ const STATUS_CONFIG = {
     PAID: { label: "Paid", color: "bg-green-500/10 text-green-400 border-green-500/20", icon: CheckCircle2 },
     PENDING: { label: "Due Soon", color: "bg-yellow-500/10 text-yellow-400 border-yellow-500/20", icon: Clock },
     UPCOMING: { label: "Upcoming", color: "bg-blue-500/10 text-blue-400 border-blue-500/20", icon: Calendar },
-    OVERDUE: { label: "Overdue", color: "bg-red-500/10 text-red-400 border-red-500/20", icon: AlertCircle },
 }
 
 function fmt(amount: number | undefined, currency = "EUR") {
@@ -76,7 +75,7 @@ export default function PaymentsPage() {
                 .then(r => r.json())
                 .then(data => {
                     if (Array.isArray(data)) setStudents(data)
-                    else if (data?.students) setStudents(data.students)
+                    else if (Array.isArray(data?.data)) setStudents(data.data)
                 })
                 .catch(() => {})
         }
@@ -172,6 +171,14 @@ export default function PaymentsPage() {
         }
     }
 
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center min-h-[400px]">
+                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+            </div>
+        )
+    }
+
     return (
         <div className="space-y-8 pb-10">
             {/* Error banner */}
@@ -253,7 +260,7 @@ export default function PaymentsPage() {
                         <div className="flex gap-2">
                             <Button
                                 onClick={handleCreateInvoice}
-                                disabled={createLoading || !newInvoice.studentId || !newInvoice.amount}
+                                disabled={createLoading || !newInvoice.studentId || !newInvoice.amount || parseFloat(newInvoice.amount) <= 0}
                                 className="bg-cyan-600 hover:bg-cyan-500 text-white rounded-xl"
                             >
                                 {createLoading ? "Creating..." : "Create Invoice"}
@@ -335,6 +342,7 @@ export default function PaymentsPage() {
                 </h2>
                 <div className="space-y-3">
                     {invoices.map((inv, i) => {
+
                         const cfg = STATUS_CONFIG[inv.status as keyof typeof STATUS_CONFIG] || STATUS_CONFIG.UPCOMING
                         const isExpanded = expandedId === inv.id
                         const isPaid = inv.status === "PAID"
@@ -534,7 +542,7 @@ export default function PaymentsPage() {
                         )
                     })}
 
-                    {invoices.length === 0 && !loading && (
+                    {invoices.length === 0 && (
                         <Card className="bg-card border-white/5">
                             <CardContent className="p-8 text-center">
                                 <p className="text-gray-500">No invoices found</p>

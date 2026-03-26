@@ -309,6 +309,9 @@ export default function DashboardPage() {
                             </div>
                         ) : (
                             <div className="space-y-4">
+                                {recentActivity.length === 0 && (
+                                    <p className="text-sm text-muted-foreground text-center py-4">No recent activity</p>
+                                )}
                                 {recentActivity.map((activity: any) => (
                                     <div key={activity.id} className="flex items-center justify-between py-3 border-b border-white/5 last:border-0">
                                         <div className="flex-1">

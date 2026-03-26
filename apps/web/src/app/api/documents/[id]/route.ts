@@ -1,10 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { getSession, verifyStudentAccess, logAudit } from '@/lib/auth';
-import { S3Client, GetObjectCommand } from '@aws-sdk/client-s3';
+import { S3Client, GetObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
-import { twilioService, TEMPLATES } from '@/lib/twilio';
-
 export const dynamic = 'force-dynamic';
 
 export async function GET(
@@ -13,6 +11,15 @@ export async function GET(
 ) {
     try {
         const { id } = await params;
+
+        const session = await getSession();
+        if (!session) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
+
+        if (!process.env.S3_ACCESS_KEY || !process.env.S3_SECRET_KEY) {
+            return NextResponse.json({ error: 'Storage not configured' }, { status: 500 });
+        }
 
         const document = await prisma.document.findUnique({
             where: { id },
@@ -38,8 +45,8 @@ export async function GET(
             region: process.env.S3_REGION || 'eu-north-1',
             endpoint: process.env.S3_ENDPOINT,
             credentials: {
-                accessKeyId: process.env.S3_ACCESS_KEY || '',
-                secretAccessKey: process.env.S3_SECRET_KEY || '',
+                accessKeyId: process.env.S3_ACCESS_KEY,
+                secretAccessKey: process.env.S3_SECRET_KEY,
             },
             forcePathStyle: true,
         });
@@ -54,6 +61,69 @@ export async function GET(
         return NextResponse.json({ ...document, downloadUrl });
     } catch (error) {
         console.error('Document GET error:', error);
+        return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    }
+}
+
+export async function DELETE(
+    request: NextRequest,
+    { params }: { params: Promise<{ id: string }> }
+) {
+    try {
+        const { id } = await params;
+
+        const session = await getSession();
+        if (!session) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
+
+        const document = await prisma.document.findUnique({
+            where: { id },
+            select: { id: true, studentId: true, filename: true, s3Key: true },
+        });
+
+        if (!document) {
+            return NextResponse.json({ error: 'Document not found' }, { status: 404 });
+        }
+
+        const hasAccess = await verifyStudentAccess(document.studentId);
+        if (!hasAccess) {
+            return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+        }
+
+        // Attempt to delete from S3 (non-fatal if it fails)
+        if (process.env.S3_ACCESS_KEY && process.env.S3_SECRET_KEY && document.s3Key) {
+            try {
+                const s3 = new S3Client({
+                    region: process.env.S3_REGION || 'eu-north-1',
+                    endpoint: process.env.S3_ENDPOINT,
+                    credentials: {
+                        accessKeyId: process.env.S3_ACCESS_KEY,
+                        secretAccessKey: process.env.S3_SECRET_KEY,
+                    },
+                    forcePathStyle: true,
+                });
+                await s3.send(new DeleteObjectCommand({
+                    Bucket: process.env.S3_BUCKET,
+                    Key: document.s3Key,
+                }));
+            } catch (s3Error) {
+                console.error('S3 delete failed (non-fatal):', s3Error);
+            }
+        }
+
+        await prisma.document.delete({ where: { id } });
+
+        await logAudit(
+            'DELETE_DOCUMENT',
+            'Document',
+            id,
+            `Deleted document "${document.filename}"`
+        );
+
+        return NextResponse.json({ success: true });
+    } catch (error) {
+        console.error('Document DELETE error:', error);
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
     }
 }
@@ -113,29 +183,6 @@ export async function PATCH(
             id,
             `${status} document "${document.filename}"${rejectionReason ? `: ${rejectionReason}` : ''}`
         );
-
-        // ── Send "Documents Needed" template when a document is rejected ───────
-        if (status === 'REJECTED') {
-            try {
-                const student = await prisma.studentProfile.findUnique({
-                    where: { id: document.studentId },
-                    include: { user: { select: { firstName: true } } },
-                });
-
-                if (student?.phone) {
-                    await twilioService.sendTemplate(
-                        student.phone,
-                        TEMPLATES.DOCUMENTS_NEEDED,
-                        {
-                            '1': student.user.firstName || 'Student',
-                            '2': document.type || document.filename,
-                        }
-                    );
-                }
-            } catch (notifyError) {
-                console.error('Document rejection notification failed (non-fatal):', notifyError);
-            }
-        }
 
         return NextResponse.json(updated);
     } catch (error) {

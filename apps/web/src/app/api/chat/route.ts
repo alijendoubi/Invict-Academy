@@ -24,6 +24,13 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'Invalid messages format' }, { status: 400 });
         }
 
+        const isValidMessages = messages.every(
+            (m: any) => m && ['user', 'assistant'].includes(m.role) && typeof m.content === 'string' && m.content.length > 0
+        );
+        if (!isValidMessages) {
+            return NextResponse.json({ error: 'Invalid message format' }, { status: 400 });
+        }
+
         // Get session (optional - chatbot can work for non-logged-in users)
         const session = await getSession();
 
@@ -33,18 +40,26 @@ export async function POST(request: NextRequest) {
         // Store conversation if user is logged in
         if (session && conversationId) {
             try {
-                await prisma.chatConversation.upsert({
-                    where: { id: conversationId },
-                    create: {
-                        id: conversationId,
-                        userId: session.user.id,
-                        messages: messages,
-                    },
-                    update: {
-                        messages: messages,
-                        updatedAt: new Date(),
-                    },
+                // Verify that the conversation belongs to the authenticated user before writing.
+                const existingConversation = await prisma.chatConversation.findFirst({
+                    where: { id: conversationId, userId: session.user.id },
                 });
+                if (existingConversation) {
+                    // Update existing conversation owned by this user
+                    await prisma.chatConversation.update({
+                        where: { id: conversationId },
+                        data: { messages: messages, updatedAt: new Date() },
+                    });
+                } else {
+                    // No existing conversation for this user — create a new one
+                    await prisma.chatConversation.create({
+                        data: {
+                            id: conversationId,
+                            userId: session.user.id,
+                            messages: messages,
+                        },
+                    });
+                }
             } catch (dbError) {
                 console.error('Failed to store conversation:', dbError);
                 // Continue even if storage fails

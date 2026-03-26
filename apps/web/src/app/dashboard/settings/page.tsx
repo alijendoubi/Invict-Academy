@@ -54,19 +54,12 @@ export default function SettingsPage() {
         const fetchProfile = async () => {
             try {
                 const res = await fetch("/api/user/profile")
+                if (!res.ok) throw new Error("Failed to fetch profile")
                 const data = await res.json()
                 setUser(data)
             } catch (error) {
-                console.error("Failed to fetch profile, using demo profile:", error)
-                // Demo fallback data
-                setUser({
-                    firstName: "Demo",
-                    lastName: "Administrator",
-                    email: "admin@invict.academy",
-                    phone: "+39 123 456 7890",
-                    nationality: "Italian",
-                    role: "ADMIN"
-                })
+                console.error("Failed to fetch profile:", error)
+                setUser(null)
             } finally {
                 setLoading(false)
             }
@@ -147,6 +140,16 @@ export default function SettingsPage() {
         return (
             <div className="h-[60vh] flex items-center justify-center">
                 <Loader2 className="h-8 w-8 animate-spin text-cyan-500" />
+            </div>
+        )
+    }
+
+    if (!user) {
+        return (
+            <div className="h-[60vh] flex items-center justify-center">
+                <div className="text-center space-y-3">
+                    <p className="text-red-400 font-semibold">Failed to load profile. Please refresh the page.</p>
+                </div>
             </div>
         )
     }
@@ -338,21 +341,9 @@ export default function SettingsPage() {
                                 <Button
                                     className="bg-cyan-600 hover:bg-cyan-700 rounded-xl"
                                     disabled={notifSaving}
-                                    onClick={async () => {
-                                        setNotifSaving(true)
-                                        try {
-                                            await fetch("/api/user/profile", {
-                                                method: "PATCH",
-                                                headers: { "Content-Type": "application/json" },
-                                                body: JSON.stringify({ notificationPreferences: notifPrefs }),
-                                            })
-                                            setNotifMessage("Preferences saved!")
-                                            setTimeout(() => setNotifMessage(""), 3000)
-                                        } catch {
-                                            setNotifMessage("Failed to save. Try again.")
-                                        } finally {
-                                            setNotifSaving(false)
-                                        }
+                                    onClick={() => {
+                                        setNotifMessage("Notification preferences will be available soon.")
+                                        setTimeout(() => setNotifMessage(""), 3000)
                                     }}
                                 >
                                     {notifSaving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}

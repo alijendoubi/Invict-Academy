@@ -29,24 +29,29 @@ export async function POST(request: NextRequest) {
 
         const hashedPassword = await bcrypt.hash(password, 10);
 
-        // Update the user password and remove the flag, also update the student profile
+        const isStudent = session.user.role === 'STUDENT';
+
+        // Update the user password and remove the flag
+        // Only upsert the studentProfile if the user is a STUDENT
         await prisma.user.update({
             where: { id: session.user.id },
             data: {
                 password: hashedPassword,
                 requiresPasswordChange: false,
-                studentProfile: {
-                    upsert: {
-                        create: {
-                            phone: phone || undefined,
-                            nationality: nationality || undefined,
-                        },
-                        update: {
-                            phone: phone || undefined,
-                            nationality: nationality || undefined,
+                ...(isStudent && {
+                    studentProfile: {
+                        upsert: {
+                            create: {
+                                phone: phone || undefined,
+                                nationality: nationality || undefined,
+                            },
+                            update: {
+                                phone: phone || undefined,
+                                nationality: nationality || undefined,
+                            }
                         }
                     }
-                }
+                }),
             }
         });
 
