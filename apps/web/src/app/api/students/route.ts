@@ -54,7 +54,7 @@ export async function GET(request: NextRequest) {
                 },
                 documents: {
                     orderBy: { createdAt: 'desc' },
-                    select: { id: true, type: true, status: true, createdAt: true, filename: true, url: true },
+                    select: { id: true, type: true, status: true, createdAt: true, filename: true, s3Key: true },
                 },
             },
             orderBy: { updatedAt: 'desc' },

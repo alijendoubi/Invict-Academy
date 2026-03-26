@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
                 type: true,
                 status: true,
                 filename: true,
-                url: true,
+                s3Key: true,
                 createdAt: true,
                 updatedAt: true,
                 rejectionReason: true,
