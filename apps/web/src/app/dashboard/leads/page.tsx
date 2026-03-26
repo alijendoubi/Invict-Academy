@@ -95,12 +95,6 @@ export default function LeadsPage() {
         fetchLeads()
     }, [fetchLeads]) // Refetch on fetchLeads change (which depends on statusFilter and searchTerm)
 
-    const handleSearch = (e: React.FormEvent) => {
-        e.preventDefault()
-        // No explicit fetchLeads() needed — the useEffect re-runs automatically
-        // when searchTerm or statusFilter change (via fetchLeads dependency)
-    }
-
     const handleAddLead = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault()
         setSubmitting(true)
@@ -265,7 +259,7 @@ export default function LeadsPage() {
             <Card className="bg-card border-white/10">
                 <CardContent className="p-4">
                     <div className="flex flex-col md:flex-row gap-4">
-                        <form onSubmit={handleSearch} className="relative flex-1">
+                        <form onSubmit={e => e.preventDefault()} className="relative flex-1">
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                             <Input
                                 placeholder="Search leads..."

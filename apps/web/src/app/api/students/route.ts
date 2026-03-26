@@ -44,6 +44,7 @@ export async function GET(request: NextRequest) {
 
         const students = await prisma.studentProfile.findMany({
             where,
+            take: 500,
             include: {
                 user: {
                     select: { firstName: true, lastName: true, email: true }

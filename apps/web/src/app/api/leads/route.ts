@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { prisma } from '@/lib/db';
 import { getSession } from '@/lib/auth';
 import { queueService } from '@/lib/queue';
+import { emailService } from '@/lib/email';
 import { rateLimit, getClientIp } from '@/lib/rate-limit';
 
 const leadPostSchema = z.object({
@@ -51,6 +52,7 @@ export async function GET(request: NextRequest) {
                     ]
                 } : {}),
             },
+            take: 500,
             orderBy: { createdAt: 'desc' },
             include: {
                 assignedTo: {
@@ -126,18 +128,28 @@ export async function POST(request: NextRequest) {
                 to: lead.email,
                 data: { firstName: lead.firstName },
             });
-
-            await queueService.sendEmail({
-                type: 'staff_new_lead',
-                to: process.env.STAFF_NOTIFICATION_EMAIL || 'staff@invictacademy.com',
-                data: {
-                    leadId: lead.id,
-                    leadName: `${lead.firstName} ${lead.lastName}`,
-                },
-            });
         } catch (queueError) {
-            console.error('Failed to queue notifications for new lead:', queueError);
+            console.error('Failed to queue welcome email for new lead:', queueError);
             // Don't fail the request if notifications fail
+        }
+
+        const staffEmail = process.env.STAFF_NOTIFICATION_EMAIL || 'staff@invictacademy.com';
+        const leadName = `${lead.firstName} ${lead.lastName}`;
+        const staffQueueResult = await queueService.sendEmail({
+            type: 'staff_new_lead',
+            to: staffEmail,
+            data: {
+                leadId: lead.id,
+                leadName,
+            },
+        }).catch((err: unknown) => { console.error('Failed to queue staff new lead notification:', err); return { success: false }; });
+        if (!staffQueueResult.success) {
+            // Redis unavailable — send directly
+            try {
+                await emailService.sendStaffNewLeadNotification(staffEmail, leadName, lead.id);
+            } catch (emailErr) {
+                console.error('Direct email fallback failed:', emailErr);
+            }
         }
 
         return NextResponse.json(lead);

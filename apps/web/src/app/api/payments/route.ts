@@ -34,6 +34,7 @@ export async function GET(request: NextRequest) {
         } else {
             // Admin with no specific student: return summary of all invoices
             const allInvoices = await prisma.invoice.findMany({
+                take: 500,
                 include: {
                     student: {
                         include: { user: { select: { firstName: true, lastName: true, email: true } } },

@@ -173,8 +173,8 @@ export default function PaymentsPage() {
 
     if (loading) {
         return (
-            <div className="h-[60vh] flex items-center justify-center">
-                <Loader2 className="h-8 w-8 animate-spin text-cyan-500" />
+            <div className="flex items-center justify-center min-h-[400px]">
+                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
             </div>
         )
     }
@@ -341,12 +341,7 @@ export default function PaymentsPage() {
                     {isAdmin ? "All Invoices" : "Invoice History"}
                 </h2>
                 <div className="space-y-3">
-                    {loading && (
-                        <div className="flex justify-center py-8">
-                            <Loader2 className="h-6 w-6 animate-spin text-cyan-500" />
-                        </div>
-                    )}
-                    {!loading && invoices.map((inv, i) => {
+                    {invoices.map((inv, i) => {
 
                         const cfg = STATUS_CONFIG[inv.status as keyof typeof STATUS_CONFIG] || STATUS_CONFIG.UPCOMING
                         const isExpanded = expandedId === inv.id
@@ -547,7 +542,7 @@ export default function PaymentsPage() {
                         )
                     })}
 
-                    {invoices.length === 0 && !loading && (
+                    {invoices.length === 0 && (
                         <Card className="bg-card border-white/5">
                             <CardContent className="p-8 text-center">
                                 <p className="text-gray-500">No invoices found</p>

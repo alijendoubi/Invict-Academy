@@ -132,7 +132,7 @@ export default function StudentsPage() {
             }
         }
         fetchUser()
-    }, [fetchStudents, initialSearch])
+    }, [fetchStudents])
 
     const handleDeleteStudent = async () => {
         if (!studentToDelete) return;

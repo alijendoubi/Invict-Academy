@@ -14,8 +14,6 @@ export async function GET(request: NextRequest) {
         const isManagement = ['SUPER_ADMIN', 'ADMIN'].includes(role);
         const isStaff = role === 'STAFF';
 
-        console.log(`[DEBUG] Applications GET - User: ${session.user.email}, Role: ${role}, isManagement: ${isManagement}`);
-
         const where: any = {};
 
         if (isStaff) {

@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { jwtVerify } from 'jose';
 
-const protectedRoutes = ['/dashboard'];
+const protectedRoutes = ['/dashboard', '/auth/setup-profile'];
 const locales = ['en', 'fr', 'ar', 'tr', 'az'];
 const defaultLocale = 'en';
 
@@ -60,6 +60,13 @@ export default async function proxy(request: NextRequest) {
         try {
             const payload = await decrypt(cookie);
             const userRole = payload?.user?.role;
+
+            // Enforce password change for invited users
+            const requiresPasswordChange = payload?.user?.requiresPasswordChange;
+            const isSetupRoute = normalizedPathname === '/auth/setup-profile';
+            if (requiresPasswordChange && !isSetupRoute) {
+                return NextResponse.redirect(new URL('/auth/setup-profile', request.nextUrl));
+            }
 
             // Define management-only routes (check against normalized pathname).
             // ASSOCIATE role is not included in the allowed set, so associates are
