@@ -24,7 +24,6 @@ export async function GET(request: NextRequest) {
             studentCount,
             leadCount,
             applicationCount,
-            monthlyData,
         ] = await Promise.all([
             // Total revenue from successful payments
             prisma.payment.aggregate({
