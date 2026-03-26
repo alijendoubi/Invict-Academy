@@ -54,14 +54,28 @@ export async function GET(request: NextRequest) {
             },
             take: 500,
             orderBy: { createdAt: 'desc' },
-            include: {
+            select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                email: true,
+                phone: true,
+                source: true,
+                status: true,
+                degreeLevel: true,
+                destinationInterests: true,
+                budgetRange: true,
+                timeline: true,
+                createdAt: true,
                 assignedTo: {
                     select: { firstName: true, lastName: true }
                 }
             }
         });
 
-        return NextResponse.json(leads);
+        const response = NextResponse.json(leads);
+        response.headers.set('Cache-Control', 'private, no-cache');
+        return response;
     } catch (error) {
         console.error('Leads GET error:', error);
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });

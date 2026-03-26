@@ -39,7 +39,7 @@ export async function GET(request: NextRequest) {
             const profileScore = 20; // base score for having a profile
             const computedReadiness = Math.min(docScore + appScore + profileScore, 100);
 
-            return NextResponse.json({
+            const studentResponse = NextResponse.json({
                 role: 'STUDENT',
                 recentActivity: [],
                 stats: [
@@ -73,6 +73,8 @@ export async function GET(request: NextRequest) {
                     score: computedReadiness
                 }
             });
+            studentResponse.headers.set('Cache-Control', 'private, max-age=30, stale-while-revalidate=60');
+            return studentResponse;
         }
 
         // Admin/Staff logic - guard against non-admin roles (e.g. ASSOCIATE)
@@ -105,7 +107,7 @@ export async function GET(request: NextRequest) {
             timestamp: log.createdAt
         }));
 
-        return NextResponse.json({
+        const adminResponse = NextResponse.json({
             role: userRole,
             stats: [
                 {
@@ -135,6 +137,8 @@ export async function GET(request: NextRequest) {
             ],
             recentActivity
         });
+        adminResponse.headers.set('Cache-Control', 'private, max-age=30, stale-while-revalidate=60');
+        return adminResponse;
 
     } catch (error) {
         console.error('Stats API error:', error);

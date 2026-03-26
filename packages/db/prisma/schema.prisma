@@ -146,6 +146,10 @@ model Lead {
   notes       String?  @db.Text
   tags        LeadTag[]
   tasks       Task[]
+
+  @@index([status])
+  @@index([assignedToId])
+  @@index([createdAt])
 }
 
 model LeadActivity {
@@ -196,6 +200,9 @@ model StudentProfile {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([assignedToId])
+  @@index([status])
 }
 
 model Application {
@@ -217,6 +224,10 @@ model Application {
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
   tasks          Task[]
+
+  @@index([studentId])
+  @@index([status])
+  @@index([createdAt])
 }
 
 model ChecklistItem {
@@ -225,6 +236,8 @@ model ChecklistItem {
   application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
   text          String
   isCompleted   Boolean     @default(false)
+
+  @@index([applicationId])
 }
 
 model Document {
@@ -245,6 +258,9 @@ model Document {
   
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+
+  @@index([studentId])
+  @@index([status])
 }
 
 model Task {
@@ -267,9 +283,13 @@ model Task {
 
   applicationId String?
   application   Application? @relation(fields: [applicationId], references: [id], onDelete: SetNull)
-  
+
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+
+  @@index([applicationId])
+  @@index([status])
+  @@index([assignedToId])
 }
 
 model AssociateProfile {
@@ -328,9 +348,12 @@ model Invoice {
   paidAmount  Float          @default(0)
   
   payments    Payment[]
-  
+
   createdAt   DateTime       @default(now())
   updatedAt   DateTime       @updatedAt
+
+  @@index([studentId])
+  @@index([status])
 }
 
 model Payment {
@@ -342,6 +365,9 @@ model Payment {
   status    String   // SUCCESS, FAILED
   reference String?
   createdAt DateTime @default(now())
+
+  @@index([invoiceId])
+  @@index([status])
 }
 
 model AuditLog {
@@ -418,6 +444,9 @@ model StudentMessage {
   readAt     DateTime?
   isPinned   Boolean        @default(false)
   createdAt  DateTime       @default(now())
+
+  @@index([studentId])
+  @@index([readAt])
 }
 
 model ApplicationStepLog {

@@ -40,7 +40,7 @@ export async function GET(request: NextRequest) {
                         include: { user: { select: { firstName: true, lastName: true, email: true } } },
                     },
                     package: { select: { name: true } },
-                    payments: true,
+                    payments: { select: { status: true, createdAt: true, amount: true }, take: 1, orderBy: { createdAt: 'desc' } },
                 },
                 orderBy: { createdAt: 'desc' },
             });
@@ -58,10 +58,17 @@ export async function GET(request: NextRequest) {
                     studentId: inv.studentId,
                     paidAmount: inv.paidAmount,
                 })),
-                summary: {
-                    totalPaid: allInvoices.filter(i => i.status === 'PAID').reduce((s, i) => s + i.amount, 0),
-                    totalDue: allInvoices.filter(i => i.status !== 'PAID').reduce((s, i) => s + (i.amount - i.paidAmount), 0),
-                },
+                summary: (() => {
+                    const { totalPaid, totalDue } = allInvoices.reduce(
+                        (acc, inv) => {
+                            if (inv.status === 'PAID') acc.totalPaid += inv.amount;
+                            else acc.totalDue += inv.amount - inv.paidAmount;
+                            return acc;
+                        },
+                        { totalPaid: 0, totalDue: 0 }
+                    );
+                    return { totalPaid, totalDue };
+                })(),
                 isAdmin: true,
             });
         }

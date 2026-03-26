@@ -89,8 +89,8 @@ export async function GET(request: NextRequest) {
                 }),
             ]);
 
-            for (const lead of newLeads) {
-                notifications.push({
+            const adminNotifications = [
+                ...newLeads.map(lead => ({
                     id: `lead-${lead.id}`,
                     type: 'LEAD',
                     title: `New lead: ${lead.firstName} ${lead.lastName}`,
@@ -98,11 +98,8 @@ export async function GET(request: NextRequest) {
                     createdAt: lead.createdAt,
                     read: false,
                     href: '/dashboard/leads',
-                });
-            }
-
-            for (const doc of pendingDocs) {
-                notifications.push({
+                })),
+                ...pendingDocs.map(doc => ({
                     id: `doc-${doc.id}`,
                     type: 'DOCUMENT',
                     title: `Document review needed`,
@@ -110,11 +107,8 @@ export async function GET(request: NextRequest) {
                     createdAt: doc.createdAt,
                     read: false,
                     href: '/dashboard/students',
-                });
-            }
-
-            for (const s of newStudents) {
-                notifications.push({
+                })),
+                ...newStudents.map(s => ({
                     id: `student-${s.id}`,
                     type: 'STUDENT',
                     title: `New student: ${s.user.firstName} ${s.user.lastName}`,
@@ -122,14 +116,18 @@ export async function GET(request: NextRequest) {
                     createdAt: s.createdAt,
                     read: true,
                     href: '/dashboard/students',
-                });
-            }
+                })),
+            ].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
+            notifications.push(...adminNotifications);
         }
 
         // Sort by date desc and return top 10
         notifications.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
-        return NextResponse.json(notifications.slice(0, 10));
+        const response = NextResponse.json(notifications.slice(0, 10));
+        response.headers.set('Cache-Control', 'private, max-age=60, stale-while-revalidate=120');
+        return response;
     } catch (error) {
         console.error('Notifications GET error:', error);
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });

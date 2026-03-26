@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { motion } from "framer-motion"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -48,6 +48,7 @@ export default function PaymentsPage() {
     // Admin: create invoice form state
     const [showCreateInvoice, setShowCreateInvoice] = useState(false)
     const [students, setStudents] = useState<any[]>([])
+    const studentsLoadedRef = useRef(false)
     const [newInvoice, setNewInvoice] = useState({ studentId: "", amount: "", dueDate: "" })
     const [createLoading, setCreateLoading] = useState(false)
     const [actionError, setActionError] = useState<string | null>(null)
@@ -68,18 +69,19 @@ export default function PaymentsPage() {
 
     useEffect(() => { loadPayments() }, [])
 
-    // Load students list when admin opens create invoice form
+    // Load students list when admin opens create invoice form — cached after first load
     useEffect(() => {
-        if (showCreateInvoice && students.length === 0) {
-            fetch("/api/students")
-                .then(r => r.json())
-                .then(data => {
-                    if (Array.isArray(data)) setStudents(data)
-                    else if (Array.isArray(data?.data)) setStudents(data.data)
-                })
-                .catch(() => {})
-        }
-    }, [showCreateInvoice, students.length])
+        if (!showCreateInvoice) return
+        if (studentsLoadedRef.current) return
+        fetch("/api/students")
+            .then(r => r.json())
+            .then(data => {
+                if (Array.isArray(data)) setStudents(data)
+                else if (Array.isArray(data?.data)) setStudents(data.data)
+                studentsLoadedRef.current = true
+            })
+            .catch(() => {})
+    }, [showCreateInvoice])
 
     const paidTotal = invoices.filter(i => i.status === "PAID").reduce((s, i) => s + i.amount, 0)
     const pendingTotal = invoices.filter(i => i.status !== "PAID").reduce((s, i) => s + i.amount, 0)

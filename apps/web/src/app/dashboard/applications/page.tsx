@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -25,6 +25,7 @@ export default function ApplicationsPage() {
     const [userRole, setUserRole] = useState<string | null>(null)
 
     const [searchTerm, setSearchTerm] = useState("")
+    const studentsLoadedRef = useRef(false)
 
     const fetchApplications = async () => {
         try {
@@ -55,9 +56,10 @@ export default function ApplicationsPage() {
         fetchApplications()
     }, [])
 
-    // Load real students when the dialog opens
+    // Load real students when the dialog opens — cached after first load
     useEffect(() => {
         if (!dialogOpen) return
+        if (studentsLoadedRef.current) return
         setStudentsLoading(true)
         fetch("/api/students")
             .then(r => r.json())
@@ -65,6 +67,7 @@ export default function ApplicationsPage() {
                 if (Array.isArray(data)) setStudents(data)
                 else if (Array.isArray(data?.data)) setStudents(data.data)
                 else setStudents([])
+                studentsLoadedRef.current = true
             })
             .catch(() => setStudents([]))
             .finally(() => setStudentsLoading(false))

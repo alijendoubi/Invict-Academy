@@ -47,33 +47,72 @@ export async function GET(request: NextRequest) {
             prisma.lead.count(),
             // Total applications
             prisma.application.count(),
-            // Monthly breakdown — last 6 months
-            Promise.all(
-                Array.from({ length: 6 }, async (_, i) => {
-                    const date = new Date();
-                    date.setMonth(date.getMonth() - (5 - i));
-                    const start = new Date(date.getFullYear(), date.getMonth(), 1);
-                    const end = new Date(date.getFullYear(), date.getMonth() + 1, 1); // exclusive upper bound
-                    const month = start.toLocaleString('en-US', { month: 'short' });
-
-                    const [leads, students, applications, revenue] = await Promise.all([
-                        prisma.lead.count({ where: { createdAt: { gte: start, lt: end } } }),
-                        prisma.studentProfile.count({ where: { createdAt: { gte: start, lt: end } } }),
-                        prisma.application.count({ where: { createdAt: { gte: start, lt: end } } }),
-                        prisma.payment.aggregate({ _sum: { amount: true }, where: { status: 'SUCCESS', createdAt: { gte: start, lt: end } } }),
-                    ]);
-
-                    return {
-                        month,
-                        leads,
-                        students,
-                        applications,
-                        revenue: revenue._sum.amount || 0,
-                        target: 5000,
-                    };
-                })
-            ),
         ]);
+
+        // Monthly breakdown — last 6 months (4 queries total instead of 24)
+        const sixMonthsAgo = new Date();
+        sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+        sixMonthsAgo.setDate(1);
+        sixMonthsAgo.setHours(0, 0, 0, 0);
+
+        const [allLeadsInRange, allStudentsInRange, allAppsInRange, allPaymentsInRange] = await Promise.all([
+            prisma.lead.findMany({
+                where: { createdAt: { gte: sixMonthsAgo } },
+                select: { createdAt: true },
+            }),
+            prisma.studentProfile.findMany({
+                where: { createdAt: { gte: sixMonthsAgo } },
+                select: { createdAt: true },
+            }),
+            prisma.application.findMany({
+                where: { createdAt: { gte: sixMonthsAgo } },
+                select: { createdAt: true },
+            }),
+            prisma.payment.findMany({
+                where: { createdAt: { gte: sixMonthsAgo }, status: 'SUCCESS' },
+                select: { createdAt: true, amount: true },
+            }),
+        ]);
+
+        const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+        function getMonthKey(date: Date) {
+            return `${date.getFullYear()}-${date.getMonth()}`;
+        }
+
+        const monthlyData = Array.from({ length: 6 }, (_, i) => {
+            const d = new Date();
+            d.setMonth(d.getMonth() - (5 - i));
+            return {
+                month: MONTHS[d.getMonth()],
+                year: d.getFullYear(),
+                monthKey: `${d.getFullYear()}-${d.getMonth()}`,
+                leads: 0,
+                students: 0,
+                applications: 0,
+                revenue: 0,
+                target: 5000,
+            };
+        });
+
+        const monthKeyToIdx = Object.fromEntries(monthlyData.map((m, i) => [m.monthKey, i]));
+
+        for (const lead of allLeadsInRange) {
+            const key = getMonthKey(new Date(lead.createdAt));
+            if (key in monthKeyToIdx) monthlyData[monthKeyToIdx[key]].leads++;
+        }
+        for (const student of allStudentsInRange) {
+            const key = getMonthKey(new Date(student.createdAt));
+            if (key in monthKeyToIdx) monthlyData[monthKeyToIdx[key]].students++;
+        }
+        for (const app of allAppsInRange) {
+            const key = getMonthKey(new Date(app.createdAt));
+            if (key in monthKeyToIdx) monthlyData[monthKeyToIdx[key]].applications++;
+        }
+        for (const payment of allPaymentsInRange) {
+            const key = getMonthKey(new Date(payment.createdAt));
+            if (key in monthKeyToIdx) monthlyData[monthKeyToIdx[key]].revenue += payment.amount;
+        }
 
         // Build lead conversion funnel
         const leadStatusMap: Record<string, number> = {};
@@ -120,7 +159,7 @@ export async function GET(request: NextRequest) {
         const wonLeads = leadStatusMap['WON'] || 0;
         const conversionRate = leadCount > 0 ? ((wonLeads / leadCount) * 100).toFixed(1) : '0.0';
 
-        return NextResponse.json({
+        const response = NextResponse.json({
             kpis: {
                 totalRevenue: totalRevenue._sum.amount || 0,
                 conversionRate: `${conversionRate}%`,
@@ -133,6 +172,8 @@ export async function GET(request: NextRequest) {
             applicationStatusData,
             studentsByCountry,
         });
+        response.headers.set('Cache-Control', 'private, max-age=300, stale-while-revalidate=600');
+        return response;
     } catch (error) {
         console.error('Analytics stats error:', error);
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });

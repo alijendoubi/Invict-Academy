@@ -35,7 +35,9 @@ export async function GET(request: NextRequest) {
             orderBy: { createdAt: 'desc' },
         });
 
-        return NextResponse.json(applications);
+        const response = NextResponse.json(applications);
+        response.headers.set('Cache-Control', 'private, max-age=60, stale-while-revalidate=120');
+        return response;
     } catch (error) {
         console.error('Applications/My GET error:', error);
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });

@@ -23,9 +23,15 @@ export async function GET(request: NextRequest) {
             const user = await prisma.user.findUnique({
                 where: { id: userId },
                 select: {
-                    id: true, email: true, firstName: true, lastName: true,
-                    role: true, createdAt: true,
-                    studentProfile: { select: { id: true, phone: true, nationality: true } }
+                    id: true,
+                    firstName: true,
+                    lastName: true,
+                    email: true,
+                    role: true,
+                    requiresPasswordChange: true,
+                    studentProfile: {
+                        select: { phone: true, nationality: true, status: true }
+                    }
                 }
             });
 
@@ -118,14 +124,13 @@ export async function PATCH(request: NextRequest) {
             data: updateData,
             select: {
                 id: true,
-                email: true,
                 firstName: true,
                 lastName: true,
+                email: true,
+                role: true,
+                requiresPasswordChange: true,
                 studentProfile: {
-                    select: {
-                        phone: true,
-                        nationality: true,
-                    }
+                    select: { phone: true, nationality: true, status: true }
                 }
             }
         });

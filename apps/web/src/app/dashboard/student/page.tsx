@@ -98,9 +98,10 @@ export default function StudentDashboardPage() {
     useEffect(() => {
         const load = async () => {
             try {
-                const [profileRes, appsRes] = await Promise.allSettled([
+                const [profileRes, appsRes, docsRes] = await Promise.allSettled([
                     fetch("/api/user/profile"),
                     fetch("/api/applications/my"),
+                    fetch("/api/documents/my"),
                 ])
                 if (profileRes.status === "fulfilled") {
                     const data = await profileRes.value.json()
@@ -135,13 +136,11 @@ export default function StudentDashboardPage() {
                     )
                     setTasks(taskResults.flat())
                 }
-
-                // Fetch real documents
-                fetch('/api/documents/my')
-                    .then(r => r.json())
-                    .then(d => setDocuments(Array.isArray(d) ? d : []))
-                    .catch(() => { })
-                    .finally(() => setDocsLoading(false))
+                if (docsRes.status === "fulfilled") {
+                    const d = await docsRes.value.json()
+                    setDocuments(Array.isArray(d) ? d : [])
+                }
+                setDocsLoading(false)
             } catch {
                 // Error handled by empty states
             } finally {

@@ -49,15 +49,20 @@ export async function GET(request: NextRequest) {
                 user: {
                     select: { firstName: true, lastName: true, email: true }
                 },
-                applications: true,
+                applications: {
+                    select: { id: true, status: true, university: true, program: true, createdAt: true },
+                },
                 documents: {
                     orderBy: { createdAt: 'desc' },
+                    select: { id: true, type: true, status: true, createdAt: true, filename: true, url: true },
                 },
             },
             orderBy: { updatedAt: 'desc' },
         });
 
-        return NextResponse.json(students);
+        const response = NextResponse.json(students);
+        response.headers.set('Cache-Control', 'private, max-age=30, stale-while-revalidate=60');
+        return response;
     } catch (error: any) {
         console.error('[ERROR] Students GET:', error.message || error);
         return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });

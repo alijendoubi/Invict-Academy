@@ -47,17 +47,39 @@ function NotificationBell() {
     const ref = useRef<HTMLDivElement>(null)
 
     useEffect(() => {
-        const fetchNotifications = () => {
-            fetch("/api/notifications")
-                .then(r => r.json())
-                .then(d => Array.isArray(d) ? setNotifications(d) : [])
-                .catch(() => { })
+        const fetchNotifications = async () => {
+            try {
+                const res = await fetch("/api/notifications")
+                if (res.ok) {
+                    const d = await res.json()
+                    setNotifications(Array.isArray(d) ? d : [])
+                }
+            } catch { }
         }
 
         fetchNotifications()
 
-        const intervalId = setInterval(fetchNotifications, 60_000)
-        return () => clearInterval(intervalId)
+        let intervalId: NodeJS.Timeout | null = null
+
+        const startPolling = () => {
+            if (!intervalId) intervalId = setInterval(fetchNotifications, 60_000)
+        }
+        const stopPolling = () => {
+            if (intervalId) { clearInterval(intervalId); intervalId = null }
+        }
+
+        const handleVisibility = () => {
+            if (document.hidden) stopPolling()
+            else { fetchNotifications(); startPolling() }
+        }
+
+        startPolling()
+        document.addEventListener("visibilitychange", handleVisibility)
+
+        return () => {
+            stopPolling()
+            document.removeEventListener("visibilitychange", handleVisibility)
+        }
     }, [])
 
     // Close on outside click

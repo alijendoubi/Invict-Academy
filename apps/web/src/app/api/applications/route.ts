@@ -21,13 +21,7 @@ export async function GET(request: NextRequest) {
         } else if (!isManagement) {
             const userId = session.user.id;
             if (!userId) return NextResponse.json([]);
-
-            const profile = await prisma.studentProfile.findUnique({
-                where: { userId },
-                select: { id: true },
-            });
-            if (!profile) return NextResponse.json([]);
-            where.studentId = profile.id;
+            where.student = { userId };
         }
 
         const applications = await prisma.application.findMany({

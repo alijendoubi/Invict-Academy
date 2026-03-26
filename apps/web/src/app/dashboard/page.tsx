@@ -61,34 +61,40 @@ export default function DashboardPage() {
             "Documents": "text-blue-400"
         }
 
-        async function fetchStats() {
+        async function loadAll() {
             try {
-                const res = await fetch('/api/dashboard/stats')
-                const dashboardData = await res.json()
-                setData(dashboardData)
-
-                const formattedStats = dashboardData.stats.map((s: any) => ({
-                    ...s,
-                    icon: iconMap[s.name] || UserCircle,
-                    color: colorMap[s.name] || "text-gray-400"
-                }))
-
-                setStats(formattedStats)
+                const [statsRes, profileRes] = await Promise.all([
+                    fetch('/api/dashboard/stats'),
+                    fetch('/api/user/profile'),
+                ])
+                const [dashboardData, profileData] = await Promise.all([
+                    statsRes.json(),
+                    profileRes.json(),
+                ])
+                if (statsRes.ok) {
+                    setData(dashboardData)
+                    const formattedStats = (dashboardData.stats || []).map((s: any) => ({
+                        ...s,
+                        icon: iconMap[s.name] || UserCircle,
+                        color: colorMap[s.name] || "text-gray-400"
+                    }))
+                    setStats(formattedStats)
+                } else {
+                    setData(null)
+                    setStats([])
+                }
+                if (profileRes.ok && profileData?.studentProfile?.id) {
+                    setStudentId(profileData.studentProfile.id)
+                }
             } catch (err) {
-                console.error("Failed to fetch stats:", err)
+                console.error("Failed to load dashboard:", err)
                 setData(null)
                 setStats([])
             } finally {
                 setLoading(false)
             }
         }
-        fetchStats()
-
-        // Fetch the student profile id for uploads
-        fetch('/api/user/profile')
-            .then(r => r.json())
-            .then(d => { if (d?.studentProfile?.id) setStudentId(d.studentProfile.id) })
-            .catch(() => { })
+        loadAll()
     }, [])
 
     const recentActivity = data?.recentActivity || []
