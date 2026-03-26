@@ -302,16 +302,28 @@ export default function ApplicationsPage() {
 
             {/* Applications List */}
             <Tabs defaultValue="all" className="space-y-4">
-                <TabsList className="bg-card border border-white/10 p-1">
+                <TabsList className="bg-card border border-white/10 p-1 flex-wrap">
                     <TabsTrigger value="all" className="data-[state=active]:bg-white/5 data-[state=active]:text-cyan-400">All Applications</TabsTrigger>
+                    <TabsTrigger value="draft" className="data-[state=active]:bg-white/5 data-[state=active]:text-cyan-400">Draft</TabsTrigger>
                     <TabsTrigger value="submitted" className="data-[state=active]:bg-white/5 data-[state=active]:text-cyan-400">Submitted</TabsTrigger>
+                    <TabsTrigger value="under_review" className="data-[state=active]:bg-white/5 data-[state=active]:text-cyan-400">Under Review</TabsTrigger>
+                    <TabsTrigger value="documents_pending" className="data-[state=active]:bg-white/5 data-[state=active]:text-cyan-400">Documents Pending</TabsTrigger>
                     <TabsTrigger value="approved" className="data-[state=active]:bg-white/5 data-[state=active]:text-cyan-400">Approved</TabsTrigger>
+                    <TabsTrigger value="rejected" className="data-[state=active]:bg-white/5 data-[state=active]:text-cyan-400">Rejected</TabsTrigger>
                 </TabsList>
 
-                {(["all", "submitted", "approved"] as const).map(tab => {
+                {(["all", "submitted", "approved", "draft", "under_review", "documents_pending", "rejected"] as const).map(tab => {
+                    const TAB_STATUS_MAP: Record<string, string> = {
+                        submitted: 'SUBMITTED',
+                        approved: 'APPROVED',
+                        rejected: 'REJECTED',
+                        draft: 'DRAFT',
+                        under_review: 'UNDER_REVIEW',
+                        documents_pending: 'DOCUMENTS_PENDING',
+                    }
                     const tabApps = tab === "all"
                         ? filteredApplications
-                        : filteredApplications.filter(a => a.status === tab.toUpperCase())
+                        : filteredApplications.filter(a => a.status === TAB_STATUS_MAP[tab])
 
                     return (
                         <TabsContent key={tab} value={tab} className="space-y-4">

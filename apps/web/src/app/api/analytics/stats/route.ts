@@ -86,13 +86,14 @@ export async function GET(request: NextRequest) {
         ];
 
         // Build application status distribution
+        // Keys must match ApplicationStatus enum exactly. IN_PROGRESS is not a valid status — removed.
         const APP_COLORS: Record<string, string> = {
             DRAFT: '#6B7280',
+            DOCUMENTS_PENDING: '#F59E0B',
             SUBMITTED: '#3B82F6',
             UNDER_REVIEW: '#8B5CF6',
             APPROVED: '#10B981',
             REJECTED: '#EF4444',
-            IN_PROGRESS: '#F59E0B',
         };
         const applicationStatusData = applicationsByStatus.map(a => ({
             name: a.status.replace(/_/g, ' '),

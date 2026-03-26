@@ -79,13 +79,13 @@ export async function GET(request: NextRequest) {
                     orderBy: { createdAt: 'desc' },
                     take: 5,
                     include: {
-                        student: { include: { user: { select: { firstName: true, lastName: true } } } }
+                        student: { select: { user: { select: { firstName: true, lastName: true } } } }
                     },
                 }),
                 prisma.studentProfile.findMany({
                     orderBy: { createdAt: 'desc' },
                     take: 3,
-                    include: { user: { select: { firstName: true, lastName: true, createdAt: true } } },
+                    include: { user: { select: { firstName: true, lastName: true } } },
                 }),
             ]);
 
@@ -119,7 +119,7 @@ export async function GET(request: NextRequest) {
                     type: 'STUDENT',
                     title: `New student: ${s.user.firstName} ${s.user.lastName}`,
                     body: 'A new student account has been created.',
-                    createdAt: s.user.createdAt,
+                    createdAt: s.createdAt,
                     read: true,
                     href: '/dashboard/students',
                 });

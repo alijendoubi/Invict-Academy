@@ -55,3 +55,26 @@ export async function POST(
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
     }
 }
+
+export async function GET(
+    request: NextRequest,
+    { params }: { params: Promise<{ id: string }> }
+) {
+    try {
+        const { id: applicationId } = await params;
+        const session = await getSession();
+        if (!session) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
+
+        const items = await prisma.checklistItem.findMany({
+            where: { applicationId },
+            orderBy: { id: 'asc' },
+        });
+
+        return NextResponse.json(items);
+    } catch (error) {
+        console.error('Checklist GET error:', error);
+        return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    }
+}

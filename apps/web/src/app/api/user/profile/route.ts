@@ -40,14 +40,7 @@ export async function GET(request: NextRequest) {
             });
         } catch (dbError) {
             console.error('Profile DB error:', dbError);
-            // Fallback: return session data as profile
-            return NextResponse.json({
-                id: userId,
-                email,
-                firstName: 'User',
-                lastName: '',
-                role: session.user?.role || 'ADMIN',
-            });
+            return NextResponse.json({ error: 'Service unavailable' }, { status: 503 });
         }
     } catch (error) {
         console.error('Profile GET error:', error);

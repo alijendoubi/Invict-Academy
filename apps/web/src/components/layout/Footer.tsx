@@ -56,7 +56,15 @@ export function Footer() {
                                 style={{ width: "auto" }}
                             />
                         </Link>
-                        <p className="text-gray-400 max-w-sm leading-relaxed" dangerouslySetInnerHTML={{ __html: t.footer.tagline.replace('2,400+', '<strong className="text-white">2,400+</strong>').replace('2 400+', '<strong className="text-white">2 400+</strong>') }} />
+                        <p className="text-gray-400 max-w-sm leading-relaxed">
+                            {(() => {
+                                const tagline: string = t.footer.tagline;
+                                const marker = tagline.includes('2,400+') ? '2,400+' : tagline.includes('2 400+') ? '2 400+' : null;
+                                if (!marker) return tagline;
+                                const [before, after] = tagline.split(marker);
+                                return <>{before}<strong className="text-white">{marker}</strong>{after}</>;
+                            })()}
+                        </p>
                         {/* Community testimonial snippet */}
                         <div className="flex items-start gap-3 p-4 rounded-2xl bg-white/[0.03] border border-white/5">
                             <div className="h-8 w-8 rounded-full bg-cyan-500/20 flex items-center justify-center shrink-0 text-cyan-400 font-bold text-sm">A</div>

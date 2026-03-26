@@ -9,7 +9,6 @@ export async function POST() {
         await prisma.session.deleteMany({ where: { refreshToken: token } }).catch(() => {});
     }
     cookieStore.delete('session');
-    cookieStore.delete('refresh_token');
 
     return NextResponse.json({ success: true });
 }

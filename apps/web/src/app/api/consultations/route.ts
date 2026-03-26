@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'Student not found' }, { status: 404 });
         }
 
-        if (!student.phone) {
+        if (!student.phone?.trim()) {
             return NextResponse.json({ error: 'Student must have a phone number for consultation scheduling' }, { status: 400 });
         }
 
@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
                 studentId,
                 scheduledAt: new Date(scheduledAt),
                 notes,
-                whatsappPhone: student.phone,
+                whatsappPhone: student.phone.trim(),
             }
         });
 

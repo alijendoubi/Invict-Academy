@@ -59,7 +59,11 @@ export async function POST(request: NextRequest) {
         }
 
         const body = await request.json();
-        const { studentId, universityName, courseName, type, status, country, intakeTerm, deadline } = body;
+        const { studentId, university: universityField, universityName, program: programField, courseName, type, status, country, intakeTerm, deadline } = body;
+        // The form submits `universityName` and `courseName`; the DB fields are `university` and `program`.
+        // We accept both spellings so the API works from any caller. Do not remove the fallback.
+        const university = universityField || universityName;
+        const program = programField || courseName;
 
         let finalStudentId = studentId;
 
@@ -80,8 +84,8 @@ export async function POST(request: NextRequest) {
         const application = await prisma.application.create({
             data: {
                 studentId: finalStudentId,
-                university: universityName,
-                program: courseName,
+                university: university,
+                program: program,
                 country: country || 'Italy',
                 type: type || 'UNIVERSITY',
                 status: status || 'DRAFT',

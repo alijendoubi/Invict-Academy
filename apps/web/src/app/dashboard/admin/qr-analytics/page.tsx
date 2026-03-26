@@ -7,37 +7,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 
-// Demo QR scan data (replace with real API call)
-const DEMO_STATS = {
-    totalScans: 847,
-    uniqueSessions: 612,
-    countries: 14,
-    topSources: [
-        { source: "brochure-italy", scans: 312, change: +18 },
-        { source: "business-card", scans: 198, change: +5 },
-        { source: "brochure-germany", scans: 143, change: +32 },
-        { source: "instagram-bio", scans: 94, change: -3 },
-        { source: "exhibition-tunisia", scans: 61, change: +67 },
-        { source: "direct", scans: 39, change: +10 },
-    ],
-    recentScans: [
-        { source: "brochure-italy", timestamp: "2026-02-25T00:45:00Z", country: "Tunisia" },
-        { source: "business-card", timestamp: "2026-02-25T00:38:00Z", country: "Algeria" },
-        { source: "brochure-germany", timestamp: "2026-02-25T00:30:00Z", country: "Morocco" },
-        { source: "instagram-bio", timestamp: "2026-02-25T00:22:00Z", country: "Libya" },
-        { source: "brochure-italy", timestamp: "2026-02-25T00:18:00Z", country: "Tunisia" },
-        { source: "exhibition-tunisia", timestamp: "2026-02-25T00:10:00Z", country: "Tunisia" },
-        { source: "brochure-italy", timestamp: "2026-02-24T23:55:00Z", country: "Tunisia" },
-        { source: "business-card", timestamp: "2026-02-24T23:48:00Z", country: "UAE" },
-    ],
-    conversionFunnel: [
-        { stage: "QR Scanned", count: 847 },
-        { stage: "Explored Destinations", count: 623 },
-        { stage: "Viewed University", count: 418 },
-        { stage: "Clicked WhatsApp CTA", count: 201 },
-        { stage: "Booked Consultation", count: 89 },
-    ],
-}
 
 function timeAgo(ts: string) {
     const diff = Math.floor((Date.now() - new Date(ts).getTime()) / 60000)
@@ -47,15 +16,23 @@ function timeAgo(ts: string) {
 }
 
 export default function QRAnalyticsPage() {
-    const [stats, setStats] = useState(DEMO_STATS)
+    const [stats, setStats] = useState<any>(null)
     const [loading, setLoading] = useState(true)
+    const [fetchError, setFetchError] = useState(false)
 
     async function refresh() {
         setLoading(true)
+        setFetchError(false)
         try {
             const r = await fetch("/api/qr-analytics/stats")
-            if (r.ok) setStats(await r.json())
-        } catch { }
+            if (r.ok) {
+                setStats(await r.json())
+            } else {
+                setFetchError(true)
+            }
+        } catch {
+            setFetchError(true)
+        }
         setLoading(false)
     }
 
@@ -63,8 +40,8 @@ export default function QRAnalyticsPage() {
         refresh()
     }, [])
 
-    const maxScans = Math.max(...stats.topSources.map(s => s.scans), 1)
-    const maxFunnel = Math.max(stats.conversionFunnel[0].count, 1)
+    const maxScans = stats ? Math.max(...stats.topSources.map((s: any) => s.scans), 1) : 1
+    const maxFunnel = stats ? Math.max(stats.conversionFunnel[0].count, 1) : 1
 
     return (
         <div className="p-6 min-h-screen">
@@ -81,6 +58,22 @@ export default function QRAnalyticsPage() {
                 </Button>
             </div>
 
+            {/* Loading / Error / Empty state */}
+            {loading && !stats && (
+                <div className="flex items-center justify-center py-20">
+                    <RefreshCw size={24} className="animate-spin text-cyan-500" />
+                </div>
+            )}
+            {!loading && (fetchError || !stats) && (
+                <div className="text-center py-20 text-gray-500">
+                    <QrCode className="h-12 w-12 mx-auto mb-4 opacity-20" />
+                    <p className="text-lg font-semibold mb-1">No analytics data available</p>
+                    <p className="text-sm">Could not load QR scan data. Try refreshing.</p>
+                </div>
+            )}
+
+            {/* Main content — only rendered when stats loaded */}
+            {!loading && stats && (<>
             {/* KPI Cards */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
                 {[
@@ -109,7 +102,7 @@ export default function QRAnalyticsPage() {
                         </CardTitle>
                     </CardHeader>
                     <CardContent className="pt-5 space-y-4">
-                        {stats.topSources.map((s, i) => (
+                        {stats.topSources.map((s: any, i: number) => (
                             <div key={s.source}>
                                 <div className="flex items-center justify-between mb-1">
                                     <span className="text-gray-300 text-sm font-mono">{s.source}</span>
@@ -142,7 +135,7 @@ export default function QRAnalyticsPage() {
                         </CardTitle>
                     </CardHeader>
                     <CardContent className="pt-5 space-y-3">
-                        {stats.conversionFunnel.map((stage, i) => {
+                        {stats.conversionFunnel.map((stage: any, i: number) => {
                             const pct = Math.round((stage.count / maxFunnel) * 100)
                             const colors = ["bg-cyan-500", "bg-blue-500", "bg-indigo-500", "bg-purple-500", "bg-green-500"]
                             return (
@@ -183,7 +176,7 @@ export default function QRAnalyticsPage() {
                 </CardHeader>
                 <CardContent className="pt-4">
                     <div className="space-y-2">
-                        {stats.recentScans.map((scan, i) => (
+                        {stats.recentScans.map((scan: any, i: number) => (
                             <motion.div key={i} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.04 }}
                                 className="flex items-center justify-between p-3 rounded-xl bg-white/[0.02] hover:bg-white/[0.04] transition-colors">
                                 <div className="flex items-center gap-3">
@@ -217,6 +210,7 @@ export default function QRAnalyticsPage() {
                     ))}
                 </div>
             </div>
+        </>)}
         </div>
     )
 }

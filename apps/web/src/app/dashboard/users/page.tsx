@@ -32,21 +32,23 @@ export default function UsersPage() {
     const [inviteError, setInviteError] = useState("")
     const [newCredentials, setNewCredentials] = useState<{ email: string, password: string, name: string } | null>(null)
 
-    useEffect(() => {
-        const load = async () => {
-            try {
-                const res = await fetch("/api/users")
-                const data = await res.json()
-                if (Array.isArray(data)) setUsers(data)
-                else if (Array.isArray(data?.data)) setUsers(data.data)
-                else throw new Error("not array")
-            } catch {
-                setUsers([])
-            } finally {
-                setLoading(false)
-            }
+    const loadUsers = async () => {
+        setLoading(true)
+        try {
+            const res = await fetch("/api/users")
+            const data = await res.json()
+            if (Array.isArray(data)) setUsers(data)
+            else if (Array.isArray(data?.data)) setUsers(data.data)
+            else throw new Error("not array")
+        } catch {
+            setUsers([])
+        } finally {
+            setLoading(false)
         }
-        load()
+    }
+
+    useEffect(() => {
+        loadUsers()
     }, [])
 
     const filtered = users.filter(u =>
@@ -95,9 +97,9 @@ export default function UsersPage() {
                                     return;
                                 }
 
-                                // Update UI with new user
-                                setUsers([json.user, ...users]);
                                 setDialogOpen(false);
+                                // Re-fetch from server to ensure fresh complete data
+                                loadUsers();
 
                                 // Show credentials dialog
                                 setNewCredentials({

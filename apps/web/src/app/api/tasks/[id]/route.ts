@@ -53,7 +53,7 @@ export async function PATCH(
                 title: title || undefined,
                 description: description || undefined,
                 priority: priority || undefined,
-                dueDate: dueDate ? new Date(dueDate) : undefined,
+                dueDate: dueDate !== undefined ? (dueDate ? new Date(dueDate) : null) : undefined,
             };
         } else {
             // Students can only update status

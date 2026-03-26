@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { getSession, verifyStudentAccess, logAudit } from '@/lib/auth';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(
     request: NextRequest,
     { params }: { params: Promise<{ id: string }> }
@@ -118,6 +120,12 @@ export async function DELETE(
         const userId = studentProfile.userId;
         const invoiceIds = studentProfile.invoices.map(i => i.id);
 
+        // Fetch application IDs for this student so we only delete their application-linked tasks
+        const applicationIds = (await prisma.application.findMany({
+            where: { studentId: studentProfileId },
+            select: { id: true },
+        })).map(a => a.id);
+
         await prisma.$transaction(async (tx) => {
             if (invoiceIds.length > 0) {
                 await tx.payment.deleteMany({
@@ -129,9 +137,11 @@ export async function DELETE(
                 where: { studentId: studentProfileId }
             });
 
-            await tx.task.deleteMany({
-                where: { OR: [{ creatorId: userId }, { assignedToId: userId }] }
-            });
+            if (applicationIds.length > 0) {
+                await tx.task.deleteMany({
+                    where: { applicationId: { in: applicationIds } }
+                });
+            }
 
             await tx.notificationLog.deleteMany({
                 where: { userId: userId }

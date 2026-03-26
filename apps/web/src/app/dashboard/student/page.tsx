@@ -124,18 +124,16 @@ export default function StudentDashboardPage() {
                     const apps = await appsRes.value.json()
                     const appList = Array.isArray(apps) ? apps : []
                     setApplications(appList)
-                    // Fetch tasks for all applications
-                    const allTasks: any[] = []
-                    for (const app of appList) {
-                        try {
-                            const taskRes = await fetch(`/api/applications/${app.id}/tasks`)
-                            if (taskRes.ok) {
-                                const t = await taskRes.json()
-                                if (Array.isArray(t)) allTasks.push(...t.map((task: any) => ({ ...task, applicationName: app.university })))
-                            }
-                        } catch {}
-                    }
-                    setTasks(allTasks)
+                    // Fetch tasks for all applications in parallel
+                    const taskResults = await Promise.all(
+                        appList.map((app: any) =>
+                            fetch(`/api/applications/${app.id}/tasks`)
+                                .then(r => r.ok ? r.json() : [])
+                                .then((t: any[]) => Array.isArray(t) ? t.map((task: any) => ({ ...task, applicationName: app.university })) : [])
+                                .catch(() => [] as any[])
+                        )
+                    )
+                    setTasks(taskResults.flat())
                 }
 
                 // Fetch real documents

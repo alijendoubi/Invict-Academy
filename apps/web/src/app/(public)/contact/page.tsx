@@ -29,12 +29,16 @@ export default function ContactPage() {
         };
 
         try {
-            await fetch("/api/leads", {
+            const res = await fetch("/api/leads", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(data),
             });
-            // Always show success — even if DB is down the lead info was attempted
+            if (!res.ok) {
+                const err = await res.json().catch(() => ({}));
+                setError((err as any).error || 'Something went wrong. Please try again.');
+                return;
+            }
             setSubmitted(true);
         } catch (err) {
             console.error(err);

@@ -42,6 +42,7 @@ export default function LeadsPage() {
     const [statusFilter, setStatusFilter] = useState("all")
     const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
     const [submitting, setSubmitting] = useState(false)
+    const [addLeadError, setAddLeadError] = useState("")
     const [actionLoading, setActionLoading] = useState<string | null>(null)
     const [convertResult, setConvertResult] = useState<{ leadId: string; password: string; studentName: string } | null>(null)
 
@@ -96,12 +97,14 @@ export default function LeadsPage() {
 
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault()
-        fetchLeads()
+        // No explicit fetchLeads() needed — the useEffect re-runs automatically
+        // when searchTerm or statusFilter change (via fetchLeads dependency)
     }
 
     const handleAddLead = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault()
         setSubmitting(true)
+        setAddLeadError("")
         const formData = new FormData(e.currentTarget)
         const data = Object.fromEntries(formData.entries())
 
@@ -114,10 +117,15 @@ export default function LeadsPage() {
 
             if (res.ok) {
                 setIsAddDialogOpen(false)
+                setAddLeadError("")
                 fetchLeads()
+            } else {
+                const json = await res.json().catch(() => ({}))
+                setAddLeadError(json.error || "Failed to add lead. Please try again.")
             }
         } catch (error) {
             console.error("Failed to add lead:", error)
+            setAddLeadError("Network error — could not add lead.")
         } finally {
             setSubmitting(false)
         }
@@ -223,6 +231,9 @@ export default function LeadsPage() {
                                     </SelectContent>
                                 </Select>
                             </div>
+                            {addLeadError && (
+                                <p className="text-red-400 text-sm font-medium">{addLeadError}</p>
+                            )}
                             <DialogFooter className="pt-4">
                                 <Button type="submit" disabled={submitting} className="w-full bg-cyan-600 hover:bg-cyan-700">
                                     {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : "Create Lead"}
@@ -278,7 +289,7 @@ export default function LeadsPage() {
                                     <SelectItem value="LOST">Lost</SelectItem>
                                 </SelectContent>
                             </Select>
-                            <Button variant="outline" className="border-white/10 text-gray-300" onClick={() => fetchLeads()}>
+                            <Button variant="outline" className="border-white/10 text-gray-300" onClick={() => {}}>
                                 <Filter className="h-4 w-4 mr-2" />
                                 Apply
                             </Button>

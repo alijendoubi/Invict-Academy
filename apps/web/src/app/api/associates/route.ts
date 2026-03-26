@@ -98,8 +98,12 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
         }
 
-        const [firstName, ...lastNameParts] = name.split(' ');
-        const lastName = lastNameParts.join(' ') || 'Associate';
+        if (!name.trim().includes(' ')) {
+            return NextResponse.json({ error: 'Please provide full name (first and last name)' }, { status: 400 });
+        }
+
+        const [firstName, ...lastNameParts] = name.trim().split(' ');
+        const lastName = lastNameParts.join(' ');
 
         const existing = await prisma.user.findUnique({ where: { email } });
         if (existing) {

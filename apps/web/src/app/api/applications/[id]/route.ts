@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { getSession, verifyStudentAccess, logAudit } from '@/lib/auth';
+import { emailService } from '@/lib/email';
 export const dynamic = 'force-dynamic';
 
 export async function GET(
@@ -76,10 +77,14 @@ export async function PATCH(
 
         const isAdmin = ['SUPER_ADMIN', 'ADMIN', 'STAFF'].includes(session.user.role);
 
+        if (!isAdmin) {
+            return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+        }
+
         const updateData: any = {};
-        if (status && isAdmin) updateData.status = status;
+        if (status) updateData.status = status;
         if (intakeTerm) updateData.intakeTerm = intakeTerm;
-        if (deadline) updateData.deadline = new Date(deadline);
+        if (deadline !== undefined) updateData.deadline = deadline ? new Date(deadline) : null;
         if (university) updateData.university = university;
         if (program) updateData.program = program;
         if (country) updateData.country = country;
@@ -87,6 +92,13 @@ export async function PATCH(
         const updatedApplication = await prisma.application.update({
             where: { id },
             data: updateData,
+            include: {
+                student: {
+                    include: {
+                        user: { select: { email: true, firstName: true } },
+                    },
+                },
+            },
         });
 
         // ── Auto-sync student profile status ──────────────────────────────────
@@ -105,6 +117,20 @@ export async function PATCH(
                     where: { id: application.studentId },
                     data: { status: newStudentStatus },
                 });
+            }
+        }
+
+        // ── Send status update email to student ────────────────────────────────
+        if (status) {
+            try {
+                const studentEmail = updatedApplication.student?.user?.email;
+                const studentFirstName = updatedApplication.student?.user?.firstName || 'Student';
+                const universityName = updatedApplication.university || 'your university';
+                if (studentEmail) {
+                    await emailService.sendApplicationStatusUpdate(studentEmail, studentFirstName, universityName, status);
+                }
+            } catch (emailError) {
+                console.error('Failed to send application status email:', emailError);
             }
         }
 

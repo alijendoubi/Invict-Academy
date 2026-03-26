@@ -53,7 +53,9 @@ export default async function proxy(request: NextRequest) {
     if (isProtectedRoute) {
         const cookie = request.cookies.get('session')?.value;
         if (!cookie) {
-            return NextResponse.redirect(new URL('/auth/login', request.nextUrl));
+            const locale = request.cookies.get('invict-locale')?.value || defaultLocale;
+            const safeLocale = locales.includes(locale) ? locale : defaultLocale;
+            return NextResponse.redirect(new URL(`/${safeLocale}/auth/login`, request.nextUrl));
         }
         try {
             const payload = await decrypt(cookie);
@@ -77,7 +79,9 @@ export default async function proxy(request: NextRequest) {
             }
 
         } catch (err) {
-            return NextResponse.redirect(new URL('/auth/login', request.nextUrl));
+            const locale = request.cookies.get('invict-locale')?.value || defaultLocale;
+            const safeLocale = locales.includes(locale) ? locale : defaultLocale;
+            return NextResponse.redirect(new URL(`/${safeLocale}/auth/login`, request.nextUrl));
         }
     }
 

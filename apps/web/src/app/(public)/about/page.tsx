@@ -26,8 +26,8 @@ export default function AboutPage() {
 
                 <div className="grid md:grid-cols-4 gap-6 mb-24">
                     {[
-                        { icon: Users, title: "Student-Fist", desc: "Your goals drive our strategy. No generic advice." },
-                        { icon: Target, title: "Result-Oriented", desc: "98% visa success rate. We focus on outcomes." },
+                        { icon: Users, title: "Student-First", desc: "Your goals drive our strategy. No generic advice." },
+                        { icon: Target, title: "Result-Oriented", desc: "99% visa success rate. We focus on outcomes." },
                         { icon: Shield, title: "Transparency", desc: "No hidden fees. Honest eligibility assessments." },
                         { icon: Award, title: "Excellence", desc: "We aim for top-tier universities, not just any offer." },
                     ].map((item, i) => (

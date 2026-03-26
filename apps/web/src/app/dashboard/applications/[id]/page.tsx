@@ -459,10 +459,10 @@ export default function ApplicationDetailsPage() {
                             </CardHeader>
                             <CardContent>
                                 <div className="space-y-6 relative before:absolute before:left-2.5 before:top-2 before:bottom-2 before:w-[1px] before:bg-white/10">
-                                    {application.stepLogs?.length === 0 ? (
+                                    {!application.stepLogs?.length ? (
                                         <p className="text-xs text-gray-600 pl-8">No history available yet.</p>
                                     ) : (
-                                        application.stepLogs.map((log: any, idx: number) => (
+                                        (application.stepLogs ?? []).map((log: any, idx: number) => (
                                             <div key={log.id} className="relative pl-8">
                                                 <div className="absolute left-0 top-1 w-5 h-5 rounded-full bg-card border-4 border-white/10 flex items-center justify-center ring-4 ring-card">
                                                     <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.5)]" />

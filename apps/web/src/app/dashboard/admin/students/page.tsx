@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useSearchParams } from "next/navigation"
 import { motion, AnimatePresence } from "framer-motion"
 import {
     Users, MessageSquare, Calendar, CheckSquare, TrendingUp,
@@ -45,8 +46,6 @@ export default function AdminStudentsPage() {
     const [loading, setLoading] = useState(true)
     const [selectedStudent, setSelectedStudent] = useState<any | null>(null)
     const [search, setSearch] = useState("")
-    const [selectedStatus, setSelectedStatus] = useState<StudentStatusType | "">("")
-
     const [meetingDate, setMeetingDate] = useState("")
     const [meetingType, setMeetingType] = useState("Video Call")
     const [scheduling, setScheduling] = useState(false)
@@ -65,8 +64,8 @@ export default function AdminStudentsPage() {
     const [sendingMessage, setSendingMessage] = useState(false)
     const [messageSentInternal, setMessageSentInternal] = useState(false)
 
-    const searchParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
-    const targetStudentId = searchParams?.get('studentId');
+    const searchParams = useSearchParams();
+    const targetStudentId = searchParams.get('studentId');
 
     useEffect(() => {
         fetch("/api/students")
@@ -79,7 +78,12 @@ export default function AdminStudentsPage() {
                 setStudents(list)
                 if (list.length > 0) {
                     const target = targetStudentId ? list.find((s: any) => s.id === targetStudentId) : null;
-                    setSelectedStudent(target || list[0])
+                    const initialStudent = target || list[0];
+                    // Fetch full detail (includes documents and applications)
+                    fetch(`/api/students/${initialStudent.id}`)
+                        .then(r => r.ok ? r.json() : initialStudent)
+                        .then(data => setSelectedStudent(data))
+                        .catch(() => setSelectedStudent(initialStudent))
                 } else if (!Array.isArray(data)) {
                     // Force zero students state to avoid crash if data is error object
                     setStudents([]);
@@ -209,6 +213,18 @@ export default function AdminStudentsPage() {
         }
     }
 
+    async function fetchStudentDetail(id: string) {
+        try {
+            const res = await fetch(`/api/students/${id}`)
+            if (res.ok) {
+                const data = await res.json()
+                setSelectedStudent(data)
+            }
+        } catch (error) {
+            console.error("Failed to fetch student detail:", error)
+        }
+    }
+
     async function handleDocView(docId: string) {
         try {
             const res = await fetch(`/api/documents/${docId}`)
@@ -230,7 +246,6 @@ export default function AdminStudentsPage() {
                 body: JSON.stringify({ status: newStatus }),
             })
             if (res.ok) {
-                setSelectedStatus(newStatus)
                 setDisplayStatus(newStatus)
                 // Update local state
                 setSelectedStudent((prev: any) => prev ? { ...prev, status: newStatus } : prev)
@@ -295,7 +310,7 @@ export default function AdminStudentsPage() {
                             return (
                                 <motion.button
                                     key={student.id}
-                                    onClick={() => { setSelectedStudent(student); setSelectedStatus("") }}
+                                    onClick={() => { fetchStudentDetail(student.id) }}
                                     whileHover={{ x: 2 }}
                                     className={`w-full text-left p-4 rounded-2xl border transition-all ${selectedStudent?.id === student.id ? "bg-cyan-500/10 border-cyan-500/30" : "bg-white/[0.02] border-white/5 hover:border-white/10"}`}
                                 >
@@ -370,7 +385,7 @@ export default function AdminStudentsPage() {
                                                 <button
                                                     key={key}
                                                     onClick={() => handleStatusChange(key)}
-                                                    className={`text-xs px-3 py-1.5 rounded-full border transition-all ${displayStatus === key || selectedStatus === key ? `${cfg.bg} ${cfg.color} border-current` : "bg-white/[0.02] text-gray-500 border-white/5 hover:border-white/20"}`}
+                                                    className={`text-xs px-3 py-1.5 rounded-full border transition-all ${displayStatus === key ? `${cfg.bg} ${cfg.color} border-current` : "bg-white/[0.02] text-gray-500 border-white/5 hover:border-white/20"}`}
                                                 >
                                                     {cfg.label}
                                                 </button>

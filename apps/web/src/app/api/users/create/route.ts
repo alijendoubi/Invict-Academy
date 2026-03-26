@@ -29,6 +29,11 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
         }
 
+        const validRoles = ['SUPER_ADMIN', 'ADMIN', 'STAFF', 'STUDENT', 'ASSOCIATE'];
+        if (!validRoles.includes(role)) {
+            return NextResponse.json({ error: `Invalid role. Must be one of: ${validRoles.join(', ')}` }, { status: 400 });
+        }
+
         const existing = await prisma.user.findUnique({ where: { email } });
         if (existing) {
             return NextResponse.json({ error: 'A user with this email already exists' }, { status: 409 });
@@ -43,7 +48,8 @@ export async function POST(request: NextRequest) {
                 lastName,
                 email,
                 password: hashedPassword,
-                role: role as any,
+                role: role as 'SUPER_ADMIN' | 'ADMIN' | 'STAFF' | 'STUDENT' | 'ASSOCIATE',
+                requiresPasswordChange: true,
             },
             select: {
                 id: true, firstName: true, lastName: true, email: true, role: true, createdAt: true,
