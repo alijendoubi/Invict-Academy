@@ -12,7 +12,9 @@ export const metadata: Metadata = {
     title: "Invict Academy — Study in Europe",
     description: "Join 2,400+ students who secured admission and scholarships at top European universities. Start your journey today.",
     icons: {
-        icon: "/Logo.png",
+        icon: "/icon.jpg",
+        shortcut: "/icon.jpg",
+        apple: "/icon.jpg",
     },
 };
 
