@@ -147,6 +147,8 @@ export default function StudentsPage() {
             const data = await res.json()
             if (!res.ok) throw new Error(data.error || "Failed to delete student")
 
+            setStudents(prev => prev.filter(s => s.id !== studentToDelete))
+            if (selectedStudentId === studentToDelete) { setSelectedStudentId(null); setStudentProfile(null) }
             setStudentToDelete(null)
             fetchStudents()
         } catch (error: any) {
