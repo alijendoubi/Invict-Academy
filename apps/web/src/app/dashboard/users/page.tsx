@@ -6,13 +6,14 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import {
-    Users, UserPlus, Search, Mail, Phone, Shield,
-    MoreHorizontal, Loader2, CheckCircle2, XCircle, Copy, Share2, Eye, EyeOff, Key
+    Users, UserPlus, Search, Mail,
+    MoreHorizontal, Loader2, CheckCircle2, XCircle, Key
 } from "lucide-react"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { CredentialsDialog } from "@/components/CredentialsDialog"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 
 
 
@@ -31,6 +32,20 @@ export default function UsersPage() {
     const [dialogOpen, setDialogOpen] = useState(false)
     const [inviteError, setInviteError] = useState("")
     const [newCredentials, setNewCredentials] = useState<{ email: string, password: string, name: string } | null>(null)
+    const [actionLoading, setActionLoading] = useState<string | null>(null)
+
+    const resetPassword = async (user: any) => {
+        setActionLoading(user.id)
+        try {
+            const res = await fetch(`/api/users/${user.id}/reset-password`, { method: "POST" })
+            if (res.ok) {
+                const json = await res.json()
+                setNewCredentials({ email: user.email, password: json.tempPassword, name: `${user.firstName} ${user.lastName}` })
+            }
+        } finally {
+            setActionLoading(null)
+        }
+    }
 
     const loadUsers = async () => {
         setLoading(true)
@@ -134,6 +149,7 @@ export default function UsersPage() {
                                         <SelectValue placeholder="Select role..." />
                                     </SelectTrigger>
                                     <SelectContent className="bg-card border-white/10 text-white">
+                                        <SelectItem value="SUPER_ADMIN">Super Admin</SelectItem>
                                         <SelectItem value="ADMIN">Admin</SelectItem>
                                         <SelectItem value="STAFF">Staff</SelectItem>
                                         <SelectItem value="ASSOCIATE">Associate</SelectItem>
@@ -221,9 +237,18 @@ export default function UsersPage() {
                                             ? <CheckCircle2 size={14} className="text-green-400" />
                                             : <XCircle size={14} className="text-red-400" />
                                         }
-                                        <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-gray-600 hover:text-white opacity-0 group-hover:opacity-100">
-                                            <MoreHorizontal size={14} />
-                                        </Button>
+                                        <DropdownMenu>
+                                            <DropdownMenuTrigger asChild>
+                                                <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-gray-600 hover:text-white opacity-0 group-hover:opacity-100" disabled={actionLoading === u.id}>
+                                                    {actionLoading === u.id ? <Loader2 size={14} className="animate-spin" /> : <MoreHorizontal size={14} />}
+                                                </Button>
+                                            </DropdownMenuTrigger>
+                                            <DropdownMenuContent align="end" className="bg-card border-white/10 text-white">
+                                                <DropdownMenuItem className="hover:bg-white/10 cursor-pointer" onClick={() => resetPassword(u)}>
+                                                    <Key size={13} className="mr-2" /> Reset Password
+                                                </DropdownMenuItem>
+                                            </DropdownMenuContent>
+                                        </DropdownMenu>
                                     </div>
                                 </div>
                             ))}
